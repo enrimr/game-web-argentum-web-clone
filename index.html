@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Argentum Demo - MMORPG 2D</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🗡️ Argentum Demo 🛡️</h1>
+            <div class="stats">
+                <span>❤️ HP: <span id="hp">100</span>/100</span>
+                <span>⚡ Mana: <span id="mana">50</span>/50</span>
+                <span>💰 Oro: <span id="gold">0</span></span>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="main-game">
+                <canvas id="gameCanvas" width="640" height="480"></canvas>
+                <div class="controls">
+                    <p>🎮 Controles: Flechas o WASD para moverte | ESPACIO para interactuar</p>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="panel">
+                    <h3>📦 Inventario</h3>
+                    <div id="inventory" class="inventory">
+                        <div class="item-slot empty">-</div>
+                        <div class="item-slot empty">-</div>
+                        <div class="item-slot empty">-</div>
+                        <div class="item-slot empty">-</div>
+                        <div class="item-slot empty">-</div>
+                        <div class="item-slot empty">-</div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>📜 Misiones</h3>
+                    <ul class="quest-list">
+                        <li>🗺️ Explora el mapa</li>
+                        <li>⚔️ Encuentra un tesoro</li>
+                    </ul>
+                </div>
+                
+                <div class="panel">
+                    <h3>💬 Chat</h3>
+                    <div id="chatLog" class="chat-log">
+                        <p><span class="system">Sistema:</span> ¡Bienvenido a Argentum Demo!</p>
+                        <p><span class="system">Sistema:</span> Usa las flechas para moverte.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
