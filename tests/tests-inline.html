@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests - Argentum Demo</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #0a0a0a;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        #output {
+            background: #000;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            min-height: 400px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .info { color: #00aaff; }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #00cc00; }
+        .note {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid #ffd700;
+            padding: 10px;
+            margin: 10px 0;
+            color: #ffd700;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Tests - Argentum Demo</h1>
+        <div class="note">ℹ️ Funciona sin servidor (sin CORS)</div>
+        <div style="text-align: center;">
+            <button onclick="runAllTests()">▶️ Ejecutar Tests</button>
+            <button onclick="clearOutput()">🗑️ Limpiar</button>
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // CONFIG
+        const CONFIG = {
+            TILE_SIZE: 32, MAP_WIDTH: 20, MAP_HEIGHT: 13,
+            CANVAS_WIDTH: 640, CANVAS_HEIGHT: 416,
+            PLAYER: { STARTING_X: 10, STARTING_Y: 7, STARTING_HP: 100, STARTING_MANA: 50, 
+                      BASE_DAMAGE_MIN: 10, BASE_DAMAGE_MAX: 15 },
+            LEVEL: { STARTING_LEVEL: 1, STARTING_EXP: 0, BASE_EXP_TO_LEVEL: 100, EXP_MULTIPLIER: 1.5 },
+            ENEMY: { COUNT: 4, HP: 30, DAMAGE_MIN: 5, DAMAGE_MAX: 10 },
+            WORLD: { CHEST_GOLD_MIN: 20, CHEST_GOLD_MAX: 50 },
+            TILES: { GRASS: 0, WATER: 1, STONE: 2, TREE: 3 },
+        };
+
+        // State
+        let gameState = {
+            player: { x: 10, y: 7, hp: 100, maxHp: 100, mana: 50, maxMana: 50, gold: 0, 
+                     inventory: [], level: 1, exp: 0, expToNextLevel: 100 },
+            stats: { enemiesKilled: 0, chestsOpened: 0 },
+            map: [], objects: [], enemies: []
+        };
+
+        function resetGameState() {
+            gameState.player = { x: 10, y: 7, hp: 100, maxHp: 100, mana: 50, maxMana: 50, 
+                                gold: 0, inventory: [], level: 1, exp: 0, expToNextLevel: 100 };
+            gameState.stats = { enemiesKilled: 0, chestsOpened: 0 };
+            gameState.map = [];
+            gameState.objects = [];
+            gameState.enemies = [];
+        }
+
+        // Logging
+        function log(msg, type = '') {
+            const output = document.getElementById('output');
+            const span = document.createElement('span');
+            span.className = type;
+            span.textContent = msg + '\n';
+            output.appendChild(span);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        window.clearOutput = () => document.getElementById('output').innerHTML = '';
+        
+        // Test Runner
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = { passed: 0, failed: 0, total: 0 };
+            }
+            test(name, fn) { this.tests.push({ name, fn }); }
+            async run() {
+                log('🧪 Ejecutando tests...\n', 'info');
+                for (const test of this.tests) {
+                    try {
+                        await test.fn();
+                        this.results.passed++;
+                        log(`✅ ${test.name}`, 'success');
+                    } catch (error) {
+                        this.results.failed++;
+                        log(`❌ ${test.name}`, 'error');
+                        log(`   ${error.message}`, 'error');
+                    }
+                    this.results.total++;
+                }
+                log('\n' + '='.repeat(50), 'info');
+                log(`📊 ${this.results.passed}/${this.results.total} tests pasados`, 'info');
+                if (this.results.failed > 0) {
+                    log(`❌ ${this.results.failed} fallaron`, 'error');
+                } else {
+                    log('✅ Todos pasaron!', 'success');
+                }
+                log('='.repeat(50), 'info');
+            }
+        }
+        
+        // Asserts
+        const assert = {
+            equals(a, b, m = '') { if (a !== b) throw new Error(`${m}\n  Esperado: ${b}, Recibido: ${a}`); },
+            exists(v, m = '') { if (v === undefined || v === null) throw new Error(`${m}`); },
+            isArray(v, m = '') { if (!Array.isArray(v)) throw new Error(`${m}`); },
+            isObject(v, m = '') { if (typeof v !== 'object' || v === null || Array.isArray(v)) throw new Error(`${m}`); },
+            greaterThan(a, b, m = '') { if (a <= b) throw new Error(`${m}`); },
+            lessThan(a, b, m = '') { if (a >= b) throw new Error(`${m}`); }
+        };
+        
+        // CONFIG TESTS
+        function runConfigTests(runner) {
+            runner.test('CONFIG existe', () => { assert.exists(CONFIG); assert.isObject(CONFIG); });
+            runner.test('Dimensiones del tile', () => { assert.equals(CONFIG.TILE_SIZE, 32); });
+            runner.test('Dimensiones del mapa', () => { 
+                assert.equals(CONFIG.MAP_WIDTH, 20);
+                assert.equals(CONFIG.MAP_HEIGHT, 13);
+            });
+            runner.test('Canvas dimensiones', () => {
+                assert.equals(CONFIG.CANVAS_WIDTH, 640);
+                assert.equals(CONFIG.CANVAS_HEIGHT, 416);
+            });
+            runner.test('Config jugador', () => {
+                assert.exists(CONFIG.PLAYER);
+                assert.greaterThan(CONFIG.PLAYER.STARTING_HP, 0);
+            });
+            runner.test('Config niveles', () => {
+                assert.equals(CONFIG.LEVEL.STARTING_LEVEL, 1);
+                assert.equals(CONFIG.LEVEL.EXP_MULTIPLIER, 1.5);
+            });
+            runner.test('Config enemigos', () => {
+                assert.greaterThan(CONFIG.ENEMY.COUNT, 0);
+            });
+            runner.test('Tiles definidos', () => {
+                assert.equals(CONFIG.TILES.GRASS, 0);
+                assert.equals(CONFIG.TILES.WATER, 1);
+            });
+            runner.test('Balance coherente', () => {
+                assert.lessThan(CONFIG.PLAYER.BASE_DAMAGE_MIN, CONFIG.PLAYER.BASE_DAMAGE_MAX);
+            });
+        }
+        
+        // STATE TESTS
+        function runStateTests(runner) {
+            runner.test('gameState estructura', () => {
+                assert.exists(gameState);
+                assert.exists(gameState.player);
+                assert.exists(gameState.stats);
+            });
+            runner.test('Player inicial', () => {
+                assert.equals(gameState.player.x, 10);
+                assert.equals(gameState.player.hp, 100);
+            });
+            runner.test('Inventory vacío', () => {
+                assert.isArray(gameState.player.inventory);
+                assert.equals(gameState.player.inventory.length, 0);
+            });
+            runner.test('Stats en cero', () => {
+                assert.equals(gameState.stats.enemiesKilled, 0);
+            });
+            runner.test('Arrays vacíos', () => {
+                assert.isArray(gameState.map);
+                assert.isArray(gameState.objects);
+            });
+            runner.test('resetGameState funciona', () => {
+                gameState.player.hp = 50;
+                resetGameState();
+                assert.equals(gameState.player.hp, 100);
+            });
+            runner.test('reset limpia arrays', () => {
+                gameState.map.push([1,2,3]);
+                resetGameState();
+                assert.equals(gameState.map.length, 0);
+            });
+        }
+        
+        // RUN ALL
+        window.runAllTests = async function() {
+            clearOutput();
+            const runner = new TestRunner();
+            runConfigTests(runner);
+            runStateTests(runner);
+            await runner.run();
+        };
+        
+        log('✨ Sistema de tests listo', 'info');
+        log('Haz clic en "Ejecutar Tests"\n', 'info');
+    </script>
+</body>
+</html>
