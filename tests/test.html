@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests - Argentum Demo</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #0a0a0a;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        
+        #output {
+            background: #000;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            min-height: 400px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .info { color: #00aaff; }
+        
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        
+        button:hover { background: #00cc00; }
+        button:active { background: #009900; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Sistema de Tests - Argentum Demo</h1>
+        
+        <div style="text-align: center;">
+            <button onclick="runAllTests()">▶️ Ejecutar Tests</button>
+            <button onclick="clearOutput()">🗑️ Limpiar</button>
+        </div>
+        
+        <div id="output"></div>
+    </div>
+
+    <script type="module">
+        import { runConfigTests } from './config.test.js';
+        import { runStateTests } from './state.test.js';
+        
+        function log(message, type = '') {
+            const output = document.getElementById('output');
+            const span = document.createElement('span');
+            span.className = type;
+            span.textContent = message + '\n';
+            output.appendChild(span);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        window.clearOutput = () => document.getElementById('output').innerHTML = '';
+        
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = { passed: 0, failed: 0, total: 0 };
+            }
+            
+            test(name, testFn) {
+                this.tests.push({ name, testFn });
+            }
+            
+            async run() {
+                log('🧪 Ejecutando tests...\n', 'info');
+                
+                for (const test of this.tests) {
+                    try {
+                        await test.testFn();
+                        this.results.passed++;
+                        log(`✅ ${test.name}`, 'success');
+                    } catch (error) {
+                        this.results.failed++;
+                        log(`❌ ${test.name}`, 'error');
+                        log(`   ${error.message}`, 'error');
+                    }
+                    this.results.total++;
+                }
+                
+                log('\n' + '='.repeat(50), 'info');
+                log(`📊 ${this.results.passed}/${this.results.total} tests pasados`, 'info');
+                if (this.results.failed > 0) {
+                    log(`❌ ${this.results.failed} fallaron`, 'error');
+                } else {
+                    log('✅ Todos pasaron!', 'success');
+                }
+                log('='.repeat(50), 'info');
+            }
+        }
+        
+        const assert = {
+            equals(a, b, m = '') {
+                if (a !== b) throw new Error(`${m}\n  Esperado: ${b}, Recibido: ${a}`);
+            },
+            exists(v, m = '') {
+                if (v === undefined || v === null) throw new Error(`${m}\n  Recibido: ${v}`);
+            },
+            isArray(v, m = '') {
+                if (!Array.isArray(v)) throw new Error(`${m}\n  Tipo: ${typeof v}`);
+            },
+            isObject(v, m = '') {
+                if (typeof v !== 'object' || v === null || Array.isArray(v)) 
+                    throw new Error(`${m}\n  Tipo: ${typeof v}`);
+            },
+            greaterThan(a, b, m = '') {
+                if (a <= b) throw new Error(`${m}\n  ${a} <= ${b}`);
+            },
+            lessThan(a, b, m = '') {
+                if (a >= b) throw new Error(`${m}\n  ${a} >= ${b}`);
+            }
+        };
+        
+        window.runAllTests = async function() {
+            clearOutput();
+            const runner = new TestRunner();
+            runConfigTests(runner, assert);
+            runStateTests(runner, assert);
+            await runner.run();
+        };
+        
+        log('✨ Sistema de tests listo', 'info');
+        log('Haz clic en "Ejecutar Tests" para comenzar\n', 'info');
+    </script>
+</body>
+</html>
