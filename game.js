@@ -245,7 +245,11 @@ function generateEnemies() {
             x: x,
             y: y,
             hp: 30,
-            maxHp: 30
+            maxHp: 30,
+            lastMoveTime: 0,
+            moveDelay: 800 + Math.random() * 400, // Random delay between 800-1200ms
+            lastAttackTime: 0,
+            attackDelay: 2000 // Attack every 2 seconds
         });
     }
     
@@ -332,6 +336,74 @@ function interact() {
     }
 }
 
+// Enemy AI - Movement
+function moveEnemies(timestamp) {
+    for (let enemy of gameState.enemies) {
+        if (timestamp - enemy.lastMoveTime < enemy.moveDelay) continue;
+        
+        const dx = gameState.player.x - enemy.x;
+        const dy = gameState.player.y - enemy.y;
+        const distance = Math.abs(dx) + Math.abs(dy);
+        
+        // Only move if player is within range (8 tiles)
+        if (distance > 8) continue;
+        
+        // Try to move towards player
+        let newX = enemy.x;
+        let newY = enemy.y;
+        
+        // Prioritize moving on the axis with greater distance
+        if (Math.abs(dx) > Math.abs(dy)) {
+            newX += dx > 0 ? 1 : -1;
+        } else if (dy !== 0) {
+            newY += dy > 0 ? 1 : -1;
+        } else if (dx !== 0) {
+            newX += dx > 0 ? 1 : -1;
+        }
+        
+        // Check if new position is valid and not occupied by another enemy
+        if (isWalkable(newX, newY)) {
+            const occupied = gameState.enemies.some(e => 
+                e !== enemy && e.x === newX && e.y === newY
+            );
+            
+            if (!occupied && (newX !== gameState.player.x || newY !== gameState.player.y)) {
+                enemy.x = newX;
+                enemy.y = newY;
+                enemy.lastMoveTime = timestamp;
+            }
+        }
+    }
+}
+
+// Enemy AI - Attack
+function enemyAttacks(timestamp) {
+    for (let enemy of gameState.enemies) {
+        if (timestamp - enemy.lastAttackTime < enemy.attackDelay) continue;
+        
+        // Check if player is adjacent
+        const dx = Math.abs(gameState.player.x - enemy.x);
+        const dy = Math.abs(gameState.player.y - enemy.y);
+        
+        if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+            // Enemy attacks player
+            const damage = Math.floor(Math.random() * 10) + 5;
+            gameState.player.hp -= damage;
+            
+            if (gameState.player.hp < 0) gameState.player.hp = 0;
+            
+            addChatMessage('system', `¡Un goblin te ataca causando ${damage} de daño!`);
+            enemy.lastAttackTime = timestamp;
+            updateUI();
+            
+            // Check if player died
+            if (gameState.player.hp === 0) {
+                addChatMessage('system', '💀 ¡Has muerto! Recarga la página para jugar de nuevo.');
+            }
+        }
+    }
+}
+
 // Player movement
 let lastMoveTime = 0;
 const MOVE_DELAY = 150; // milliseconds
@@ -358,9 +430,14 @@ function handleMovement(timestamp) {
     }
     
     if (moved && isWalkable(newX, newY)) {
-        gameState.player.x = newX;
-        gameState.player.y = newY;
-        lastMoveTime = timestamp;
+        // Check if there's an enemy in the target position
+        const enemyInPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
+        
+        if (!enemyInPosition) {
+            gameState.player.x = newX;
+            gameState.player.y = newY;
+            lastMoveTime = timestamp;
+        }
     }
     
     if (keys[' ']) {
@@ -428,7 +505,12 @@ function render() {
 
 // Game loop
 function gameLoop(timestamp) {
-    handleMovement(timestamp);
+    // Only process game logic if player is alive
+    if (gameState.player.hp > 0) {
+        handleMovement(timestamp);
+        moveEnemies(timestamp);
+        enemyAttacks(timestamp);
+    }
     render();
     requestAnimationFrame(gameLoop);
 }
