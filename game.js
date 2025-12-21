@@ -13,7 +13,10 @@ const gameState = {
         mana: 50,
         maxMana: 50,
         gold: 0,
-        inventory: []
+        inventory: [],
+        level: 1,
+        exp: 0,
+        expToNextLevel: 100
     },
     stats: {
         enemiesKilled: 0,
@@ -272,11 +275,60 @@ function addChatMessage(type, message) {
     chatLog.scrollTop = chatLog.scrollHeight;
 }
 
+// Level up system
+function levelUp() {
+    gameState.player.level++;
+    gameState.player.exp = 0;
+    gameState.player.expToNextLevel = Math.floor(gameState.player.expToNextLevel * 1.5);
+    
+    // Increase stats on level up
+    const hpIncrease = 20;
+    const manaIncrease = 10;
+    
+    gameState.player.maxHp += hpIncrease;
+    gameState.player.hp = gameState.player.maxHp; // Full heal on level up
+    gameState.player.maxMana += manaIncrease;
+    gameState.player.mana = gameState.player.maxMana;
+    
+    addChatMessage('system', `🎉 ¡NIVEL ${gameState.player.level}! +${hpIncrease} HP máx, +${manaIncrease} Maná máx`);
+    updateUI();
+}
+
+// Add experience
+function addExp(amount) {
+    gameState.player.exp += amount;
+    
+    // Check for level up
+    while (gameState.player.exp >= gameState.player.expToNextLevel) {
+        levelUp();
+    }
+    
+    updateUI();
+}
+
 // Update UI
 function updateUI() {
     document.getElementById('hp').textContent = gameState.player.hp;
+    document.getElementById('hpMax').textContent = gameState.player.maxHp;
     document.getElementById('mana').textContent = gameState.player.mana;
+    document.getElementById('manaMax').textContent = gameState.player.maxMana;
     document.getElementById('gold').textContent = gameState.player.gold;
+    
+    // Update level and experience
+    const levelEl = document.getElementById('level');
+    const expEl = document.getElementById('exp');
+    const expBarEl = document.getElementById('expBar');
+    
+    if (levelEl) {
+        levelEl.textContent = gameState.player.level;
+    }
+    if (expEl) {
+        expEl.textContent = `${gameState.player.exp}/${gameState.player.expToNextLevel}`;
+    }
+    if (expBarEl) {
+        const expPercent = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
+        expBarEl.style.width = expPercent + '%';
+    }
     
     // Update character stats
     const enemiesKilledEl = document.getElementById('enemiesKilled');
@@ -319,15 +371,20 @@ function interact() {
     for (let enemy of gameState.enemies) {
         const dist = Math.abs(enemy.x - px) + Math.abs(enemy.y - py);
         if (dist === 1) {
-            const damage = Math.floor(Math.random() * 15) + 10;
+            const damage = Math.floor(Math.random() * 15) + 10 + (gameState.player.level * 2);
             enemy.hp -= damage;
             addChatMessage('player', `¡Atacas al goblin causando ${damage} de daño!`);
             
             if (enemy.hp <= 0) {
                 const goldDrop = Math.floor(Math.random() * 20) + 10;
+                const expGain = 25 + (enemy.maxHp / 2); // Base exp based on enemy difficulty
+                
                 gameState.player.gold += goldDrop;
                 gameState.stats.enemiesKilled++;
-                addChatMessage('system', `¡Has derrotado al goblin! +${goldDrop} oro`);
+                
+                addChatMessage('system', `¡Has derrotado al goblin! +${goldDrop} oro, +${Math.floor(expGain)} EXP`);
+                addExp(expGain);
+                
                 gameState.enemies = gameState.enemies.filter(e => e !== enemy);
                 updateUI();
             }
