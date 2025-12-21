@@ -1,7 +1,7 @@
 // Game configuration
 const TILE_SIZE = 32;
 const MAP_WIDTH = 20;
-const MAP_HEIGHT = 15;
+const MAP_HEIGHT = 13;
 
 // Game state
 const gameState = {
