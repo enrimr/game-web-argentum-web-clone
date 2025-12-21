@@ -15,6 +15,10 @@ const gameState = {
         gold: 0,
         inventory: []
     },
+    stats: {
+        enemiesKilled: 0,
+        chestsOpened: 0
+    },
     map: [],
     objects: [],
     enemies: []
@@ -269,6 +273,17 @@ function updateUI() {
     document.getElementById('hp').textContent = gameState.player.hp;
     document.getElementById('mana').textContent = gameState.player.mana;
     document.getElementById('gold').textContent = gameState.player.gold;
+    
+    // Update character stats
+    const enemiesKilledEl = document.getElementById('enemiesKilled');
+    const chestsOpenedEl = document.getElementById('chestsOpened');
+    
+    if (enemiesKilledEl) {
+        enemiesKilledEl.textContent = gameState.stats.enemiesKilled;
+    }
+    if (chestsOpenedEl) {
+        chestsOpenedEl.textContent = gameState.stats.chestsOpened;
+    }
 }
 
 // Handle interactions
@@ -283,6 +298,7 @@ function interact() {
             if (obj.type === 'chest' && !obj.opened) {
                 obj.opened = true;
                 gameState.player.gold += obj.contains.gold;
+                gameState.stats.chestsOpened++;
                 addChatMessage('system', `¡Has abierto un cofre y encontrado ${obj.contains.gold} de oro!`);
                 gameState.objects.splice(i, 1);
                 updateUI();
@@ -306,6 +322,7 @@ function interact() {
             if (enemy.hp <= 0) {
                 const goldDrop = Math.floor(Math.random() * 20) + 10;
                 gameState.player.gold += goldDrop;
+                gameState.stats.enemiesKilled++;
                 addChatMessage('system', `¡Has derrotado al goblin! +${goldDrop} oro`);
                 gameState.enemies = gameState.enemies.filter(e => e !== enemy);
                 updateUI();

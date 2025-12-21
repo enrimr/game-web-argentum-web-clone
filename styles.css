@@ -1,0 +1,350 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.game-container {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 0 20px;
+    height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 20px;
+    border-radius: 10px 10px 0 0;
+    border: 3px solid #ffd700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+}
+
+.stats span {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Chat section at the top */
+.chat-section {
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid #ffd700;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.chat-section h3 {
+    color: #ffd700;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 5px;
+}
+
+.chat-log {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    height: 100px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.chat-log p {
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.chat-log .system {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.chat-log .player {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+/* Main game area with sidebar */
+.game-area {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+.main-game {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#gameCanvas {
+    display: block;
+    background: #000;
+    border: 3px solid #ffd700;
+    border-radius: 10px 10px 0 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    width: 100%;
+    height: auto;
+}
+
+.controls {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border: 3px solid #ffd700;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    text-align: center;
+    font-size: 12px;
+}
+
+/* Sidebar with inventory and quests */
+.sidebar {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.panel {
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid #ffd700;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.panel h3 {
+    color: #ffd700;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 5px;
+}
+
+/* Inventory styling */
+.inventory {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.item-slot {
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 60px;
+}
+
+.item-slot:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    border-color: #ffd700;
+}
+
+.item-slot.empty {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 16px;
+}
+
+/* Quest list */
+.quest-list {
+    list-style: none;
+    font-size: 13px;
+}
+
+.quest-list li {
+    padding: 10px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid #4CAF50;
+    border-radius: 3px;
+    transition: all 0.3s;
+}
+
+.quest-list li:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+}
+
+/* Character stats panel */
+.character-panel {
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid #ffd700;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.character-panel h3 {
+    color: #ffd700;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 5px;
+}
+
+.character-info {
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.character-info p {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.character-info p:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #ffd700;
+}
+
+.stat-value {
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Scrollbar styling */
+.chat-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-log::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.chat-log::-webkit-scrollbar-thumb {
+    background: rgba(255, 215, 0, 0.5);
+    border-radius: 4px;
+}
+
+.chat-log::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 215, 0, 0.7);
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 280px;
+    }
+    
+    .inventory {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .item-slot {
+        min-height: 50px;
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .game-area {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .panel {
+        flex: 1;
+    }
+    
+    .inventory {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .sidebar {
+        flex-direction: column;
+    }
+    
+    .inventory {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Animation effects */
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px #ffd700;
+    }
+    50% {
+        box-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700;
+    }
+}
+
+.panel:hover {
+    animation: glow 2s infinite;
+}
+
+/* Tooltip effect */
+.item-slot[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffd700;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-top: -40px;
+    border: 2px solid #ffd700;
+}

@@ -8,6 +8,7 @@
 </head>
 <body>
     <div class="game-container">
+        <!-- Header with title and stats -->
         <div class="header">
             <h1>🗡️ Argentum Demo 🛡️</h1>
             <div class="stats">
@@ -17,40 +18,56 @@
             </div>
         </div>
         
+        <!-- Chat section at the top -->
+        <div class="chat-section">
+            <h3>💬 Chat del Juego</h3>
+            <div id="chatLog" class="chat-log">
+                <p><span class="system">Sistema:</span> ¡Bienvenido a Argentum Demo!</p>
+                <p><span class="system">Sistema:</span> Usa las flechas o WASD para moverte por el mapa.</p>
+                <p><span class="system">Sistema:</span> Presiona ESPACIO para interactuar con objetos o atacar enemigos.</p>
+            </div>
+        </div>
+        
+        <!-- Main game area with canvas and sidebar -->
         <div class="game-area">
             <div class="main-game">
                 <canvas id="gameCanvas" width="640" height="480"></canvas>
                 <div class="controls">
-                    <p>🎮 Controles: Flechas o WASD para moverte | ESPACIO para interactuar</p>
+                    <p>🎮 Controles: Flechas o WASD para moverte | ESPACIO para interactuar/atacar</p>
                 </div>
             </div>
             
+            <!-- Sidebar with inventory and quests -->
             <div class="sidebar">
                 <div class="panel">
                     <h3>📦 Inventario</h3>
                     <div id="inventory" class="inventory">
-                        <div class="item-slot empty">-</div>
-                        <div class="item-slot empty">-</div>
-                        <div class="item-slot empty">-</div>
-                        <div class="item-slot empty">-</div>
-                        <div class="item-slot empty">-</div>
-                        <div class="item-slot empty">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
                     </div>
                 </div>
                 
                 <div class="panel">
                     <h3>📜 Misiones</h3>
                     <ul class="quest-list">
-                        <li>🗺️ Explora el mapa</li>
-                        <li>⚔️ Encuentra un tesoro</li>
+                        <li>🗺️ Explora todo el mapa</li>
+                        <li>💰 Encuentra y abre los cofres</li>
+                        <li>⚔️ Derrota a los goblins</li>
+                        <li>🏆 Acumula 500 de oro</li>
                     </ul>
                 </div>
                 
-                <div class="panel">
-                    <h3>💬 Chat</h3>
-                    <div id="chatLog" class="chat-log">
-                        <p><span class="system">Sistema:</span> ¡Bienvenido a Argentum Demo!</p>
-                        <p><span class="system">Sistema:</span> Usa las flechas para moverte.</p>
+                <div class="panel character-panel">
+                    <h3>� Personaje</h3>
+                    <div class="character-info">
+                        <p><span class="stat-label">Nivel:</span> <span class="stat-value">1</span></p>
+                        <p><span class="stat-label">Clase:</span> <span class="stat-value">Guerrero</span></p>
+                        <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
+                        <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
                     </div>
                 </div>
             </div>
