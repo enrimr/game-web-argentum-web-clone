@@ -228,6 +228,22 @@ body {
     font-size: 14px;
 }
 
+/* Item quantity display (AO style) */
+.item-quantity {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffd700;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 1px 3px;
+    border-radius: 2px;
+    border: 1px solid #ffd700;
+    min-width: 12px;
+    text-align: center;
+}
+
 /* Quest list */
 .quest-list {
     list-style: none;

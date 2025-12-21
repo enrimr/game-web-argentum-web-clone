@@ -2,6 +2,7 @@
 const TILE_SIZE = 32;
 const MAP_WIDTH = 20;
 const MAP_HEIGHT = 13;
+const MAX_INVENTORY_SLOTS = 12; // Máximo de tipos diferentes de items
 
 // Game state
 const gameState = {
@@ -13,7 +14,11 @@ const gameState = {
         mana: 50,
         maxMana: 50,
         gold: 0,
-        inventory: [],
+        inventory: [], // Array de {type, name, quantity, icon, equipped?}
+        equipped: {
+            weapon: null, // Item equipado como arma
+            shield: null  // Item equipado como escudo
+        },
         level: 1,
         exp: 0,
         expToNextLevel: 100
@@ -153,7 +158,73 @@ const sprites = {
         ctx.fill();
         ctx.fillStyle = '#fbbf24';
         ctx.fillRect(w/2-2, h/2-1, 4, 2);
+    }),
+    
+    // Items del Argentum Online
+    potion: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Botella roja
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(w/2-4, h/2-2, 8, 10);
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(w/2-3, h/2+3, 6, 2);
+        // Corcho
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(w/2-2, h/2-4, 4, 3);
+    }),
+    
+    arrow: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Flecha
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(w/2-1, h/2-6, 2, 12);
+        // Punta
+        ctx.fillStyle = '#9ca3af';
+        ctx.beginPath();
+        ctx.moveTo(w/2, h/2-8);
+        ctx.lineTo(w/2-3, h/2-3);
+        ctx.lineTo(w/2+3, h/2-3);
+        ctx.fill();
+        // Plumas
+        ctx.fillStyle = '#fef3c7';
+        ctx.fillRect(w/2-2, h/2+4, 4, 2);
+    }),
+    
+    sword: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Espada
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillRect(w/2-2, h/2-8, 4, 12);
+        // Guarda
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(w/2-4, h/2-2, 8, 2);
+        // Empuñadura
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(w/2-2, h/2, 4, 4);
+    }),
+    
+    shield: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Escudo
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 10, 0, Math.PI * 2);
+        ctx.fill();
+        // Borde dorado
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 10, 0, Math.PI * 2);
+        ctx.stroke();
+        // Cruz
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(w/2-1, h/2-6, 2, 12);
+        ctx.fillRect(w/2-6, h/2-1, 12, 2);
     })
+};
+
+// Item types (inspirado en Argentum Online)
+const ITEM_TYPES = {
+    POTION_RED: { name: 'Poción Roja', icon: '🧪', stackable: true, maxStack: 100, sprite: 'potion' },
+    ARROW: { name: 'Flecha', icon: '🏹', stackable: true, maxStack: 500, sprite: 'arrow' },
+    SWORD: { name: 'Espada', icon: '⚔️', stackable: false, maxStack: 1, sprite: 'sword' },
+    SHIELD: { name: 'Escudo', icon: '🛡️', stackable: false, maxStack: 1, sprite: 'shield' }
 };
 
 // Tile types
@@ -192,18 +263,18 @@ function generateMap() {
     return map;
 }
 
-// Generate objects (chests, gold)
+// Generate objects (chests, gold, items)
 function generateObjects() {
     const objects = [];
-    
-    // Add chests
+
+    // Add chests (AO style)
     for (let i = 0; i < 3; i++) {
         let x, y;
         do {
             x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
             y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
         } while (gameState.map[y][x] !== TILES.GRASS);
-        
+
         objects.push({
             type: 'chest',
             x: x,
@@ -212,15 +283,15 @@ function generateObjects() {
             contains: { gold: Math.floor(Math.random() * 50) + 20 }
         });
     }
-    
-    // Add gold coins
+
+    // Add gold coins (AO style)
     for (let i = 0; i < 5; i++) {
         let x, y;
         do {
             x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
             y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
         } while (gameState.map[y][x] !== TILES.GRASS);
-        
+
         objects.push({
             type: 'gold',
             x: x,
@@ -228,7 +299,28 @@ function generateObjects() {
             amount: Math.floor(Math.random() * 20) + 5
         });
     }
-    
+
+    // Add items on ground (AO style)
+    const itemTypes = Object.keys(ITEM_TYPES);
+    for (let i = 0; i < 8; i++) {
+        let x, y;
+        do {
+            x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+            y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+        } while (gameState.map[y][x] !== TILES.GRASS);
+
+        const randomItemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        const itemDef = ITEM_TYPES[randomItemType];
+
+        objects.push({
+            type: 'item',
+            itemType: randomItemType,
+            x: x,
+            y: y,
+            quantity: itemDef.stackable ? Math.floor(Math.random() * 5) + 1 : 1
+        });
+    }
+
     return objects;
 }
 
@@ -306,6 +398,86 @@ function addExp(amount) {
     updateUI();
 }
 
+// Equip/unequip item (AO style)
+function toggleEquipItem(slotIndex) {
+    const item = gameState.player.inventory[slotIndex];
+    if (!item) return;
+
+    const itemDef = ITEM_TYPES[item.type];
+    if (!itemDef) return;
+
+    // Check if item is equippable
+    if (itemDef.stackable) {
+        addChatMessage('system', '❌ Este item no se puede equipar.');
+        return;
+    }
+
+    // Determine equipment slot
+    let equipSlot = null;
+    if (item.type === 'SWORD') {
+        equipSlot = 'weapon';
+    } else if (item.type === 'SHIELD') {
+        equipSlot = 'shield';
+    }
+
+    if (!equipSlot) {
+        addChatMessage('system', '❌ Este item no se puede equipar.');
+        return;
+    }
+
+    // Check if already equipped
+    const currentlyEquipped = gameState.player.equipped[equipSlot];
+
+    if (currentlyEquipped === item.type) {
+        // Unequip
+        gameState.player.equipped[equipSlot] = null;
+        addChatMessage('system', `📤 Has desequipado: ${item.name}`);
+    } else {
+        // Equip (replace if something else was equipped)
+        if (currentlyEquipped) {
+            const oldItemDef = ITEM_TYPES[currentlyEquipped];
+            addChatMessage('system', `📤 ${oldItemDef.name} reemplazado por ${item.name}`);
+        } else {
+            addChatMessage('system', `⚔️ Has equipado: ${item.name}`);
+        }
+        gameState.player.equipped[equipSlot] = item.type;
+    }
+
+    updateUI();
+}
+
+// Add item to inventory (AO style stacking)
+function addItemToInventory(itemType, quantity = 1) {
+    const itemDef = ITEM_TYPES[itemType];
+    if (!itemDef) return false;
+
+    // Check if item already exists in inventory (for stackable items)
+    if (itemDef.stackable) {
+        const existingItem = gameState.player.inventory.find(item => item.type === itemType);
+        if (existingItem) {
+            existingItem.quantity = Math.min(existingItem.quantity + quantity, itemDef.maxStack);
+            return true;
+        }
+    }
+
+    // Check inventory space
+    if (gameState.player.inventory.length >= MAX_INVENTORY_SLOTS) {
+        addChatMessage('system', '❌ ¡Inventario lleno! No puedes recoger más items.');
+        return false;
+    }
+
+    // Add new item
+    gameState.player.inventory.push({
+        type: itemType,
+        name: itemDef.name,
+        quantity: quantity,
+        icon: itemDef.icon,
+        stackable: itemDef.stackable
+    });
+
+    return true;
+}
+
 // Update UI
 function updateUI() {
     document.getElementById('hp').textContent = gameState.player.hp;
@@ -313,12 +485,12 @@ function updateUI() {
     document.getElementById('mana').textContent = gameState.player.mana;
     document.getElementById('manaMax').textContent = gameState.player.maxMana;
     document.getElementById('gold').textContent = gameState.player.gold;
-    
+
     // Update level and experience
     const levelEl = document.getElementById('level');
     const expEl = document.getElementById('exp');
     const expBarEl = document.getElementById('expBar');
-    
+
     if (levelEl) {
         levelEl.textContent = gameState.player.level;
     }
@@ -329,16 +501,53 @@ function updateUI() {
         const expPercent = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
         expBarEl.style.width = expPercent + '%';
     }
-    
+
     // Update character stats
     const enemiesKilledEl = document.getElementById('enemiesKilled');
     const chestsOpenedEl = document.getElementById('chestsOpened');
-    
+
     if (enemiesKilledEl) {
         enemiesKilledEl.textContent = gameState.stats.enemiesKilled;
     }
     if (chestsOpenedEl) {
         chestsOpenedEl.textContent = gameState.stats.chestsOpened;
+    }
+
+    // Update inventory UI (AO style)
+    for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+        const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
+        if (!slotEl) continue;
+
+        const item = gameState.player.inventory[i];
+
+        // Remove previous classes
+        slotEl.classList.remove('empty', 'equipped');
+
+        if (item) {
+            slotEl.textContent = item.icon;
+
+            // Always show quantity for stackable items, or "1" for non-stackable
+            const quantityEl = document.createElement('span');
+            quantityEl.className = 'item-quantity';
+            quantityEl.textContent = item.stackable ? item.quantity : '1';
+            slotEl.appendChild(quantityEl);
+
+            // Check if this item is equipped
+            const isWeaponEquipped = gameState.player.equipped.weapon === item.type;
+            const isShieldEquipped = gameState.player.equipped.shield === item.type;
+
+            if (isWeaponEquipped || isShieldEquipped) {
+                slotEl.classList.add('equipped');
+            }
+
+            // Update title for tooltips
+            const equipStatus = (isWeaponEquipped || isShieldEquipped) ? ' [EQUIPADO]' : '';
+            slotEl.title = `${item.name}${item.stackable ? ` (${item.quantity})` : ''}${equipStatus}`;
+        } else {
+            slotEl.textContent = '-';
+            slotEl.classList.add('empty');
+            slotEl.title = 'Espacio vacío';
+        }
     }
 }
 
@@ -346,7 +555,7 @@ function updateUI() {
 function interact() {
     const px = gameState.player.x;
     const py = gameState.player.y;
-    
+
     // Check for objects
     for (let i = gameState.objects.length - 1; i >= 0; i--) {
         const obj = gameState.objects[i];
@@ -363,6 +572,18 @@ function interact() {
                 addChatMessage('system', `¡Has recogido ${obj.amount} de oro!`);
                 gameState.objects.splice(i, 1);
                 updateUI();
+            } else if (obj.type === 'item') {
+                // Pick up item (AO style)
+                const success = addItemToInventory(obj.itemType, obj.quantity);
+                if (success) {
+                    const itemName = ITEM_TYPES[obj.itemType].name;
+                    const quantity = obj.quantity;
+                    addChatMessage('system', `¡Has recogido ${quantity}x ${itemName}!`);
+                    gameState.objects.splice(i, 1);
+                    updateUI();
+                } else {
+                    addChatMessage('system', '❌ ¡Inventario lleno! No puedes recoger el item.');
+                }
             }
         }
     }
@@ -538,6 +759,12 @@ function render() {
             ctx.drawImage(sprites.chest, obj.x * TILE_SIZE, obj.y * TILE_SIZE);
         } else if (obj.type === 'gold') {
             ctx.drawImage(sprites.gold, obj.x * TILE_SIZE, obj.y * TILE_SIZE);
+        } else if (obj.type === 'item') {
+            // Draw item on ground (AO style)
+            const itemSprite = sprites[ITEM_TYPES[obj.itemType].sprite];
+            if (itemSprite) {
+                ctx.drawImage(itemSprite, obj.x * TILE_SIZE, obj.y * TILE_SIZE);
+            }
         }
     }
     
@@ -577,6 +804,15 @@ function init() {
     gameState.map = generateMap();
     gameState.objects = generateObjects();
     gameState.enemies = generateEnemies();
+
+    // Add click listeners to inventory slots
+    for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+        const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
+        if (slotEl) {
+            slotEl.addEventListener('click', () => toggleEquipItem(i));
+        }
+    }
+
     updateUI();
     gameLoop(0);
 }
