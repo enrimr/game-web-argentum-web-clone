@@ -10,38 +10,41 @@ body {
     color: #fff;
     overflow: hidden;
     height: 100vh;
+    width: 100vw;
 }
 
 .game-container {
     max-width: 1400px;
-    margin: 20px auto;
-    padding: 0 20px;
-    height: calc(100vh - 40px);
+    margin: 0 auto;
+    padding: 10px;
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .header {
     background: rgba(0, 0, 0, 0.8);
-    padding: 15px 20px;
+    padding: 10px 15px;
     border-radius: 10px 10px 0 0;
     border: 3px solid #ffd700;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    flex-shrink: 0;
 }
 
 .header h1 {
-    font-size: 24px;
+    font-size: 22px;
     color: #ffd700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .stats {
     display: flex;
-    gap: 20px;
-    font-size: 14px;
+    gap: 15px;
+    font-size: 13px;
 }
 
 .stats span {
@@ -56,30 +59,31 @@ body {
     background: rgba(0, 0, 0, 0.8);
     border: 3px solid #ffd700;
     border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 10px;
+    padding: 10px;
+    margin-bottom: 5px;
+    flex-shrink: 0;
 }
 
 .chat-section h3 {
     color: #ffd700;
-    margin-bottom: 10px;
-    font-size: 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
     border-bottom: 2px solid #ffd700;
-    padding-bottom: 5px;
+    padding-bottom: 3px;
 }
 
 .chat-log {
     background: rgba(0, 0, 0, 0.5);
-    padding: 10px;
+    padding: 8px;
     border-radius: 5px;
-    height: 100px;
+    height: 70px;
     overflow-y: auto;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .chat-log p {
-    margin: 5px 0;
-    line-height: 1.4;
+    margin: 3px 0;
+    line-height: 1.3;
 }
 
 .chat-log .system {
@@ -98,12 +102,15 @@ body {
     gap: 10px;
     flex: 1;
     min-height: 0;
+    overflow: hidden;
 }
 
 .main-game {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    min-width: 0;
 }
 
 #gameCanvas {
@@ -114,47 +121,53 @@ body {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     width: 100%;
-    height: auto;
+    flex: 1;
+    object-fit: contain;
 }
 
 .controls {
     background: rgba(0, 0, 0, 0.8);
-    padding: 10px;
+    padding: 8px;
     border: 3px solid #ffd700;
     border-top: none;
     border-radius: 0 0 10px 10px;
     text-align: center;
-    font-size: 12px;
+    font-size: 11px;
+    flex-shrink: 0;
 }
 
 /* Sidebar with inventory and quests */
 .sidebar {
-    width: 320px;
+    width: 280px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    min-height: 0;
+    overflow-y: auto;
+    flex-shrink: 0;
 }
 
 .panel {
     background: rgba(0, 0, 0, 0.8);
     border: 3px solid #ffd700;
     border-radius: 10px;
-    padding: 15px;
+    padding: 12px;
+    flex-shrink: 0;
 }
 
 .panel h3 {
     color: #ffd700;
-    margin-bottom: 10px;
-    font-size: 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
     border-bottom: 2px solid #ffd700;
-    padding-bottom: 5px;
+    padding-bottom: 4px;
 }
 
 /* Inventory styling */
 .inventory {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 6px;
 }
 
 .item-slot {
@@ -165,10 +178,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 24px;
     cursor: pointer;
     transition: all 0.3s;
-    min-height: 60px;
+    min-height: 50px;
 }
 
 .item-slot:hover {
@@ -179,18 +192,18 @@ body {
 
 .item-slot.empty {
     color: rgba(255, 255, 255, 0.3);
-    font-size: 16px;
+    font-size: 14px;
 }
 
 /* Quest list */
 .quest-list {
     list-style: none;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .quest-list li {
-    padding: 10px;
-    margin: 5px 0;
+    padding: 8px;
+    margin: 4px 0;
     background: rgba(255, 255, 255, 0.1);
     border-left: 3px solid #4CAF50;
     border-radius: 3px;
@@ -207,26 +220,26 @@ body {
     background: rgba(0, 0, 0, 0.8);
     border: 3px solid #ffd700;
     border-radius: 10px;
-    padding: 15px;
+    padding: 12px;
 }
 
 .character-panel h3 {
     color: #ffd700;
-    margin-bottom: 10px;
-    font-size: 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
     border-bottom: 2px solid #ffd700;
-    padding-bottom: 5px;
+    padding-bottom: 4px;
 }
 
 .character-info {
-    font-size: 13px;
-    line-height: 1.8;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
 .character-info p {
     display: flex;
     justify-content: space-between;
-    padding: 5px 0;
+    padding: 4px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -244,42 +257,50 @@ body {
 }
 
 /* Scrollbar styling */
-.chat-log::-webkit-scrollbar {
-    width: 8px;
+.chat-log::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+    width: 6px;
 }
 
-.chat-log::-webkit-scrollbar-track {
+.chat-log::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
-.chat-log::-webkit-scrollbar-thumb {
+.chat-log::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb {
     background: rgba(255, 215, 0, 0.5);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
-.chat-log::-webkit-scrollbar-thumb:hover {
+.chat-log::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 215, 0, 0.7);
 }
 
 /* Responsive design */
 @media (max-width: 1200px) {
     .sidebar {
-        width: 280px;
+        width: 250px;
     }
     
     .inventory {
         grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+        gap: 5px;
     }
     
     .item-slot {
-        min-height: 50px;
-        font-size: 24px;
+        min-height: 45px;
+        font-size: 20px;
     }
 }
 
 @media (max-width: 1024px) {
+    .game-container {
+        padding: 5px;
+    }
+    
     .game-area {
         flex-direction: column;
     }
@@ -287,11 +308,14 @@ body {
     .sidebar {
         width: 100%;
         flex-direction: row;
-        gap: 10px;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
     }
     
     .panel {
         flex: 1;
+        min-width: 200px;
     }
     
     .inventory {
@@ -302,13 +326,20 @@ body {
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
         text-align: center;
+        padding: 8px;
+    }
+    
+    .header h1 {
+        font-size: 18px;
     }
     
     .stats {
         flex-wrap: wrap;
         justify-content: center;
+        gap: 10px;
+        font-size: 11px;
     }
     
     .sidebar {
@@ -318,6 +349,11 @@ body {
     .inventory {
         grid-template-columns: repeat(3, 1fr);
     }
+    
+    .chat-log {
+        height: 60px;
+        font-size: 10px;
+    }
 }
 
 /* Animation effects */
@@ -326,7 +362,7 @@ body {
         box-shadow: 0 0 5px #ffd700;
     }
     50% {
-        box-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700;
+        box-shadow: 0 0 15px #ffd700, 0 0 25px #ffd700;
     }
 }
 
@@ -342,7 +378,7 @@ body {
     color: #ffd700;
     padding: 5px 10px;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 11px;
     white-space: nowrap;
     z-index: 1000;
     margin-top: -40px;
