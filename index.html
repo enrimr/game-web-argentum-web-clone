@@ -74,12 +74,26 @@
                 </div>
                 
                 <div class="panel character-panel">
-                    <h3>� Personaje</h3>
+                    <h3> Personaje</h3>
                     <div class="character-info">
                         <p><span class="stat-label">Nivel:</span> <span class="stat-value">1</span></p>
                         <p><span class="stat-label">Clase:</span> <span class="stat-value">Guerrero</span></p>
                         <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
                         <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>🗺️ Minimap</h3>
+                    <button id="toggleMinimap" class="minimap-toggle">Mostrar Minimap</button>
+                    <div id="minimapContainer" class="minimap-container" style="display: none;">
+                        <canvas id="minimapCanvas" width="200" height="150"></canvas>
+                        <div class="minimap-legend">
+                            <div class="legend-item"><span class="legend-color" style="background: #2d5016;"></span> Terreno</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Portal Ciudad</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Portal Mazmorra</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Jugador</div>
+                        </div>
                     </div>
                 </div>
             </div>

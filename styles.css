@@ -433,3 +433,54 @@ body {
     margin-top: -40px;
     border: 2px solid #ffd700;
 }
+
+/* Minimap styles */
+.minimap-toggle {
+    width: 100%;
+    padding: 8px;
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    color: #ffd700;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.minimap-toggle:hover {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+}
+
+.minimap-container {
+    margin-top: 10px;
+}
+
+#minimapCanvas {
+    display: block;
+    border: 2px solid #ffd700;
+    border-radius: 5px;
+    background: #000;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.minimap-legend {
+    margin-top: 8px;
+    font-size: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 3px 0;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: inline-block;
+}
