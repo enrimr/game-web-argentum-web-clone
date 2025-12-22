@@ -1793,6 +1793,9 @@ function gameLoop(timestamp) {
 
 // Initialize game
 function init() {
+    // Validate all portal positions at startup
+    validatePortalPositions();
+
     gameState.map = generateMap();
     gameState.objects = generateObjects();
     gameState.enemies = generateEnemies();
@@ -1809,15 +1812,120 @@ function init() {
     gameLoop(0);
 }
 
-// Change map function
+// Validate portal positions to ensure they are on walkable tiles
+function validatePortalPositions() {
+    for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
+        if (mapDef.portals) {
+            // Generate the map to check portal positions
+            const tempGameState = { currentMap: mapKey };
+            const originalGameState = gameState.currentMap;
+            gameState.currentMap = mapKey;
+
+            const tempMap = generateMap();
+            gameState.currentMap = originalGameState; // Restore
+
+            for (const portal of mapDef.portals) {
+                const px = portal.x;
+                const py = portal.y;
+
+                // Check if portal position is walkable
+                if (!isWalkableOnMap(tempMap, px, py)) {
+                    console.warn(`Portal ${portal.name} en ${mapKey} está en posición no walkable (${px}, ${py})`);
+                    // Could auto-adjust portal position here if needed
+                }
+
+                // Validate target position exists and is walkable
+                const targetMapDef = MAP_DEFINITIONS[portal.targetMap];
+                if (targetMapDef) {
+                    const targetGameState = { currentMap: portal.targetMap };
+                    gameState.currentMap = portal.targetMap;
+                    const targetMap = generateMap();
+                    gameState.currentMap = originalGameState; // Restore
+
+                    const tx = portal.targetX;
+                    const ty = portal.targetY;
+
+                    if (!isWalkableOnMap(targetMap, tx, ty)) {
+                        console.error(`Destino del portal ${portal.name} (${portal.targetMap}) está en posición no walkable (${tx}, ${ty})`);
+                        // Auto-adjust target position to nearest walkable tile
+                        const adjusted = findNearestWalkableTile(targetMap, tx, ty);
+                        if (adjusted) {
+                            portal.targetX = adjusted.x;
+                            portal.targetY = adjusted.y;
+                            console.log(`Auto-ajustado destino del portal ${portal.name} a (${adjusted.x}, ${adjusted.y})`);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Helper function to check if a position is walkable on a specific map
+function isWalkableOnMap(map, x, y) {
+    if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
+
+    const tile = map[y][x];
+    return tile === TILES.GRASS || tile === TILES.FLOOR || tile === TILES.PATH;
+}
+
+// Find nearest walkable tile to a given position
+function findNearestWalkableTile(map, startX, startY) {
+    // Search in expanding circles around the target position
+    for (let radius = 0; radius < 10; radius++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                // Only check perimeter of current radius
+                if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
+                    const x = startX + dx;
+                    const y = startY + dy;
+
+                    if (isWalkableOnMap(map, x, y)) {
+                        return { x, y };
+                    }
+                }
+            }
+        }
+    }
+    return null; // No walkable tile found nearby
+}
+
+// Change map function with safety checks
 function changeMap(targetMap, targetX, targetY) {
+    // Validate target position is walkable
+    const targetMapDef = MAP_DEFINITIONS[targetMap];
+    if (!targetMapDef) {
+        addChatMessage('system', '❌ ¡Error! Mapa destino no encontrado.');
+        return;
+    }
+
+    // Temporarily switch to target map to generate it and check position
+    const originalMap = gameState.currentMap;
+    gameState.currentMap = targetMap;
+    const targetMapData = generateMap();
+    gameState.currentMap = originalMap;
+
+    // Ensure target position is walkable
+    if (!isWalkableOnMap(targetMapData, targetX, targetY)) {
+        console.warn(`Posición destino (${targetX}, ${targetY}) no es walkable, buscando alternativa...`);
+        const safePos = findNearestWalkableTile(targetMapData, targetX, targetY);
+        if (safePos) {
+            targetX = safePos.x;
+            targetY = safePos.y;
+            console.log(`Ajustado posición destino a (${targetX}, ${targetY})`);
+        } else {
+            addChatMessage('system', '❌ ¡Error! No se puede acceder al mapa destino.');
+            return;
+        }
+    }
+
     // Save current map for transition message
     const oldMap = gameState.currentMap;
 
     // Change map
     gameState.currentMap = targetMap;
 
-    // Teleport player to target position
+    // Teleport player to safe target position
     gameState.player.x = targetX;
     gameState.player.y = targetY;
 
@@ -1828,12 +1936,18 @@ function changeMap(targetMap, targetX, targetY) {
 
     // Show transition message
     const mapNames = {
-        'field': 'Campo',
-        'city': 'Ciudad',
-        'dungeon': 'Mazmorra'
+        'field': '🏞️ Campo Principal',
+        'city': '🏘️ Ciudad Imperial',
+        'dungeon': '🏰 Mazmorra Antigua',
+        'forest': '🌲 Bosque Encantado',
+        'castle': '🏰 Castillo Real',
+        'market': '🏪 Mercado Central',
+        'deep_dungeon': '🕳️ Profundidades',
+        'ruins': '🏛️ Ruinas Antiguas',
+        'throne_room': '👑 Sala del Trono'
     };
 
-    addChatMessage('system', `🌟 ¡Viajas a ${mapNames[targetMap]}!`);
+    addChatMessage('system', `🌟 ¡Viajas a ${mapNames[targetMap] || targetMap}!`);
     updateUI();
     updateMinimap(); // Update minimap after map change
 }
