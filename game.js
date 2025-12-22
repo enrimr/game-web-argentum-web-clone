@@ -598,16 +598,7 @@ function generateObjects() {
             targetY: PORTALS.city_to_dungeon.targetY
         });
 
-        // Add city portal to dungeon (for testing - normally only accessible from city)
-        objects.push({
-            type: 'portal',
-            portalId: 'field_to_dungeon',
-            x: 50,
-            y: 30,
-            targetMap: 'dungeon',
-            targetX: 5,
-            targetY: 5
-        });
+
 
     } else if (gameState.currentMap === 'dungeon') {
         // Dungeon map - dangerous area with better loot
@@ -1011,7 +1002,8 @@ function interact() {
     // Check for objects
     for (let i = gameState.objects.length - 1; i >= 0; i--) {
         const obj = gameState.objects[i];
-        if (obj.x === px && obj.y === py) {
+        // Safety check for object coordinates
+        if (obj.x !== undefined && obj.y !== undefined && obj.x === px && obj.y === py) {
             if (obj.type === 'chest' && !obj.opened) {
                 obj.opened = true;
                 gameState.player.gold += obj.contains.gold;
@@ -1039,6 +1031,7 @@ function interact() {
             } else if (obj.type === 'portal') {
                 // Portal interaction - change map
                 changeMap(obj.targetMap, obj.targetX, obj.targetY);
+                return; // Exit immediately after map change
             }
         }
     }
