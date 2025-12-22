@@ -499,122 +499,7 @@ function drawPath(map, startX, startY, endX, endY, tileType) {
     }
 }
 
-// Generate field map (outdoor area)
-function generateFieldMap() {
-    const map = [];
-    const centerX = Math.floor(MAP_WIDTH / 2);
-    const centerY = Math.floor(MAP_HEIGHT / 2);
 
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-        const row = [];
-        for (let x = 0; x < MAP_WIDTH; x++) {
-            // Create solid wall border
-            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                row.push(TILES.WALL);
-            }
-            // Create paths to portals
-            else if (isOnPathToPortal(x, y, centerX, centerY)) {
-                row.push(TILES.PATH);
-            }
-            // Random trees (avoiding paths)
-            else if (Math.random() < 0.1) {
-                row.push(TILES.TREE);
-            }
-            // Random stones
-            else if (Math.random() < 0.05) {
-                row.push(TILES.STONE);
-            }
-            // Default grass
-            else {
-                row.push(TILES.GRASS);
-            }
-        }
-        map.push(row);
-    }
-    return map;
-}
-
-// Generate city map (buildings and streets)
-function generateCityMap() {
-    const map = [];
-
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-        const row = [];
-        for (let x = 0; x < MAP_WIDTH; x++) {
-            // Create solid wall border
-            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                row.push(TILES.WALL);
-            }
-            // Create streets (horizontal and vertical)
-            else if (x % 8 === 0 || y % 6 === 0) {
-                row.push(TILES.PATH); // Streets
-            }
-            // Create buildings in city blocks
-            else if (Math.random() < 0.3) {
-                row.push(TILES.BUILDING);
-            }
-            // Empty lots or grass
-            else {
-                row.push(TILES.GRASS);
-            }
-        }
-        map.push(row);
-    }
-    return map;
-}
-
-// Generate dungeon map (rooms and corridors)
-function generateDungeonMap() {
-    const map = [];
-
-    // Initialize with walls
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-        const row = [];
-        for (let x = 0; x < MAP_WIDTH; x++) {
-            row.push(TILES.DUNGEON_WALL);
-        }
-        map.push(row);
-    }
-
-    // Create rooms
-    for (let room = 0; room < 8; room++) {
-        const roomX = Math.floor(Math.random() * (MAP_WIDTH - 10)) + 2;
-        const roomY = Math.floor(Math.random() * (MAP_HEIGHT - 8)) + 2;
-        const roomW = Math.floor(Math.random() * 6) + 4;
-        const roomH = Math.floor(Math.random() * 4) + 3;
-
-        // Carve out room
-        for (let y = roomY; y < Math.min(roomY + roomH, MAP_HEIGHT - 1); y++) {
-            for (let x = roomX; x < Math.min(roomX + roomW, MAP_WIDTH - 1); x++) {
-                map[y][x] = TILES.FLOOR;
-            }
-        }
-    }
-
-    // Create corridors connecting rooms (simplified)
-    for (let y = 1; y < MAP_HEIGHT - 1; y += 4) {
-        for (let x = 1; x < MAP_WIDTH - 1; x++) {
-            if (Math.random() < 0.1) {
-                map[y][x] = TILES.FLOOR;
-            }
-        }
-    }
-
-    return map;
-}
-
-// Check if a position is on a path to any portal
-function isOnPathToPortal(x, y, centerX, centerY) {
-    // Path to city (field_to_city portal)
-    if (isOnLine(x, y, centerX, centerY, PORTALS.field_to_city.x, PORTALS.field_to_city.y, 2)) {
-        return true;
-    }
-    // Path to dungeon (city_to_dungeon portal, but from field perspective)
-    if (isOnLine(x, y, centerX, centerY, PORTALS.city_to_dungeon.x, PORTALS.city_to_dungeon.y, 2)) {
-        return true;
-    }
-    return false;
-}
 
 // Check if point is on line between two points (with some width)
 function isOnLine(x, y, x1, y1, x2, y2, width = 1) {
@@ -673,16 +558,7 @@ function generateObjects() {
             });
         }
 
-        // Add portals
-        objects.push({
-            type: 'portal',
-            portalId: 'field_to_city',
-            x: PORTALS.field_to_city.x,
-            y: PORTALS.field_to_city.y,
-            targetMap: PORTALS.field_to_city.targetMap,
-            targetX: PORTALS.field_to_city.targetX,
-            targetY: PORTALS.field_to_city.targetY
-        });
+        // No portals in unified world - zones are connected by walkable paths
 
     } else if (gameState.currentMap === 'city') {
         // City map - urban area with buildings
@@ -703,55 +579,7 @@ function generateObjects() {
             });
         }
 
-        // Add city portal back to field - ensure it's on a street
-        let fieldPortalX = PORTALS.city_to_field.x;
-        let fieldPortalY = PORTALS.city_to_field.y;
-
-        for (let y = Math.max(1, fieldPortalY - 3); y <= Math.min(MAP_HEIGHT - 2, fieldPortalY + 3); y++) {
-            for (let x = Math.max(1, fieldPortalX - 3); x <= Math.min(MAP_WIDTH - 2, fieldPortalX + 3); x++) {
-                if (gameState.map[y][x] === TILES.PATH) {
-                    fieldPortalX = x;
-                    fieldPortalY = y;
-                    break;
-                }
-            }
-            if (gameState.map[fieldPortalY][fieldPortalX] === TILES.PATH) break;
-        }
-
-        objects.push({
-            type: 'portal',
-            portalId: 'city_to_field',
-            x: fieldPortalX,
-            y: fieldPortalY,
-            targetMap: PORTALS.city_to_field.targetMap,
-            targetX: PORTALS.city_to_field.targetX,
-            targetY: PORTALS.city_to_field.targetY
-        });
-
-        // Add dungeon portal - ensure it's on a street
-        let dungeonPortalX = PORTALS.city_to_dungeon.x;
-        let dungeonPortalY = PORTALS.city_to_dungeon.y;
-
-        for (let y = Math.max(1, dungeonPortalY - 3); y <= Math.min(MAP_HEIGHT - 2, dungeonPortalY + 3); y++) {
-            for (let x = Math.max(1, dungeonPortalX - 3); x <= Math.min(MAP_WIDTH - 2, dungeonPortalX + 3); x++) {
-                if (gameState.map[y][x] === TILES.PATH) {
-                    dungeonPortalX = x;
-                    dungeonPortalY = y;
-                    break;
-                }
-            }
-            if (gameState.map[dungeonPortalY][dungeonPortalX] === TILES.PATH) break;
-        }
-
-        objects.push({
-            type: 'portal',
-            portalId: 'city_to_dungeon',
-            x: dungeonPortalX,
-            y: dungeonPortalY,
-            targetMap: PORTALS.city_to_dungeon.targetMap,
-            targetX: PORTALS.city_to_dungeon.targetX,
-            targetY: PORTALS.city_to_dungeon.targetY
-        });
+        // No portals needed - zones are connected by walkable paths
 
 
 
@@ -790,16 +618,7 @@ function generateObjects() {
             });
         }
 
-        // Add portal back to city
-        objects.push({
-            type: 'portal',
-            portalId: 'dungeon_to_city',
-            x: PORTALS.dungeon_to_city.x,
-            y: PORTALS.dungeon_to_city.y,
-            targetMap: PORTALS.dungeon_to_city.targetMap,
-            targetX: PORTALS.dungeon_to_city.targetX,
-            targetY: PORTALS.dungeon_to_city.targetY
-        });
+        // No portals needed - zones are connected by walkable paths
     }
 
     // Add items on ground (different amounts per map)
