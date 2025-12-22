@@ -1695,10 +1695,14 @@ function render() {
                 }
             } else if (obj.type === 'portal') {
                 // Draw portal (magical gateway)
-                if (obj.targetMap === 'city') {
+                // Different sprites for different types of destinations
+                if (obj.targetMap === 'city' || obj.targetMap === 'market' || obj.targetMap === 'castle') {
                     ctx.drawImage(sprites.portal, screenPos.x, screenPos.y);
-                } else if (obj.targetMap === 'dungeon') {
+                } else if (obj.targetMap === 'dungeon' || obj.targetMap === 'deep_dungeon') {
                     ctx.drawImage(sprites.dungeonDoor, screenPos.x, screenPos.y);
+                } else {
+                    // Default portal sprite for other destinations
+                    ctx.drawImage(sprites.portal, screenPos.x, screenPos.y);
                 }
             }
         }
