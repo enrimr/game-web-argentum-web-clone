@@ -967,6 +967,44 @@ function isOnLine(x, y, x1, y1, x2, y2, width = 1) {
     return false;
 }
 
+// Find a safe walkable position for placing objects/portals
+function findSafeWalkablePosition(preferredX, preferredY, maxAttempts = 50) {
+    // First, try the preferred position
+    if (isWalkable(preferredX, preferredY)) {
+        return { x: preferredX, y: preferredY };
+    }
+
+    // Search in expanding circles around preferred position
+    for (let radius = 1; radius < 10; radius++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
+                    const x = preferredX + dx;
+                    const y = preferredY + dy;
+
+                    if (x > 0 && x < MAP_WIDTH - 1 && y > 0 && y < MAP_HEIGHT - 1) {
+                        if (isWalkable(x, y)) {
+                            return { x, y };
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Last resort: find ANY walkable position
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+        const y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+
+        if (isWalkable(x, y)) {
+            return { x, y };
+        }
+    }
+
+    return null; // Failed to find position
+}
+
 // Generate objects (chests, gold, items) based on current map
 function generateObjects() {
     const objects = [];
@@ -1005,8 +1043,6 @@ function generateObjects() {
                 amount: Math.floor(Math.random() * 20) + 5
             });
         }
-
-        // No portals in unified world - zones are connected by walkable paths
 
     } else if (gameState.currentMap === 'city') {
         // City map - urban area with buildings
@@ -1069,20 +1105,44 @@ function generateObjects() {
         // No portals needed - zones are connected by walkable paths
     }
 
-    // Add portals for current map
+    // Add portals for current map - PLACE IN SAFE WALKABLE POSITIONS
     const mapDef = MAP_DEFINITIONS[gameState.currentMap];
     if (mapDef && mapDef.portals) {
         for (const portal of mapDef.portals) {
-            objects.push({
-                type: 'portal',
-                portalId: `portal_to_${portal.targetMap}`,
-                x: portal.x,
-                y: portal.y,
-                targetMap: portal.targetMap,
-                targetX: portal.targetX,
-                targetY: portal.targetY,
-                name: portal.name
-            });
+            // Find safe position for portal (starting from preferred position)
+            const safePos = findSafeWalkablePosition(portal.x, portal.y);
+            
+            if (safePos) {
+                // Ensure target position is also walkable
+                const originalCurrentMap = gameState.currentMap;
+                gameState.currentMap = portal.targetMap;
+                const targetMapData = generateMap();
+                gameState.currentMap = originalCurrentMap;
+                
+                let targetX = portal.targetX;
+                let targetY = portal.targetY;
+                
+                if (!isWalkableOnMap(targetMapData, targetX, targetY)) {
+                    const safeTarget = findNearestWalkableTile(targetMapData, targetX, targetY);
+                    if (safeTarget) {
+                        targetX = safeTarget.x;
+                        targetY = safeTarget.y;
+                    }
+                }
+                
+                objects.push({
+                    type: 'portal',
+                    portalId: `portal_to_${portal.targetMap}`,
+                    x: safePos.x,
+                    y: safePos.y,
+                    targetMap: portal.targetMap,
+                    targetX: targetX,
+                    targetY: targetY,
+                    name: portal.name
+                });
+            } else {
+                console.warn(`No se pudo encontrar posición segura para portal a ${portal.name}`);
+            }
         }
     }
 
