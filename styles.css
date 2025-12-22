@@ -484,3 +484,39 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.3);
     display: inline-block;
 }
+
+/* World map styles */
+.world-map-container {
+    margin-top: 10px;
+    text-align: center;
+}
+
+#worldMapCanvas {
+    display: block;
+    border: 2px solid #ffd700;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    cursor: pointer;
+}
+
+.world-map-info {
+    margin-top: 8px;
+    font-size: 11px;
+    text-align: left;
+}
+
+.world-map-info p {
+    margin: 4px 0;
+    color: #ffd700;
+}
+
+.world-map-details {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 6px;
+    border-radius: 3px;
+    margin-top: 6px;
+    font-size: 10px;
+    min-height: 40px;
+}

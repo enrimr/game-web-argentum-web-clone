@@ -84,7 +84,7 @@
                 </div>
 
                 <div class="panel">
-                    <h3>🗺️ Minimap</h3>
+                    <h3>🗺️ Mapas</h3>
                     <button id="toggleMinimap" class="minimap-toggle">Mostrar Minimap</button>
                     <div id="minimapContainer" class="minimap-container" style="display: none;">
                         <canvas id="minimapCanvas" width="200" height="150"></canvas>
@@ -93,6 +93,15 @@
                             <div class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Portal Ciudad</div>
                             <div class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Portal Mazmorra</div>
                             <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Jugador</div>
+                        </div>
+                    </div>
+                    <button id="toggleWorldMap" class="minimap-toggle" style="margin-top: 8px;">Mostrar Mapa del Mundo</button>
+                    <div id="worldMapContainer" class="world-map-container" style="display: none;">
+                        <canvas id="worldMapCanvas" width="400" height="300"></canvas>
+                        <div class="world-map-info">
+                            <p>🗺️ <strong>Mapa del Mundo Argentum</strong></p>
+                            <p>Haz click en un mapa para viajar (si tienes acceso)</p>
+                            <div id="worldMapDetails" class="world-map-details"></div>
                         </div>
                     </div>
                 </div>

@@ -11,6 +11,7 @@ const MAP_DEFINITIONS = {
     'field': {
         name: '🏞️ Campo Principal',
         description: 'Campo abierto con caminos hacia otras áreas',
+        worldX: 150, worldY: 200, // Position on world map
         portals: [
             { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35, name: 'Ciudad' },
             { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5, name: 'Mazmorra' },
@@ -20,6 +21,7 @@ const MAP_DEFINITIONS = {
     'city': {
         name: '🏘️ Ciudad Imperial',
         description: 'Ciudad con calles, tiendas y ciudadanos',
+        worldX: 250, worldY: 150,
         portals: [
             { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18, name: 'Campo' },
             { x: 45, y: 10, targetMap: 'castle', targetX: 10, targetY: 25, name: 'Castillo' },
@@ -29,6 +31,7 @@ const MAP_DEFINITIONS = {
     'dungeon': {
         name: '🏰 Mazmorra Antigua',
         description: 'Mazmorra con habitaciones conectadas',
+        worldX: 300, worldY: 250,
         portals: [
             { x: 5, y: 3, targetMap: 'field', targetX: 45, targetY: 12, name: 'Campo' },
             { x: 20, y: 12, targetMap: 'deep_dungeon', targetX: 5, targetY: 5, name: 'Profundidades' }
@@ -37,6 +40,7 @@ const MAP_DEFINITIONS = {
     'forest': {
         name: '🌲 Bosque Encantado',
         description: 'Bosque denso con caminos ocultos',
+        worldX: 50, worldY: 120,
         portals: [
             { x: 25, y: 3, targetMap: 'field', targetX: 5, targetY: 37, name: 'Campo' },
             { x: 40, y: 30, targetMap: 'ruins', targetX: 10, targetY: 10, name: 'Ruinas' }
@@ -45,6 +49,7 @@ const MAP_DEFINITIONS = {
     'castle': {
         name: '🏰 Castillo Real',
         description: 'Castillo majestuoso con salas importantes',
+        worldX: 320, worldY: 80,
         portals: [
             { x: 10, y: 27, targetMap: 'city', targetX: 45, targetY: 8, name: 'Ciudad' },
             { x: 35, y: 5, targetMap: 'throne_room', targetX: 15, targetY: 20, name: 'Sala del Trono' }
@@ -53,6 +58,7 @@ const MAP_DEFINITIONS = {
     'market': {
         name: '🏪 Mercado Central',
         description: 'Mercado bullicioso con comerciantes',
+        worldX: 200, worldY: 100,
         portals: [
             { x: 15, y: 22, targetMap: 'city', targetX: 5, targetY: 3, name: 'Ciudad' }
         ]
@@ -60,6 +66,7 @@ const MAP_DEFINITIONS = {
     'deep_dungeon': {
         name: '🕳️ Profundidades',
         description: 'Zonas profundas y peligrosas de la mazmorra',
+        worldX: 350, worldY: 280,
         portals: [
             { x: 5, y: 3, targetMap: 'dungeon', targetX: 20, targetY: 14, name: 'Mazmorra' }
         ]
@@ -67,6 +74,7 @@ const MAP_DEFINITIONS = {
     'ruins': {
         name: '🏛️ Ruinas Antiguas',
         description: 'Ruinas olvidadas con secretos del pasado',
+        worldX: 80, worldY: 50,
         portals: [
             { x: 10, y: 8, targetMap: 'forest', targetX: 40, targetY: 32, name: 'Bosque' }
         ]
@@ -74,11 +82,24 @@ const MAP_DEFINITIONS = {
     'throne_room': {
         name: '👑 Sala del Trono',
         description: 'Sala real con el trono del rey',
+        worldX: 350, worldY: 30,
         portals: [
             { x: 15, y: 22, targetMap: 'castle', targetX: 35, targetY: 3, name: 'Castillo' }
         ]
     }
 };
+
+// World map connections (which maps are connected)
+const WORLD_CONNECTIONS = [
+    ['field', 'city'],
+    ['field', 'dungeon'],
+    ['field', 'forest'],
+    ['city', 'castle'],
+    ['city', 'market'],
+    ['dungeon', 'deep_dungeon'],
+    ['forest', 'ruins'],
+    ['castle', 'throne_room']
+];
 
 // Game state
 const gameState = {
@@ -1875,8 +1896,150 @@ function updateMinimap() {
     }
 }
 
+// World map functionality
+const worldMapCanvas = document.getElementById('worldMapCanvas');
+const worldMapCtx = worldMapCanvas.getContext('2d');
+let worldMapVisible = false;
+
+function toggleWorldMap() {
+    const container = document.getElementById('worldMapContainer');
+    const button = document.getElementById('toggleWorldMap');
+
+    worldMapVisible = !worldMapVisible;
+
+    if (worldMapVisible) {
+        container.style.display = 'block';
+        button.textContent = 'Ocultar Mapa del Mundo';
+        renderWorldMap();
+    } else {
+        container.style.display = 'none';
+        button.textContent = 'Mostrar Mapa del Mundo';
+        document.getElementById('worldMapDetails').innerHTML = '';
+    }
+}
+
+function renderWorldMap() {
+    if (!worldMapVisible) return;
+
+    const canvas = worldMapCanvas;
+    const ctx = worldMapCtx;
+
+    // Clear canvas
+    ctx.fillStyle = '#1e3c72';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw connections first (behind maps)
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+
+    for (const connection of WORLD_CONNECTIONS) {
+        const map1 = MAP_DEFINITIONS[connection[0]];
+        const map2 = MAP_DEFINITIONS[connection[1]];
+
+        if (map1 && map2) {
+            ctx.beginPath();
+            ctx.moveTo(map1.worldX, map1.worldY);
+            ctx.lineTo(map2.worldX, map2.worldY);
+            ctx.stroke();
+        }
+    }
+
+    ctx.setLineDash([]); // Reset line dash
+
+    // Draw each map as a rectangle
+    for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
+        const isCurrentMap = mapKey === gameState.currentMap;
+        const canAccess = true; // For now, all maps are accessible
+
+        // Draw map rectangle
+        ctx.fillStyle = isCurrentMap ? '#4ade80' : canAccess ? '#60a5fa' : '#6b7280';
+        ctx.fillRect(mapDef.worldX - 20, mapDef.worldY - 15, 40, 30);
+
+        // Draw border
+        ctx.strokeStyle = isCurrentMap ? '#22c55e' : canAccess ? '#3b82f6' : '#4b5563';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(mapDef.worldX - 20, mapDef.worldY - 15, 40, 30);
+
+        // Draw map name
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(mapDef.name.split(' ')[0], mapDef.worldX, mapDef.worldY + 2);
+    }
+
+    // Draw player position indicator
+    const currentMapDef = MAP_DEFINITIONS[gameState.currentMap];
+    if (currentMapDef) {
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(currentMapDef.worldX, currentMapDef.worldY - 8, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px monospace';
+        ctx.fillText('★', currentMapDef.worldX - 3, currentMapDef.worldY - 5);
+    }
+}
+
+// World map click handler
+worldMapCanvas.addEventListener('click', (event) => {
+    if (!worldMapVisible) return;
+
+    const rect = worldMapCanvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Check if clicked on a map
+    for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
+        if (x >= mapDef.worldX - 20 && x <= mapDef.worldX + 20 &&
+            y >= mapDef.worldY - 15 && y <= mapDef.worldY + 15) {
+
+            const detailsDiv = document.getElementById('worldMapDetails');
+            detailsDiv.innerHTML = `
+                <strong>${mapDef.name}</strong><br>
+                ${mapDef.description}<br>
+                <em>Estado: ${mapKey === gameState.currentMap ? 'Estás aquí' : 'Disponible'}</em>
+            `;
+
+            // If it's not the current map, offer to travel
+            if (mapKey !== gameState.currentMap) {
+                // For now, just show info. In a full implementation, we could check if player can travel
+                detailsDiv.innerHTML += '<br><em>Viaja usando portales en el mapa</em>';
+            }
+
+            break;
+        }
+    }
+});
+
+// World map hover handler
+worldMapCanvas.addEventListener('mousemove', (event) => {
+    if (!worldMapVisible) return;
+
+    const rect = worldMapCanvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    let hoveredMap = null;
+
+    // Check if hovering over a map
+    for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
+        if (x >= mapDef.worldX - 20 && x <= mapDef.worldX + 20 &&
+            y >= mapDef.worldY - 15 && y <= mapDef.worldY + 15) {
+            hoveredMap = mapDef;
+            break;
+        }
+    }
+
+    worldMapCanvas.style.cursor = hoveredMap ? 'pointer' : 'default';
+});
+
 // Add minimap toggle event listener
 document.getElementById('toggleMinimap').addEventListener('click', toggleMinimap);
+
+// Add world map toggle event listener
+document.getElementById('toggleWorldMap').addEventListener('click', toggleWorldMap);
 
 // Start game when page loads
 window.addEventListener('load', init);
