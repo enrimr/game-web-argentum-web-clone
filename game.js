@@ -167,6 +167,58 @@ const sprites = {
         ctx.fillStyle = '#111827';
         ctx.fillRect(w/2-2, h/2-2, 4, 4);
     }),
+
+    // Portal and path sprites
+    portal: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Magical portal - swirling colors
+        ctx.fillStyle = '#8b5cf6';
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, w/2-2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#a855f7';
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, w/3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#c084fc';
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Center glow
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }),
+
+    dungeonDoor: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Dark dungeon door
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(2, 2, w-4, h-4);
+        // Door handle
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(w-6, h/2, 3, 0, Math.PI * 2);
+        ctx.fill();
+        // Warning symbol
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(w/2-2, 4, 4, 2);
+        ctx.fillRect(w/2-1, 6, 2, 6);
+    }),
+
+    path: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Dirt path
+        ctx.fillStyle = '#a16207';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(2, 2, w-4, h-4);
+        // Stones on path
+        ctx.fillStyle = '#6b7280';
+        ctx.fillRect(4, 4, 3, 3);
+        ctx.fillRect(w-7, h-7, 3, 3);
+        ctx.fillRect(w/2-1, h/2-1, 3, 3);
+    }),
     
     player: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
         // Body
@@ -302,12 +354,16 @@ const TILES = {
     WALL: 4,      // Solid walls for city/dungeon borders
     BUILDING: 5,  // Buildings in city
     FLOOR: 6,     // Dungeon floor
-    DUNGEON_WALL: 7 // Dungeon walls
+    DUNGEON_WALL: 7, // Dungeon walls
+    PATH: 8       // Dirt paths to other areas
 };
 
 // Generate map
 function generateMap() {
     const map = [];
+    const centerX = Math.floor(MAP_WIDTH / 2);
+    const centerY = Math.floor(MAP_HEIGHT / 2);
+
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
@@ -315,7 +371,11 @@ function generateMap() {
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
             }
-            // Random trees
+            // Create paths to portals
+            else if (isOnPathToPortal(x, y, centerX, centerY)) {
+                row.push(TILES.PATH);
+            }
+            // Random trees (avoiding paths)
             else if (Math.random() < 0.1) {
                 row.push(TILES.TREE);
             }
@@ -331,6 +391,37 @@ function generateMap() {
         map.push(row);
     }
     return map;
+}
+
+// Check if a position is on a path to any portal
+function isOnPathToPortal(x, y, centerX, centerY) {
+    // Path to city (field_to_city portal)
+    if (isOnLine(x, y, centerX, centerY, PORTALS.field_to_city.x, PORTALS.field_to_city.y, 2)) {
+        return true;
+    }
+    // Path to dungeon (city_to_dungeon portal, but from field perspective)
+    if (isOnLine(x, y, centerX, centerY, PORTALS.city_to_dungeon.x, PORTALS.city_to_dungeon.y, 2)) {
+        return true;
+    }
+    return false;
+}
+
+// Check if point is on line between two points (with some width)
+function isOnLine(x, y, x1, y1, x2, y2, width = 1) {
+    const distToLine = Math.abs((y2 - y1) * x - (x2 - x1) * y + x2 * y1 - y2 * x1) /
+                     Math.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2);
+
+    // Check if point is within width of the line
+    if (distToLine <= width) {
+        // Check if point is between the two endpoints
+        const minX = Math.min(x1, x2) - width;
+        const maxX = Math.max(x1, x2) + width;
+        const minY = Math.min(y1, y2) - width;
+        const maxY = Math.max(y1, y2) + width;
+
+        return x >= minX && x <= maxX && y >= minY && y <= maxY;
+    }
+    return false;
 }
 
 // Generate objects (chests, gold, items)
@@ -369,6 +460,25 @@ function generateObjects() {
             amount: Math.floor(Math.random() * 20) + 5
         });
     }
+
+    // Add portals (visible gateways to other maps)
+    // City portal
+    objects.push({
+        type: 'portal',
+        portalId: 'field_to_city',
+        x: PORTALS.field_to_city.x,
+        y: PORTALS.field_to_city.y,
+        targetMap: PORTALS.field_to_city.targetMap
+    });
+
+    // Dungeon portal
+    objects.push({
+        type: 'portal',
+        portalId: 'city_to_dungeon',
+        x: PORTALS.city_to_dungeon.x,
+        y: PORTALS.city_to_dungeon.y,
+        targetMap: PORTALS.city_to_dungeon.targetMap
+    });
 
     // Add items on ground (AO style) - máximo 1 item por celda
     const itemTypes = Object.keys(ITEM_TYPES);
@@ -684,6 +794,13 @@ function interact() {
                 } else {
                     addChatMessage('system', '❌ ¡Inventario lleno! No puedes recoger el item.');
                 }
+            } else if (obj.type === 'portal') {
+                // Portal interaction (future map transitions)
+                if (obj.targetMap === 'city') {
+                    addChatMessage('system', '🌆 ¡Puerta a la Ciudad! (Próximamente: múltiples mapas)');
+                } else if (obj.targetMap === 'dungeon') {
+                    addChatMessage('system', '🏰 ¡Puerta a la Mazmorra! (Próximamente: múltiples mapas)');
+                }
             }
         }
     }
@@ -900,6 +1017,9 @@ function render() {
                     case TILES.DUNGEON_WALL:
                         sprite = sprites.dungeonWall;
                         break;
+                    case TILES.PATH:
+                        sprite = sprites.path;
+                        break;
                 }
 
                 const screenPos = worldToScreen(worldX, worldY);
@@ -922,6 +1042,13 @@ function render() {
                 const itemSprite = sprites[ITEM_TYPES[obj.itemType].sprite];
                 if (itemSprite) {
                     ctx.drawImage(itemSprite, screenPos.x, screenPos.y);
+                }
+            } else if (obj.type === 'portal') {
+                // Draw portal (magical gateway)
+                if (obj.targetMap === 'city') {
+                    ctx.drawImage(sprites.portal, screenPos.x, screenPos.y);
+                } else if (obj.targetMap === 'dungeon') {
+                    ctx.drawImage(sprites.dungeonDoor, screenPos.x, screenPos.y);
                 }
             }
         }
