@@ -839,27 +839,50 @@ function generateConnectedDungeon(map, bounds) {
     }
 }
 
-// Connect two points with a corridor
+// Connect two points with a corridor (minimum 2 tiles wide for better gameplay)
 function connectRooms(map, point1, point2, bounds) {
-    // Horizontal corridor first
+    const corridorWidth = 2; // Minimum 2 tiles wide
+
+    // Horizontal corridor first (made wider)
     const startX = Math.min(point1.x, point2.x);
     const endX = Math.max(point1.x, point2.x);
 
     for (let x = startX; x <= endX; x++) {
-        if (x >= bounds.x && x < bounds.x + bounds.width &&
-            point1.y >= bounds.y && point1.y < bounds.y + bounds.height) {
-            map[point1.y][x] = TILES.FLOOR;
+        for (let w = 0; w < corridorWidth; w++) {
+            const corridorY = point1.y + w - Math.floor(corridorWidth / 2);
+            if (x >= bounds.x && x < bounds.x + bounds.width &&
+                corridorY >= bounds.y && corridorY < bounds.y + bounds.height) {
+                map[corridorY][x] = TILES.FLOOR;
+            }
         }
     }
 
-    // Vertical corridor
+    // Vertical corridor (made wider)
     const startY = Math.min(point1.y, point2.y);
     const endY = Math.max(point1.y, point2.y);
 
     for (let y = startY; y <= endY; y++) {
-        if (point2.x >= bounds.x && point2.x < bounds.x + bounds.width &&
-            y >= bounds.y && y < bounds.y + bounds.height) {
-            map[y][point2.x] = TILES.FLOOR;
+        for (let w = 0; w < corridorWidth; w++) {
+            const corridorX = point2.x + w - Math.floor(corridorWidth / 2);
+            if (corridorX >= bounds.x && corridorX < bounds.x + bounds.width &&
+                y >= bounds.y && y < bounds.y + bounds.height) {
+                map[y][corridorX] = TILES.FLOOR;
+            }
+        }
+    }
+
+    // Ensure the intersection area is fully connected (L-shaped connection)
+    const intersectionX = point2.x;
+    const intersectionY = point1.y;
+
+    for (let dx = -Math.floor(corridorWidth / 2); dx <= Math.floor(corridorWidth / 2); dx++) {
+        for (let dy = -Math.floor(corridorWidth / 2); dy <= Math.floor(corridorWidth / 2); dy++) {
+            const ix = intersectionX + dx;
+            const iy = intersectionY + dy;
+            if (ix >= bounds.x && ix < bounds.x + bounds.width &&
+                iy >= bounds.y && iy < bounds.y + bounds.height) {
+                map[iy][ix] = TILES.FLOOR;
+            }
         }
     }
 }
