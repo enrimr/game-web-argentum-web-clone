@@ -866,10 +866,9 @@ function render() {
         }
     }
 
-    // Draw player (always centered in viewport)
-    const playerScreenX = Math.floor(VIEWPORT_WIDTH / 2) * TILE_SIZE;
-    const playerScreenY = Math.floor(VIEWPORT_HEIGHT / 2) * TILE_SIZE;
-    ctx.drawImage(sprites.player, playerScreenX, playerScreenY);
+    // Draw player at correct position in viewport
+    const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
+    ctx.drawImage(sprites.player, playerScreenPos.x, playerScreenPos.y);
 }
 
 // Game loop
