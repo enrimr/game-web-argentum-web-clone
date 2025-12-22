@@ -587,12 +587,27 @@ function generateObjects() {
             targetY: PORTALS.city_to_field.targetY
         });
 
-        // Add dungeon portal
+        // Add dungeon portal - ensure it's on a street/path
+        let portalX = PORTALS.city_to_dungeon.x;
+        let portalY = PORTALS.city_to_dungeon.y;
+
+        // Find nearest street/path position
+        for (let y = Math.max(1, portalY - 2); y <= Math.min(MAP_HEIGHT - 2, portalY + 2); y++) {
+            for (let x = Math.max(1, portalX - 2); x <= Math.min(MAP_WIDTH - 2, portalX + 2); x++) {
+                if (gameState.map[y][x] === TILES.PATH) {
+                    portalX = x;
+                    portalY = y;
+                    break;
+                }
+            }
+            if (gameState.map[portalY][portalX] === TILES.PATH) break;
+        }
+
         objects.push({
             type: 'portal',
             portalId: 'city_to_dungeon',
-            x: PORTALS.city_to_dungeon.x,
-            y: PORTALS.city_to_dungeon.y,
+            x: portalX,
+            y: portalY,
             targetMap: PORTALS.city_to_dungeon.targetMap,
             targetX: PORTALS.city_to_dungeon.targetX,
             targetY: PORTALS.city_to_dungeon.targetY
@@ -920,6 +935,18 @@ function updateUI() {
     document.getElementById('mana').textContent = gameState.player.mana;
     document.getElementById('manaMax').textContent = gameState.player.maxMana;
     document.getElementById('gold').textContent = gameState.player.gold;
+
+    // Update current map display
+    const currentMapEl = document.getElementById('currentMap');
+    const mapNames = {
+        'field': '🏞️ Campo',
+        'city': '🏘️ Ciudad',
+        'dungeon': '🏰 Mazmorra'
+    };
+
+    if (currentMapEl) {
+        currentMapEl.textContent = mapNames[gameState.currentMap] || 'Campo';
+    }
 
     // Update level and experience
     const levelEl = document.getElementById('level');
