@@ -397,40 +397,8 @@ function generateMap() {
         }
     }
 
-    // Generate dungeon zone (top-left, overlapping field)
-    const dungeonBounds = ZONE_BOUNDARIES.dungeon;
-    for (let y = dungeonBounds.y; y < dungeonBounds.y + dungeonBounds.height; y++) {
-        for (let x = dungeonBounds.x; x < dungeonBounds.x + dungeonBounds.width; x++) {
-            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                map[y][x] = TILES.DUNGEON_WALL; // Start with walls
-            }
-        }
-    }
-
-    // Carve dungeon rooms
-    for (let room = 0; room < 6; room++) {
-        const roomX = dungeonBounds.x + Math.floor(Math.random() * (dungeonBounds.width - 6)) + 1;
-        const roomY = dungeonBounds.y + Math.floor(Math.random() * (dungeonBounds.height - 4)) + 1;
-        const roomW = Math.floor(Math.random() * 4) + 3;
-        const roomH = Math.floor(Math.random() * 3) + 2;
-
-        for (let y = roomY; y < Math.min(roomY + roomH, dungeonBounds.y + dungeonBounds.height - 1); y++) {
-            for (let x = roomX; x < Math.min(roomX + roomW, dungeonBounds.x + dungeonBounds.width - 1); x++) {
-                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                    map[y][x] = TILES.FLOOR;
-                }
-            }
-        }
-    }
-
-    // Connect dungeon rooms with corridors
-    for (let y = dungeonBounds.y + 1; y < dungeonBounds.y + dungeonBounds.height - 1; y += 3) {
-        for (let x = dungeonBounds.x + 1; x < dungeonBounds.x + dungeonBounds.width - 1; x++) {
-            if (Math.random() < 0.15 && map[y][x] === TILES.DUNGEON_WALL) {
-                map[y][x] = TILES.FLOOR;
-            }
-        }
-    }
+    // Generate dungeon zone (top-left, overlapping field) with guaranteed connectivity
+    generateConnectedDungeon(map, ZONE_BOUNDARIES.dungeon);
 
     // Create connecting paths between zones
     createConnectingPaths(map);
@@ -445,6 +413,166 @@ function generateMap() {
     }
 
     return map;
+}
+
+// Generate connected dungeon with guaranteed accessibility
+function generateConnectedDungeon(map, bounds) {
+    // Initialize with walls
+    for (let y = bounds.y; y < bounds.y + bounds.height; y++) {
+        for (let x = bounds.x; x < bounds.x + bounds.width; x++) {
+            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                map[y][x] = TILES.DUNGEON_WALL;
+            }
+        }
+    }
+
+    const rooms = [];
+    const minRoomSize = 3;
+    const maxRoomSize = 6;
+
+    // Create rooms with guaranteed spacing
+    for (let attempts = 0; attempts < 20 && rooms.length < 8; attempts++) {
+        const roomW = minRoomSize + Math.floor(Math.random() * (maxRoomSize - minRoomSize + 1));
+        const roomH = minRoomSize + Math.floor(Math.random() * (maxRoomSize - minRoomSize + 1));
+
+        const roomX = bounds.x + 2 + Math.floor(Math.random() * (bounds.width - roomW - 4));
+        const roomY = bounds.y + 2 + Math.floor(Math.random() * (bounds.height - roomH - 4));
+
+        // Check if room fits and doesn't overlap existing rooms
+        let canPlace = true;
+        for (let y = roomY - 1; y < roomY + roomH + 1 && canPlace; y++) {
+            for (let x = roomX - 1; x < roomX + roomW + 1 && canPlace; x++) {
+                if (x >= bounds.x && x < bounds.x + bounds.width &&
+                    y >= bounds.y && y < bounds.y + bounds.height) {
+                    if (map[y][x] === TILES.FLOOR) {
+                        canPlace = false;
+                    }
+                }
+            }
+        }
+
+        if (canPlace) {
+            // Carve the room
+            for (let y = roomY; y < roomY + roomH; y++) {
+                for (let x = roomX; x < roomX + roomW; x++) {
+                    if (x >= bounds.x && x < bounds.x + bounds.width &&
+                        y >= bounds.y && y < bounds.y + bounds.height) {
+                        map[y][x] = TILES.FLOOR;
+                    }
+                }
+            }
+
+            // Store room center for connecting
+            const centerX = Math.floor(roomX + roomW / 2);
+            const centerY = Math.floor(roomY + roomH / 2);
+            rooms.push({ x: centerX, y: centerY });
+        }
+    }
+
+    // Ensure we have at least 3 rooms
+    if (rooms.length < 3) {
+        // Create minimum rooms if needed
+        const forcedRooms = [
+            { x: bounds.x + 3, y: bounds.y + 3, w: 4, h: 4 },
+            { x: bounds.x + bounds.width - 7, y: bounds.y + 3, w: 4, h: 4 },
+            { x: bounds.x + Math.floor(bounds.width / 2) - 2, y: bounds.y + bounds.height - 7, w: 4, h: 4 }
+        ];
+
+        for (const room of forcedRooms) {
+            for (let y = room.y; y < room.y + room.h; y++) {
+                for (let x = room.x; x < room.x + room.w; x++) {
+                    if (x >= bounds.x && x < bounds.x + bounds.width &&
+                        y >= bounds.y && y < bounds.y + bounds.height) {
+                        map[y][x] = TILES.FLOOR;
+                    }
+                }
+            }
+            rooms.push({ x: room.x + Math.floor(room.w / 2), y: room.y + Math.floor(room.h / 2) });
+        }
+    }
+
+    // Connect all rooms with corridors (minimum spanning tree approach)
+    if (rooms.length > 1) {
+        // Start with first room
+        const connected = new Set([0]);
+
+        while (connected.size < rooms.length) {
+            let bestDistance = Infinity;
+            let bestConnection = null;
+
+            // Find closest unconnected room to any connected room
+            for (const connectedIdx of connected) {
+                for (let i = 0; i < rooms.length; i++) {
+                    if (!connected.has(i)) {
+                        const dist = Math.abs(rooms[connectedIdx].x - rooms[i].x) +
+                                   Math.abs(rooms[connectedIdx].y - rooms[i].y);
+                        if (dist < bestDistance) {
+                            bestDistance = dist;
+                            bestConnection = { from: connectedIdx, to: i };
+                        }
+                    }
+                }
+            }
+
+            if (bestConnection) {
+                // Connect the rooms
+                connectRooms(map, rooms[bestConnection.from], rooms[bestConnection.to], bounds);
+                connected.add(bestConnection.to);
+            } else {
+                break; // No more connections possible
+            }
+        }
+    }
+
+    // Create entrance from main path (bottom of dungeon zone)
+    const entranceY = bounds.y + bounds.height - 1;
+    const entranceX = Math.floor(bounds.x + bounds.width / 2);
+
+    if (entranceX >= bounds.x && entranceX < bounds.x + bounds.width &&
+        entranceY >= bounds.y && entranceY < bounds.y + bounds.height) {
+
+        // Find nearest room to connect to entrance
+        let nearestRoom = null;
+        let minDistance = Infinity;
+
+        for (const room of rooms) {
+            const dist = Math.abs(room.x - entranceX) + Math.abs(room.y - entranceY);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestRoom = room;
+            }
+        }
+
+        if (nearestRoom) {
+            // Connect entrance to nearest room
+            connectRooms(map, { x: entranceX, y: entranceY }, nearestRoom, bounds);
+        }
+    }
+}
+
+// Connect two points with a corridor
+function connectRooms(map, point1, point2, bounds) {
+    // Horizontal corridor first
+    const startX = Math.min(point1.x, point2.x);
+    const endX = Math.max(point1.x, point2.x);
+
+    for (let x = startX; x <= endX; x++) {
+        if (x >= bounds.x && x < bounds.x + bounds.width &&
+            point1.y >= bounds.y && point1.y < bounds.y + bounds.height) {
+            map[point1.y][x] = TILES.FLOOR;
+        }
+    }
+
+    // Vertical corridor
+    const startY = Math.min(point1.y, point2.y);
+    const endY = Math.max(point1.y, point2.y);
+
+    for (let y = startY; y <= endY; y++) {
+        if (point2.x >= bounds.x && point2.x < bounds.x + bounds.width &&
+            y >= bounds.y && y < bounds.y + bounds.height) {
+            map[y][point2.x] = TILES.FLOOR;
+        }
+    }
 }
 
 // Create walkable paths connecting the different zones
