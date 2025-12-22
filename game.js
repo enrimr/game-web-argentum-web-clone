@@ -598,6 +598,17 @@ function generateObjects() {
             targetY: PORTALS.city_to_dungeon.targetY
         });
 
+        // Add city portal to dungeon (for testing - normally only accessible from city)
+        objects.push({
+            type: 'portal',
+            portalId: 'field_to_dungeon',
+            x: 50,
+            y: 30,
+            targetMap: 'dungeon',
+            targetX: 5,
+            targetY: 5
+        });
+
     } else if (gameState.currentMap === 'dungeon') {
         // Dungeon map - dangerous area with better loot
         // Add better chests
