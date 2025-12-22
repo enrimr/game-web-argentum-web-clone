@@ -576,38 +576,51 @@ function generateObjects() {
             });
         }
 
-        // Add city portal back to field
+        // Add city portal back to field - ensure it's on a street
+        let fieldPortalX = PORTALS.city_to_field.x;
+        let fieldPortalY = PORTALS.city_to_field.y;
+
+        for (let y = Math.max(1, fieldPortalY - 3); y <= Math.min(MAP_HEIGHT - 2, fieldPortalY + 3); y++) {
+            for (let x = Math.max(1, fieldPortalX - 3); x <= Math.min(MAP_WIDTH - 2, fieldPortalX + 3); x++) {
+                if (gameState.map[y][x] === TILES.PATH) {
+                    fieldPortalX = x;
+                    fieldPortalY = y;
+                    break;
+                }
+            }
+            if (gameState.map[fieldPortalY][fieldPortalX] === TILES.PATH) break;
+        }
+
         objects.push({
             type: 'portal',
             portalId: 'city_to_field',
-            x: PORTALS.city_to_field.x,
-            y: PORTALS.city_to_field.y,
+            x: fieldPortalX,
+            y: fieldPortalY,
             targetMap: PORTALS.city_to_field.targetMap,
             targetX: PORTALS.city_to_field.targetX,
             targetY: PORTALS.city_to_field.targetY
         });
 
-        // Add dungeon portal - ensure it's on a street/path
-        let portalX = PORTALS.city_to_dungeon.x;
-        let portalY = PORTALS.city_to_dungeon.y;
+        // Add dungeon portal - ensure it's on a street
+        let dungeonPortalX = PORTALS.city_to_dungeon.x;
+        let dungeonPortalY = PORTALS.city_to_dungeon.y;
 
-        // Find nearest street/path position
-        for (let y = Math.max(1, portalY - 2); y <= Math.min(MAP_HEIGHT - 2, portalY + 2); y++) {
-            for (let x = Math.max(1, portalX - 2); x <= Math.min(MAP_WIDTH - 2, portalX + 2); x++) {
+        for (let y = Math.max(1, dungeonPortalY - 3); y <= Math.min(MAP_HEIGHT - 2, dungeonPortalY + 3); y++) {
+            for (let x = Math.max(1, dungeonPortalX - 3); x <= Math.min(MAP_WIDTH - 2, dungeonPortalX + 3); x++) {
                 if (gameState.map[y][x] === TILES.PATH) {
-                    portalX = x;
-                    portalY = y;
+                    dungeonPortalX = x;
+                    dungeonPortalY = y;
                     break;
                 }
             }
-            if (gameState.map[portalY][portalX] === TILES.PATH) break;
+            if (gameState.map[dungeonPortalY][dungeonPortalX] === TILES.PATH) break;
         }
 
         objects.push({
             type: 'portal',
             portalId: 'city_to_dungeon',
-            x: portalX,
-            y: portalY,
+            x: dungeonPortalX,
+            y: dungeonPortalY,
             targetMap: PORTALS.city_to_dungeon.targetMap,
             targetX: PORTALS.city_to_dungeon.targetX,
             targetY: PORTALS.city_to_dungeon.targetY
