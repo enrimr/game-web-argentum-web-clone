@@ -468,10 +468,11 @@ function generateMap() {
     }
 }
 
-// Generate field map (outdoor area)
+// Generate field map (outdoor area) - CORRECT ORDER: terrain -> obstacles
 function generateFieldMap() {
     const map = [];
 
+    // 1. Create base terrain (borders and ground)
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
@@ -479,18 +480,25 @@ function generateFieldMap() {
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
             } else {
-                // Add some trees and stones to field
-                if (Math.random() < 0.05) {
-                    row.push(TILES.TREE);
-                } else if (Math.random() < 0.02) {
-                    row.push(TILES.STONE);
-                } else {
-                    row.push(TILES.GRASS);
-                }
+                // Base terrain is walkable grass
+                row.push(TILES.GRASS);
             }
         }
         map.push(row);
     }
+
+    // 2. Add obstacles (trees, stones) - these block movement AFTER terrain is set
+    for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (let x = 1; x < MAP_WIDTH - 1; x++) {
+            if (Math.random() < 0.05) {
+                map[y][x] = TILES.TREE;
+            } else if (Math.random() < 0.02) {
+                map[y][x] = TILES.STONE;
+            }
+            // Leave some areas as paths for better navigation
+        }
+    }
+
     return map;
 }
 
@@ -1816,10 +1824,13 @@ function gameLoop(timestamp) {
 
 // Initialize game
 function init() {
-    // Validate all portal positions at startup
+    // Generate initial map first
+    gameState.map = generateMap();
+
+    // Then validate all portal positions (after map is generated)
     validatePortalPositions();
 
-    gameState.map = generateMap();
+    // Generate content
     gameState.objects = generateObjects();
     gameState.enemies = generateEnemies();
 
