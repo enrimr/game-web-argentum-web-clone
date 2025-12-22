@@ -613,7 +613,15 @@ function generateMarketMap() {
 
 // Generate deep dungeon map (more dangerous dungeon)
 function generateDeepDungeonMap() {
-    return generateConnectedDungeon({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT });
+    const map = [];
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        map[y] = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            map[y][x] = TILES.DUNGEON_WALL;
+        }
+    }
+    generateConnectedDungeon(map, { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT });
+    return map;
 }
 
 // Generate ruins map (ancient ruins)
@@ -655,7 +663,15 @@ function generateRuinsMap() {
 
 // Generate dungeon map (main dungeon level)
 function generateDungeonMap() {
-    return generateConnectedDungeon({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT });
+    const map = [];
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        map[y] = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            map[y][x] = TILES.DUNGEON_WALL;
+        }
+    }
+    generateConnectedDungeon(map, { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT });
+    return map;
 }
 
 // Generate throne room map (king's throne room)
