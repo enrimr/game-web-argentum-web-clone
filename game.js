@@ -300,25 +300,39 @@ function generateObjects() {
         });
     }
 
-    // Add items on ground (AO style)
+    // Add items on ground (AO style) - máximo 1 item por celda
     const itemTypes = Object.keys(ITEM_TYPES);
+    const maxAttempts = 50; // Máximo de intentos para encontrar celda libre
+
     for (let i = 0; i < 8; i++) {
-        let x, y;
-        do {
-            x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-            y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-        } while (gameState.map[y][x] !== TILES.GRASS);
+        let foundSpot = false;
+        let attempts = 0;
 
-        const randomItemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-        const itemDef = ITEM_TYPES[randomItemType];
+        while (!foundSpot && attempts < maxAttempts) {
+            const x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+            const y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
 
-        objects.push({
-            type: 'item',
-            itemType: randomItemType,
-            x: x,
-            y: y,
-            quantity: itemDef.stackable ? Math.floor(Math.random() * 5) + 1 : 1
-        });
+            // Verificar que la celda esté libre (césped) y no tenga otros objetos
+            if (gameState.map[y][x] === TILES.GRASS) {
+                const hasObject = objects.some(obj => obj.x === x && obj.y === y);
+                if (!hasObject) {
+                    const randomItemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+                    const itemDef = ITEM_TYPES[randomItemType];
+
+                    objects.push({
+                        type: 'item',
+                        itemType: randomItemType,
+                        x: x,
+                        y: y,
+                        quantity: itemDef.stackable ? Math.floor(Math.random() * 5) + 1 : 1
+                    });
+                    foundSpot = true;
+                }
+            }
+            attempts++;
+        }
+
+        // Si no encontró spot después de maxAttempts, simplemente no genera ese item
     }
 
     return objects;
