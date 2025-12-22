@@ -371,7 +371,15 @@ function generateEnemies() {
 // Check if tile is walkable
 function isWalkable(x, y) {
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
+
     const tile = gameState.map[y][x];
+
+    // Allow walking on water at map edges for better exploration
+    if ((x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) &&
+        tile === TILES.WATER) {
+        return true;
+    }
+
     return tile === TILES.GRASS;
 }
 
