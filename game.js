@@ -6,23 +6,18 @@ const MAP_WIDTH = 60;       // Mapa total ancho (3x más grande)
 const MAP_HEIGHT = 40;      // Mapa total alto (3x más grande)
 const MAX_INVENTORY_SLOTS = 12; // Máximo de tipos diferentes de items
 
-// Map types and transitions
-const MAP_TYPES = {
-    FIELD: 'field',
-    CITY: 'city',
-    DUNGEON: 'dungeon'
+// World zones (connected areas like AO/Pokemon)
+const WORLD_ZONES = {
+    FIELD: { name: 'Campo', color: '#2d5016' },
+    CITY: { name: 'Ciudad', color: '#92400e' },
+    DUNGEON: { name: 'Mazmorra', color: '#1f2937' }
 };
 
-// Portal system for map transitions
-const PORTALS = {
-    // From field to city
-    'field_to_city': { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35 },
-    // From city to field
-    'city_to_field': { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18 },
-    // From city to dungeon
-    'city_to_dungeon': { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5 },
-    // From dungeon to city
-    'dungeon_to_city': { x: 5, y: 3, targetMap: 'city', targetX: 45, targetY: 12 }
+// Zone boundaries (rectangles defining each area)
+const ZONE_BOUNDARIES = {
+    field: { x: 0, y: 0, width: 35, height: 40 },      // Left side
+    city: { x: 35, y: 15, width: 25, height: 25 },     // Center-right
+    dungeon: { x: 0, y: 0, width: 25, height: 15 }     // Top-left (overlaps field)
 };
 
 // Game state
@@ -359,16 +354,148 @@ const TILES = {
     PATH: 8       // Dirt paths to other areas
 };
 
-// Generate map based on current map type
+// Generate unified world map (connected zones like AO/Pokemon)
 function generateMap() {
-    switch (gameState.currentMap) {
-        case 'city':
-            return generateCityMap();
-        case 'dungeon':
-            return generateDungeonMap();
-        case 'field':
-        default:
-            return generateFieldMap();
+    const map = [];
+
+    // Initialize entire world with grass
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            row.push(TILES.GRASS);
+        }
+        map.push(row);
+    }
+
+    // Generate field zone (left side)
+    const fieldBounds = ZONE_BOUNDARIES.field;
+    for (let y = fieldBounds.y; y < fieldBounds.y + fieldBounds.height; y++) {
+        for (let x = fieldBounds.x; x < fieldBounds.x + fieldBounds.width; x++) {
+            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                // Add some trees and stones to field
+                if (Math.random() < 0.05) {
+                    map[y][x] = TILES.TREE;
+                } else if (Math.random() < 0.02) {
+                    map[y][x] = TILES.STONE;
+                }
+            }
+        }
+    }
+
+    // Generate city zone (center-right)
+    const cityBounds = ZONE_BOUNDARIES.city;
+    for (let y = cityBounds.y; y < cityBounds.y + cityBounds.height; y++) {
+        for (let x = cityBounds.x; x < cityBounds.x + cityBounds.width; x++) {
+            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                // City streets every 8 columns and 6 rows
+                if (x % 8 === cityBounds.x % 8 || y % 6 === cityBounds.y % 6) {
+                    map[y][x] = TILES.PATH; // Streets
+                } else if (Math.random() < 0.4) {
+                    map[y][x] = TILES.BUILDING; // Buildings
+                }
+            }
+        }
+    }
+
+    // Generate dungeon zone (top-left, overlapping field)
+    const dungeonBounds = ZONE_BOUNDARIES.dungeon;
+    for (let y = dungeonBounds.y; y < dungeonBounds.y + dungeonBounds.height; y++) {
+        for (let x = dungeonBounds.x; x < dungeonBounds.x + dungeonBounds.width; x++) {
+            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                map[y][x] = TILES.DUNGEON_WALL; // Start with walls
+            }
+        }
+    }
+
+    // Carve dungeon rooms
+    for (let room = 0; room < 6; room++) {
+        const roomX = dungeonBounds.x + Math.floor(Math.random() * (dungeonBounds.width - 6)) + 1;
+        const roomY = dungeonBounds.y + Math.floor(Math.random() * (dungeonBounds.height - 4)) + 1;
+        const roomW = Math.floor(Math.random() * 4) + 3;
+        const roomH = Math.floor(Math.random() * 3) + 2;
+
+        for (let y = roomY; y < Math.min(roomY + roomH, dungeonBounds.y + dungeonBounds.height - 1); y++) {
+            for (let x = roomX; x < Math.min(roomX + roomW, dungeonBounds.x + dungeonBounds.width - 1); x++) {
+                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                    map[y][x] = TILES.FLOOR;
+                }
+            }
+        }
+    }
+
+    // Connect dungeon rooms with corridors
+    for (let y = dungeonBounds.y + 1; y < dungeonBounds.y + dungeonBounds.height - 1; y += 3) {
+        for (let x = dungeonBounds.x + 1; x < dungeonBounds.x + dungeonBounds.width - 1; x++) {
+            if (Math.random() < 0.15 && map[y][x] === TILES.DUNGEON_WALL) {
+                map[y][x] = TILES.FLOOR;
+            }
+        }
+    }
+
+    // Create connecting paths between zones
+    createConnectingPaths(map);
+
+    // Add solid borders to entire world
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                map[y][x] = TILES.WALL;
+            }
+        }
+    }
+
+    return map;
+}
+
+// Create walkable paths connecting the different zones
+function createConnectingPaths(map) {
+    // Path from field center to city entrance
+    const fieldCenterX = Math.floor(ZONE_BOUNDARIES.field.x + ZONE_BOUNDARIES.field.width / 2);
+    const fieldCenterY = Math.floor(ZONE_BOUNDARIES.field.y + ZONE_BOUNDARIES.field.height / 2);
+    const cityEntranceX = ZONE_BOUNDARIES.city.x;
+    const cityEntranceY = Math.floor(ZONE_BOUNDARIES.city.y + ZONE_BOUNDARIES.city.height / 2);
+
+    drawPath(map, fieldCenterX, fieldCenterY, cityEntranceX, cityEntranceY, TILES.PATH);
+
+    // Path from city to dungeon
+    const cityCenterX = Math.floor(ZONE_BOUNDARIES.city.x + ZONE_BOUNDARIES.city.width / 2);
+    const cityCenterY = Math.floor(ZONE_BOUNDARIES.city.y + ZONE_BOUNDARIES.city.height / 2);
+    const dungeonEntranceX = Math.floor(ZONE_BOUNDARIES.dungeon.x + ZONE_BOUNDARIES.dungeon.width / 2);
+    const dungeonEntranceY = ZONE_BOUNDARIES.dungeon.y + ZONE_BOUNDARIES.dungeon.height - 1;
+
+    drawPath(map, cityCenterX, cityCenterY, dungeonEntranceX, dungeonEntranceY, TILES.PATH);
+}
+
+// Draw a path between two points
+function drawPath(map, startX, startY, endX, endY, tileType) {
+    const dx = Math.abs(endX - startX);
+    const dy = Math.abs(endY - startY);
+    const sx = startX < endX ? 1 : -1;
+    const sy = startY < endY ? 1 : -1;
+    let err = dx - dy;
+
+    let x = startX;
+    let y = startY;
+
+    while (true) {
+        if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+            // Only draw path if it's not replacing important structures
+            if (map[y][x] === TILES.GRASS || map[y][x] === TILES.DUNGEON_WALL) {
+                map[y][x] = tileType;
+            }
+        }
+
+        if (x === endX && y === endY) break;
+
+        const e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y += sy;
+        }
     }
 }
 
@@ -941,6 +1068,43 @@ function addItemToInventory(itemType, quantity = 1) {
     return true;
 }
 
+// Detect current zone based on player position
+function updateCurrentZone() {
+    const px = gameState.player.x;
+    const py = gameState.player.y;
+
+    let newZone = 'field'; // Default
+
+    // Check which zone the player is in
+    for (const [zoneKey, bounds] of Object.entries(ZONE_BOUNDARIES)) {
+        if (px >= bounds.x && px < bounds.x + bounds.width &&
+            py >= bounds.y && py < bounds.y + bounds.height) {
+            newZone = zoneKey;
+            break;
+        }
+    }
+
+    // Update zone if changed
+    if (newZone !== gameState.currentMap) {
+        const oldZone = gameState.currentMap;
+        gameState.currentMap = newZone;
+
+        // Regenerate content for new zone
+        gameState.objects = generateObjects();
+        gameState.enemies = generateEnemies();
+
+        const zoneNames = {
+            'field': 'Campo',
+            'city': 'Ciudad',
+            'dungeon': 'Mazmorra'
+        };
+
+        addChatMessage('system', `🏞️ ¡Entras en ${zoneNames[newZone]}!`);
+        updateUI();
+        updateMinimap();
+    }
+}
+
 // Update UI
 function updateUI() {
     document.getElementById('hp').textContent = gameState.player.hp;
@@ -958,7 +1122,7 @@ function updateUI() {
     };
 
     if (currentMapEl) {
-        currentMapEl.textContent = mapNames[gameState.currentMap] || 'Campo';
+        currentMapEl.textContent = mapNames[gameState.currentMap] || '🏞️ Campo';
     }
 
     // Update level and experience
@@ -1353,6 +1517,7 @@ function gameLoop(timestamp) {
     // Only process game logic if player is alive
     if (gameState.player.hp > 0) {
         handleMovement(timestamp);
+        updateCurrentZone(); // Check if player entered a new zone
         moveEnemies(timestamp);
         enemyAttacks(timestamp);
     }
