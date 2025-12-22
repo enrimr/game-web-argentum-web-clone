@@ -653,6 +653,11 @@ function generateRuinsMap() {
     return map;
 }
 
+// Generate dungeon map (main dungeon level)
+function generateDungeonMap() {
+    return generateConnectedDungeon({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT });
+}
+
 // Generate throne room map (king's throne room)
 function generateThroneRoomMap() {
     const map = [];
