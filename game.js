@@ -6,18 +6,78 @@ const MAP_WIDTH = 60;       // Mapa total ancho (3x más grande)
 const MAP_HEIGHT = 40;      // Mapa total alto (3x más grande)
 const MAX_INVENTORY_SLOTS = 12; // Máximo de tipos diferentes de items
 
-// World zones (connected areas like AO/Pokemon)
-const WORLD_ZONES = {
-    FIELD: { name: 'Campo', color: '#2d5016' },
-    CITY: { name: 'Ciudad', color: '#92400e' },
-    DUNGEON: { name: 'Mazmorra', color: '#1f2937' }
-};
-
-// Zone boundaries (rectangles defining each area)
-const ZONE_BOUNDARIES = {
-    field: { x: 0, y: 0, width: 35, height: 40 },      // Left side
-    city: { x: 35, y: 15, width: 25, height: 25 },     // Center-right
-    dungeon: { x: 0, y: 0, width: 25, height: 15 }     // Top-left (overlaps field)
+// Map definitions for complex world system
+const MAP_DEFINITIONS = {
+    'field': {
+        name: '🏞️ Campo Principal',
+        description: 'Campo abierto con caminos hacia otras áreas',
+        portals: [
+            { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35, name: 'Ciudad' },
+            { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5, name: 'Mazmorra' },
+            { x: 5, y: 35, targetMap: 'forest', targetX: 25, targetY: 5, name: 'Bosque' }
+        ]
+    },
+    'city': {
+        name: '🏘️ Ciudad Imperial',
+        description: 'Ciudad con calles, tiendas y ciudadanos',
+        portals: [
+            { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18, name: 'Campo' },
+            { x: 45, y: 10, targetMap: 'castle', targetX: 10, targetY: 25, name: 'Castillo' },
+            { x: 5, y: 5, targetMap: 'market', targetX: 15, targetY: 20, name: 'Mercado' }
+        ]
+    },
+    'dungeon': {
+        name: '🏰 Mazmorra Antigua',
+        description: 'Mazmorra con habitaciones conectadas',
+        portals: [
+            { x: 5, y: 3, targetMap: 'field', targetX: 45, targetY: 12, name: 'Campo' },
+            { x: 20, y: 12, targetMap: 'deep_dungeon', targetX: 5, targetY: 5, name: 'Profundidades' }
+        ]
+    },
+    'forest': {
+        name: '🌲 Bosque Encantado',
+        description: 'Bosque denso con caminos ocultos',
+        portals: [
+            { x: 25, y: 3, targetMap: 'field', targetX: 5, targetY: 37, name: 'Campo' },
+            { x: 40, y: 30, targetMap: 'ruins', targetX: 10, targetY: 10, name: 'Ruinas' }
+        ]
+    },
+    'castle': {
+        name: '🏰 Castillo Real',
+        description: 'Castillo majestuoso con salas importantes',
+        portals: [
+            { x: 10, y: 27, targetMap: 'city', targetX: 45, targetY: 8, name: 'Ciudad' },
+            { x: 35, y: 5, targetMap: 'throne_room', targetX: 15, targetY: 20, name: 'Sala del Trono' }
+        ]
+    },
+    'market': {
+        name: '🏪 Mercado Central',
+        description: 'Mercado bullicioso con comerciantes',
+        portals: [
+            { x: 15, y: 22, targetMap: 'city', targetX: 5, targetY: 3, name: 'Ciudad' }
+        ]
+    },
+    'deep_dungeon': {
+        name: '🕳️ Profundidades',
+        description: 'Zonas profundas y peligrosas de la mazmorra',
+        portals: [
+            { x: 5, y: 3, targetMap: 'dungeon', targetX: 20, targetY: 14, name: 'Mazmorra' }
+        ]
+    },
+    'ruins': {
+        name: '🏛️ Ruinas Antiguas',
+        description: 'Ruinas olvidadas con secretos del pasado',
+        portals: [
+            { x: 10, y: 8, targetMap: 'forest', targetX: 40, targetY: 32, name: 'Bosque' }
+        ]
+    },
+    'throne_room': {
+        name: '👑 Sala del Trono',
+        description: 'Sala real con el trono del rey',
+        portals: [
+            { x: 15, y: 22, targetMap: 'castle', targetX: 35, targetY: 3, name: 'Castillo' }
+        ]
+    }
 };
 
 // Game state
@@ -354,62 +414,249 @@ const TILES = {
     PATH: 8       // Dirt paths to other areas
 };
 
-// Generate unified world map (connected zones like AO/Pokemon)
+// Generate map based on current map type
 function generateMap() {
+    const mapDefinition = MAP_DEFINITIONS[gameState.currentMap];
+
+    if (!mapDefinition) {
+        // Fallback to field if map not found
+        return generateFieldMap();
+    }
+
+    switch (gameState.currentMap) {
+        case 'field':
+            return generateFieldMap();
+        case 'city':
+            return generateCityMap();
+        case 'dungeon':
+            return generateDungeonMap();
+        case 'forest':
+            return generateForestMap();
+        case 'castle':
+            return generateCastleMap();
+        case 'market':
+            return generateMarketMap();
+        case 'deep_dungeon':
+            return generateDeepDungeonMap();
+        case 'ruins':
+            return generateRuinsMap();
+        case 'throne_room':
+            return generateThroneRoomMap();
+        default:
+            return generateFieldMap();
+    }
+}
+
+// Generate field map (outdoor area)
+function generateFieldMap() {
     const map = [];
 
-    // Initialize entire world with grass
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
-            row.push(TILES.GRASS);
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                // Add some trees and stones to field
+                if (Math.random() < 0.05) {
+                    row.push(TILES.TREE);
+                } else if (Math.random() < 0.02) {
+                    row.push(TILES.STONE);
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
+        }
+        map.push(row);
+    }
+    return map;
+}
+
+// Generate city map (buildings and streets)
+function generateCityMap() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                // City streets every 8 columns and 6 rows
+                if (x % 8 === 0 || y % 6 === 0) {
+                    row.push(TILES.PATH); // Streets
+                } else if (Math.random() < 0.4) {
+                    row.push(TILES.BUILDING); // Buildings
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
+        }
+        map.push(row);
+    }
+    return map;
+}
+
+// Generate forest map (dense woods)
+function generateForestMap() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                // Dense forest with many trees
+                if (Math.random() < 0.3) {
+                    row.push(TILES.TREE);
+                } else if (Math.random() < 0.05) {
+                    row.push(TILES.STONE);
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
         }
         map.push(row);
     }
 
-    // Generate field zone (left side)
-    const fieldBounds = ZONE_BOUNDARIES.field;
-    for (let y = fieldBounds.y; y < fieldBounds.y + fieldBounds.height; y++) {
-        for (let x = fieldBounds.x; x < fieldBounds.x + fieldBounds.width; x++) {
-            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                // Add some trees and stones to field
-                if (Math.random() < 0.05) {
-                    map[y][x] = TILES.TREE;
-                } else if (Math.random() < 0.02) {
-                    map[y][x] = TILES.STONE;
-                }
-            }
+    // Create a path through the forest
+    for (let x = 10; x < MAP_WIDTH - 10; x++) {
+        if (x >= 0 && x < MAP_WIDTH && 20 >= 0 && 20 < MAP_HEIGHT) {
+            map[20][x] = TILES.PATH;
         }
     }
 
-    // Generate city zone (center-right)
-    const cityBounds = ZONE_BOUNDARIES.city;
-    for (let y = cityBounds.y; y < cityBounds.y + cityBounds.height; y++) {
-        for (let x = cityBounds.x; x < cityBounds.x + cityBounds.width; x++) {
-            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                // City streets every 8 columns and 6 rows
-                if (x % 8 === cityBounds.x % 8 || y % 6 === cityBounds.y % 6) {
-                    map[y][x] = TILES.PATH; // Streets
-                } else if (Math.random() < 0.4) {
-                    map[y][x] = TILES.BUILDING; // Buildings
-                }
-            }
-        }
-    }
+    return map;
+}
 
-    // Generate dungeon zone (top-left, overlapping field) with guaranteed connectivity
-    generateConnectedDungeon(map, ZONE_BOUNDARIES.dungeon);
+// Generate castle map (castle interior)
+function generateCastleMap() {
+    const map = [];
 
-    // Create connecting paths between zones
-    createConnectingPaths(map);
-
-    // Add solid borders to entire world
     for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                map[y][x] = TILES.WALL;
+                row.push(TILES.WALL);
+            } else if (x <= 2 || x >= MAP_WIDTH - 3 || y <= 2 || y >= MAP_HEIGHT - 3) {
+                // Castle walls
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.FLOOR);
             }
         }
+        map.push(row);
+    }
+
+    // Create castle interior rooms
+    // Throne room area
+    for (let y = 15; y < 25; y++) {
+        for (let x = MAP_WIDTH - 15; x < MAP_WIDTH - 5; x++) {
+            if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH) {
+                map[y][x] = TILES.FLOOR;
+            }
+        }
+    }
+
+    return map;
+}
+
+// Generate market map (open market area)
+function generateMarketMap() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                // Market stalls (buildings) in a grid
+                if ((x % 6 === 3 || y % 4 === 2) && Math.random() < 0.6) {
+                    row.push(TILES.BUILDING);
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
+        }
+        map.push(row);
+    }
+    return map;
+}
+
+// Generate deep dungeon map (more dangerous dungeon)
+function generateDeepDungeonMap() {
+    return generateConnectedDungeon({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT });
+}
+
+// Generate ruins map (ancient ruins)
+function generateRuinsMap() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                // Ruins with scattered walls and floors
+                const rand = Math.random();
+                if (rand < 0.1) {
+                    row.push(TILES.WALL); // Ruined walls
+                } else if (rand < 0.3) {
+                    row.push(TILES.FLOOR); // Ruined floors
+                } else if (rand < 0.35) {
+                    row.push(TILES.STONE);
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
+        }
+        map.push(row);
+    }
+
+    // Create some paths through the ruins
+    for (let x = 10; x < MAP_WIDTH - 10; x++) {
+        if (x >= 0 && x < MAP_WIDTH && 15 >= 0 && 15 < MAP_HEIGHT) {
+            map[15][x] = TILES.PATH;
+        }
+    }
+
+    return map;
+}
+
+// Generate throne room map (king's throne room)
+function generateThroneRoomMap() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else if (x <= 3 || x >= MAP_WIDTH - 4 || y <= 3 || y >= MAP_HEIGHT - 4) {
+                // Throne room walls
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.FLOOR);
+            }
+        }
+        map.push(row);
+    }
+
+    // Throne area in the center
+    const throneX = Math.floor(MAP_WIDTH / 2);
+    const throneY = Math.floor(MAP_HEIGHT / 2);
+    if (throneX >= 0 && throneX < MAP_WIDTH && throneY >= 0 && throneY < MAP_HEIGHT) {
+        map[throneY][throneX] = TILES.FLOOR; // Throne position
     }
 
     return map;
@@ -749,12 +996,31 @@ function generateObjects() {
         // No portals needed - zones are connected by walkable paths
     }
 
+    // Add portals for current map
+    const mapDef = MAP_DEFINITIONS[gameState.currentMap];
+    if (mapDef && mapDef.portals) {
+        for (const portal of mapDef.portals) {
+            objects.push({
+                type: 'portal',
+                portalId: `portal_to_${portal.targetMap}`,
+                x: portal.x,
+                y: portal.y,
+                targetMap: portal.targetMap,
+                targetX: portal.targetX,
+                targetY: portal.targetY,
+                name: portal.name
+            });
+        }
+    }
+
     // Add items on ground (different amounts per map)
     const itemTypes = Object.keys(ITEM_TYPES);
     let itemCount = 40; // Default for field
 
     if (gameState.currentMap === 'city') itemCount = 20; // Fewer in city
     if (gameState.currentMap === 'dungeon') itemCount = 30; // More in dungeon
+    if (['forest', 'castle', 'market'].includes(gameState.currentMap)) itemCount = 25;
+    if (['deep_dungeon', 'ruins', 'throne_room'].includes(gameState.currentMap)) itemCount = 35;
 
     const maxAttempts = 50;
 
@@ -768,11 +1034,13 @@ function generateObjects() {
 
             // Check appropriate walkable tile for each map
             let validTile = false;
-            if (gameState.currentMap === 'field' && gameState.map[y][x] === TILES.GRASS) {
+            if (['field', 'forest', 'ruins'].includes(gameState.currentMap) && gameState.map[y][x] === TILES.GRASS) {
                 validTile = true;
-            } else if (gameState.currentMap === 'city' && gameState.map[y][x] === TILES.GRASS) {
+            } else if (['city', 'market'].includes(gameState.currentMap) && gameState.map[y][x] === TILES.GRASS) {
                 validTile = true;
-            } else if (gameState.currentMap === 'dungeon' && gameState.map[y][x] === TILES.FLOOR) {
+            } else if (['castle', 'throne_room'].includes(gameState.currentMap) && gameState.map[y][x] === TILES.FLOOR) {
+                validTile = true;
+            } else if (['dungeon', 'deep_dungeon'].includes(gameState.currentMap) && gameState.map[y][x] === TILES.FLOOR) {
                 validTile = true;
             }
 
@@ -1464,7 +1732,6 @@ function gameLoop(timestamp) {
     // Only process game logic if player is alive
     if (gameState.player.hp > 0) {
         handleMovement(timestamp);
-        updateCurrentZone(); // Check if player entered a new zone
         moveEnemies(timestamp);
         enemyAttacks(timestamp);
     }
