@@ -13,9 +13,9 @@ const MAP_DEFINITIONS = {
         description: 'Campo abierto con caminos hacia otras áreas',
         worldX: 150, worldY: 200, // Position on world map
         portals: [
-            { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35, name: 'Ciudad' },
-            { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5, name: 'Mazmorra' },
-            { x: 5, y: 35, targetMap: 'forest', targetX: 25, targetY: 5, name: 'Bosque' }
+            { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35, name: 'Ciudad' }, // Ciudad: grass/path walkable
+            { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5, name: 'Mazmorra' }, // Mazmorra: floor walkable
+            { x: 5, y: 35, targetMap: 'forest', targetX: 25, targetY: 5, name: 'Bosque' } // Bosque: grass/path walkable
         ]
     },
     'city': {
@@ -23,9 +23,9 @@ const MAP_DEFINITIONS = {
         description: 'Ciudad con calles, tiendas y ciudadanos',
         worldX: 250, worldY: 150,
         portals: [
-            { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18, name: 'Campo' },
-            { x: 45, y: 10, targetMap: 'castle', targetX: 10, targetY: 25, name: 'Castillo' },
-            { x: 5, y: 5, targetMap: 'market', targetX: 15, targetY: 20, name: 'Mercado' }
+            { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18, name: 'Campo' }, // Campo: grass walkable
+            { x: 45, y: 10, targetMap: 'castle', targetX: 10, targetY: 25, name: 'Castillo' }, // Castillo: floor walkable
+            { x: 5, y: 5, targetMap: 'market', targetX: 15, targetY: 20, name: 'Mercado' } // Mercado: grass walkable
         ]
     },
     'dungeon': {
@@ -33,8 +33,8 @@ const MAP_DEFINITIONS = {
         description: 'Mazmorra con habitaciones conectadas',
         worldX: 300, worldY: 250,
         portals: [
-            { x: 5, y: 3, targetMap: 'field', targetX: 45, targetY: 12, name: 'Campo' },
-            { x: 20, y: 12, targetMap: 'deep_dungeon', targetX: 5, targetY: 5, name: 'Profundidades' }
+            { x: 5, y: 3, targetMap: 'field', targetX: 45, targetY: 12, name: 'Campo' }, // Campo: grass walkable
+            { x: 20, y: 12, targetMap: 'deep_dungeon', targetX: 5, targetY: 5, name: 'Profundidades' } // Profundidades: floor walkable
         ]
     },
     'forest': {
@@ -42,8 +42,8 @@ const MAP_DEFINITIONS = {
         description: 'Bosque denso con caminos ocultos',
         worldX: 50, worldY: 120,
         portals: [
-            { x: 25, y: 3, targetMap: 'field', targetX: 5, targetY: 37, name: 'Campo' },
-            { x: 40, y: 30, targetMap: 'ruins', targetX: 10, targetY: 10, name: 'Ruinas' }
+            { x: 25, y: 3, targetMap: 'field', targetX: 5, targetY: 37, name: 'Campo' }, // Campo: grass walkable
+            { x: 40, y: 30, targetMap: 'ruins', targetX: 10, targetY: 10, name: 'Ruinas' } // Ruinas: grass/floor walkable
         ]
     },
     'castle': {
@@ -51,8 +51,8 @@ const MAP_DEFINITIONS = {
         description: 'Castillo majestuoso con salas importantes',
         worldX: 320, worldY: 80,
         portals: [
-            { x: 10, y: 27, targetMap: 'city', targetX: 45, targetY: 8, name: 'Ciudad' },
-            { x: 35, y: 5, targetMap: 'throne_room', targetX: 15, targetY: 20, name: 'Sala del Trono' }
+            { x: 10, y: 27, targetMap: 'city', targetX: 45, targetY: 8, name: 'Ciudad' }, // Ciudad: path/grass walkable
+            { x: 35, y: 5, targetMap: 'throne_room', targetX: 15, targetY: 20, name: 'Sala del Trono' } // Sala del Trono: floor walkable
         ]
     },
     'market': {
@@ -60,7 +60,7 @@ const MAP_DEFINITIONS = {
         description: 'Mercado bullicioso con comerciantes',
         worldX: 200, worldY: 100,
         portals: [
-            { x: 15, y: 22, targetMap: 'city', targetX: 5, targetY: 3, name: 'Ciudad' }
+            { x: 15, y: 22, targetMap: 'city', targetX: 5, targetY: 3, name: 'Ciudad' } // Ciudad: grass walkable
         ]
     },
     'deep_dungeon': {
@@ -68,7 +68,7 @@ const MAP_DEFINITIONS = {
         description: 'Zonas profundas y peligrosas de la mazmorra',
         worldX: 350, worldY: 280,
         portals: [
-            { x: 5, y: 3, targetMap: 'dungeon', targetX: 20, targetY: 14, name: 'Mazmorra' }
+            { x: 5, y: 3, targetMap: 'dungeon', targetX: 20, targetY: 14, name: 'Mazmorra' } // Mazmorra: floor walkable
         ]
     },
     'ruins': {
@@ -76,7 +76,7 @@ const MAP_DEFINITIONS = {
         description: 'Ruinas olvidadas con secretos del pasado',
         worldX: 80, worldY: 50,
         portals: [
-            { x: 10, y: 8, targetMap: 'forest', targetX: 40, targetY: 32, name: 'Bosque' }
+            { x: 10, y: 8, targetMap: 'forest', targetX: 40, targetY: 32, name: 'Bosque' } // Bosque: grass walkable
         ]
     },
     'throne_room': {
@@ -84,7 +84,7 @@ const MAP_DEFINITIONS = {
         description: 'Sala real con el trono del rey',
         worldX: 350, worldY: 30,
         portals: [
-            { x: 15, y: 22, targetMap: 'castle', targetX: 35, targetY: 3, name: 'Castillo' }
+            { x: 15, y: 22, targetMap: 'castle', targetX: 35, targetY: 3, name: 'Castillo' } // Castillo: floor walkable
         ]
     }
 };
