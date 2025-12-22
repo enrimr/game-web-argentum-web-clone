@@ -1469,6 +1469,12 @@ function gameLoop(timestamp) {
         enemyAttacks(timestamp);
     }
     render();
+
+    // Update minimap in real-time if visible
+    if (minimapVisible) {
+        renderMinimap();
+    }
+
     requestAnimationFrame(gameLoop);
 }
 
