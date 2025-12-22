@@ -217,7 +217,13 @@ body {
     min-height: 50px;
 }
 
-.item-slot {
+.item-slot.equipped {
+    background: rgba(16, 185, 129, 0.3) !important; /* Verde para equipados */
+    border-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.item-slot:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: scale(1.05);
     border-color: #ffd700;
@@ -519,4 +525,24 @@ body {
     margin-top: 6px;
     font-size: 10px;
     min-height: 40px;
+}
+
+/* Quest toggle styles */
+#questList {
+    display: block;
+}
+
+.quest-toggle {
+    background: none !important;
+    border: 1px solid #ffd700 !important;
+    color: #ffd700 !important;
+    font-size: 12px !important;
+    padding: 2px 6px !important;
+    cursor: pointer !important;
+    margin-left: 10px;
+    float: right;
+}
+
+.quest-toggle:hover {
+    background: rgba(255, 215, 0, 0.1) !important;
 }

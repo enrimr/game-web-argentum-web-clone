@@ -4,7 +4,7 @@ const VIEWPORT_WIDTH = 20;  // Celdas visibles horizontalmente
 const VIEWPORT_HEIGHT = 13; // Celdas visibles verticalmente
 const MAP_WIDTH = 60;       // Mapa total ancho (3x más grande)
 const MAP_HEIGHT = 40;      // Mapa total alto (3x más grande)
-const MAX_INVENTORY_SLOTS = 12; // Máximo de tipos diferentes de items
+const MAX_INVENTORY_SLOTS = 9; // Máximo de tipos diferentes de items
 
 // Map definitions for complex world system
 const MAP_DEFINITIONS = {
@@ -115,11 +115,13 @@ const gameState = {
         inventory: [], // Array de {type, name, quantity, icon, equipped?}
         equipped: {
             weapon: null, // Item equipado como arma
-            shield: null  // Item equipado como escudo
+            shield: null, // Item equipado como escudo
+            ammunition: null // Flechas equipadas (requiere arco)
         },
         level: 1,
         exp: 0,
-        expToNextLevel: 100
+        expToNextLevel: 100,
+        facing: 'down' // Dirección a la que mira el jugador
     },
     stats: {
         enemiesKilled: 0,
@@ -127,7 +129,8 @@ const gameState = {
     },
     map: [],
     objects: [],
-    enemies: []
+    enemies: [],
+    projectiles: [] // Flechas y otros proyectiles volando
 };
 
 // Canvas setup
@@ -341,6 +344,118 @@ const sprites = {
         ctx.fillRect(w/2-4, h/4-2, 2, 2);
         ctx.fillRect(w/2+2, h/4-2, 2, 2);
     }),
+
+    enemySkeleton: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Skeleton - bones and skull
+        ctx.fillStyle = '#f5f5dc'; // Bone white
+        ctx.fillRect(w/2-2, h/2-6, 4, 12); // Spine
+        ctx.fillRect(w/2-6, h/2-2, 12, 4); // Ribs
+        // Skull
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/6, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes (dark)
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-3, h/4-1, 2, 2);
+        ctx.fillRect(w/2+1, h/4-1, 2, 2);
+    }),
+
+    enemyTroll: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Troll - big and green
+        ctx.fillStyle = '#166534'; // Dark green
+        ctx.fillRect(w/6, h/4, w*2/3, h/2);
+        // Head
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.arc(w/2, h/6, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes (yellow)
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(w/2-4, h/6-2, 3, 3);
+        ctx.fillRect(w/2+1, h/6-2, 3, 3);
+        // Tusks
+        ctx.fillStyle = '#f5f5dc';
+        ctx.fillRect(w/2-3, h/6+2, 2, 4);
+        ctx.fillRect(w/2+1, h/6+2, 2, 4);
+    }),
+
+    enemyDragon: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Small dragon - wings and scales
+        ctx.fillStyle = '#7c2d12'; // Brown scales
+        ctx.fillRect(w/4, h/3, w/2, h/3);
+        // Wings
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(w/6, h/4, w/3, h/4);
+        ctx.fillRect(w/2, h/4, w/3, h/4);
+        // Head with horns
+        ctx.fillStyle = '#991b1b';
+        ctx.beginPath();
+        ctx.arc(w/2, h/6, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes (red glow)
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(w/2-3, h/6-1, 2, 2);
+        ctx.fillRect(w/2+1, h/6-1, 2, 2);
+        // Horns
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/6-4, 2, 4);
+        ctx.fillRect(w/2+2, h/6-4, 2, 4);
+    }),
+
+    enemyElemental: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Fire elemental - flames
+        ctx.fillStyle = '#dc2626'; // Red base
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, w/3, 0, Math.PI * 2);
+        ctx.fill();
+        // Flame spikes
+        ctx.fillStyle = '#ea580c'; // Orange flames
+        ctx.beginPath();
+        ctx.moveTo(w/2, h/6);
+        ctx.lineTo(w/2-3, h/3);
+        ctx.lineTo(w/2+3, h/3);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(w/2-4, h/2);
+        ctx.lineTo(w/2-2, h/4);
+        ctx.lineTo(w/2, h/2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(w/2+4, h/2);
+        ctx.lineTo(w/2+2, h/4);
+        ctx.lineTo(w/2, h/2);
+        ctx.fill();
+        // Core
+        ctx.fillStyle = '#fbbf24'; // Yellow core
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, w/6, 0, Math.PI * 2);
+        ctx.fill();
+    }),
+
+    enemyDemon: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Demon - horns and red skin
+        ctx.fillStyle = '#7f1d1d'; // Dark red
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(w/2, h/5, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Horns
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-5, h/5-6, 3, 6);
+        ctx.fillRect(w/2+2, h/5-6, 3, 6);
+        // Eyes (glowing)
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(w/2-4, h/5-2, 3, 3);
+        ctx.fillRect(w/2+1, h/5-2, 3, 3);
+        // Wings outline
+        ctx.strokeStyle = '#1f2937';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, w/2-2, Math.PI * 0.7, Math.PI * 0.3);
+        ctx.stroke();
+    }),
     
     gold: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
         ctx.fillStyle = '#fbbf24';
@@ -357,10 +472,32 @@ const sprites = {
     
     // Items del Argentum Online
     potion: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
-        // Botella roja
+        // Botella roja (HP)
         ctx.fillStyle = '#dc2626';
         ctx.fillRect(w/2-4, h/2-2, 8, 10);
         ctx.fillStyle = '#991b1b';
+        ctx.fillRect(w/2-3, h/2+3, 6, 2);
+        // Corcho
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(w/2-2, h/2-4, 4, 3);
+    }),
+    
+    potionBlue: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Botella azul (Mana)
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(w/2-4, h/2-2, 8, 10);
+        ctx.fillStyle = '#1e40af';
+        ctx.fillRect(w/2-3, h/2+3, 6, 2);
+        // Corcho
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(w/2-2, h/2-4, 4, 3);
+    }),
+    
+    potionGreen: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Botella verde (Antídoto)
+        ctx.fillStyle = '#16a34a';
+        ctx.fillRect(w/2-4, h/2-2, 8, 10);
+        ctx.fillStyle = '#15803d';
         ctx.fillRect(w/2-3, h/2+3, 6, 2);
         // Corcho
         ctx.fillStyle = '#92400e';
@@ -411,15 +548,167 @@ const sprites = {
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(w/2-1, h/2-6, 2, 12);
         ctx.fillRect(w/2-6, h/2-1, 12, 2);
+    }),
+
+    bow: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Arco
+        ctx.strokeStyle = '#8b4513';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 8, Math.PI * 0.3, Math.PI * 0.7);
+        ctx.stroke();
+        // Cuerda
+        ctx.strokeStyle = '#f5f5dc';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(w/2 + Math.cos(Math.PI * 0.3) * 8, h/2 + Math.sin(Math.PI * 0.3) * 8);
+        ctx.lineTo(w/2 + Math.cos(Math.PI * 0.7) * 8, h/2 + Math.sin(Math.PI * 0.7) * 8);
+        ctx.stroke();
+        // Empuñadura
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(w/2-1, h/2+2, 3, 6);
+    }),
+
+    arrowProjectile: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Flecha volando (proyectil)
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(w/2-1, h/2-8, 2, 16);
+        // Punta
+        ctx.fillStyle = '#c0c0c0';
+        ctx.beginPath();
+        ctx.moveTo(w/2, h/2-10);
+        ctx.lineTo(w/2-2, h/2-6);
+        ctx.lineTo(w/2+2, h/2-6);
+        ctx.fill();
+        // Plumas
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(w/2-1, h/2+6, 2, 2);
     })
 };
 
 // Item types (inspirado en Argentum Online)
 const ITEM_TYPES = {
-    POTION_RED: { name: 'Poción Roja', icon: '🧪', stackable: true, maxStack: 100, sprite: 'potion' },
-    ARROW: { name: 'Flecha', icon: '🏹', stackable: true, maxStack: 500, sprite: 'arrow' },
-    SWORD: { name: 'Espada', icon: '⚔️', stackable: false, maxStack: 1, sprite: 'sword' },
-    SHIELD: { name: 'Escudo', icon: '🛡️', stackable: false, maxStack: 1, sprite: 'shield' }
+    // Pociones consumibles
+    POTION_RED: { 
+        name: 'Poción Roja', 
+        icon: '🧪', 
+        stackable: true, 
+        maxStack: 100, 
+        sprite: 'potion',
+        type: 'consumable',
+        effect: 'heal_hp',
+        value: 50,
+        description: 'Restaura 50 HP'
+    },
+    POTION_BLUE: { 
+        name: 'Poción Azul', 
+        icon: '💧', 
+        stackable: true, 
+        maxStack: 100, 
+        sprite: 'potionBlue',
+        type: 'consumable',
+        effect: 'heal_mana',
+        value: 30,
+        description: 'Restaura 30 Mana'
+    },
+    POTION_GREEN: { 
+        name: 'Poción Verde', 
+        icon: '🍀', 
+        stackable: true, 
+        maxStack: 100, 
+        sprite: 'potionGreen',
+        type: 'consumable',
+        effect: 'cure_poison',
+        value: 1,
+        description: 'Cura el veneno'
+    },
+    
+    // Munición
+    ARROW: { 
+        name: 'Flecha', 
+        icon: '🏹', 
+        stackable: true, 
+        maxStack: 500, 
+        sprite: 'arrow',
+        type: 'ammunition',
+        description: 'Munición para arcos'
+    },
+    
+    // Armas (aumentan daño)
+    SWORD: {
+        name: 'Espada',
+        icon: '⚔️',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'sword',
+        type: 'weapon',
+        slot: 'weapon',
+        damage: 15,
+        description: '+15 daño de ataque'
+    },
+    SWORD_IRON: {
+        name: 'Espada de Hierro',
+        icon: '🗡️',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'sword',
+        type: 'weapon',
+        slot: 'weapon',
+        damage: 25,
+        description: '+25 daño de ataque'
+    },
+
+    // Arcos (arma a distancia)
+    BOW: {
+        name: 'Arco',
+        icon: '🏹',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'bow',
+        type: 'weapon',
+        slot: 'weapon',
+        ranged: true,
+        range: 8,
+        damage: 12,
+        description: 'Arco (+12 daño, rango 8)'
+    },
+    BOW_ELVEN: {
+        name: 'Arco Élfico',
+        icon: '🏹',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'bow',
+        type: 'weapon',
+        slot: 'weapon',
+        ranged: true,
+        range: 10,
+        damage: 18,
+        description: 'Arco Élfico (+18 daño, rango 10)'
+    },
+    
+    // Escudos (aumentan defensa)
+    SHIELD: { 
+        name: 'Escudo', 
+        icon: '🛡️', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'shield',
+        type: 'armor',
+        slot: 'shield',
+        defense: 10,
+        description: '+10 defensa'
+    },
+    SHIELD_IRON: { 
+        name: 'Escudo de Hierro', 
+        icon: '🔰', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'shield',
+        type: 'armor',
+        slot: 'shield',
+        defense: 20,
+        description: '+20 defensa'
+    }
 };
 
 // Tile types
@@ -1205,55 +1494,148 @@ function generateEnemies() {
     const enemies = [];
 
     if (gameState.currentMap === 'field') {
-        // Field - standard goblins
-        for (let i = 0; i < 20; i++) {
+        // Field - mix of goblins and skeletons
+        const enemyTypes = ['goblin', 'skeleton'];
+        for (let i = 0; i < 25; i++) {
             let x, y;
             do {
                 x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
                 y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
             } while (gameState.map[y][x] !== TILES.GRASS);
 
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
             enemies.push({
-                type: 'goblin',
+                type: enemyType,
                 x: x,
                 y: y,
-                hp: 30,
-                maxHp: 30,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
                 lastMoveTime: 0,
-                moveDelay: 800 + Math.random() * 400,
+                moveDelay: enemyStats.moveDelay,
                 lastAttackTime: 0,
-                attackDelay: 2000,
-                damage: { min: 5, max: 10 },
-                goldDrop: { min: 10, max: 20 },
-                expReward: 40
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
             });
         }
     } else if (gameState.currentMap === 'city') {
-        // City - fewer, weaker enemies (guards or bandits)
-        for (let i = 0; i < 5; i++) {
+        // City - bandits and elementals
+        const enemyTypes = ['bandit', 'elemental'];
+        for (let i = 0; i < 8; i++) {
             let x, y;
             do {
                 x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
                 y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
             } while (gameState.map[y][x] === TILES.GRASS); // Avoid buildings
 
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
             enemies.push({
-                type: 'bandit',
+                type: enemyType,
                 x: x,
                 y: y,
-                hp: 20,
-                maxHp: 20,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
                 lastMoveTime: 0,
-                moveDelay: 1000 + Math.random() * 500,
+                moveDelay: enemyStats.moveDelay,
                 lastAttackTime: 0,
-                attackDelay: 2500,
-                damage: { min: 3, max: 8 },
-                goldDrop: { min: 15, max: 25 },
-                expReward: 25
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
             });
         }
     } else if (gameState.currentMap === 'dungeon') {
-        // Dungeon - stronger enemies
+        // Dungeon - orcs and trolls
+        const enemyTypes = ['orc', 'troll'];
+        for (let i = 0; i < 20; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.FLOOR);
+
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
+            enemies.push({
+                type: enemyType,
+                x: x,
+                y: y,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
+                lastMoveTime: 0,
+                moveDelay: enemyStats.moveDelay,
+                lastAttackTime: 0,
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
+            });
+        }
+    } else if (gameState.currentMap === 'forest') {
+        // Forest - goblins, skeletons, and elementals
+        const enemyTypes = ['goblin', 'skeleton', 'elemental'];
+        for (let i = 0; i < 18; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.GRASS);
+
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
+            enemies.push({
+                type: enemyType,
+                x: x,
+                y: y,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
+                lastMoveTime: 0,
+                moveDelay: enemyStats.moveDelay,
+                lastAttackTime: 0,
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
+            });
+        }
+    } else if (gameState.currentMap === 'castle') {
+        // Castle - bandits and demons
+        const enemyTypes = ['bandit', 'demon'];
+        for (let i = 0; i < 12; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.FLOOR);
+
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
+            enemies.push({
+                type: enemyType,
+                x: x,
+                y: y,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
+                lastMoveTime: 0,
+                moveDelay: enemyStats.moveDelay,
+                lastAttackTime: 0,
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
+            });
+        }
+    } else if (gameState.currentMap === 'deep_dungeon') {
+        // Deep dungeon - trolls, demons, and dragons
+        const enemyTypes = ['troll', 'demon', 'dragon'];
         for (let i = 0; i < 15; i++) {
             let x, y;
             do {
@@ -1261,24 +1643,153 @@ function generateEnemies() {
                 y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
             } while (gameState.map[y][x] !== TILES.FLOOR);
 
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
             enemies.push({
-                type: 'orc',
+                type: enemyType,
                 x: x,
                 y: y,
-                hp: 50,
-                maxHp: 50,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
                 lastMoveTime: 0,
-                moveDelay: 600 + Math.random() * 300,
+                moveDelay: enemyStats.moveDelay,
                 lastAttackTime: 0,
-                attackDelay: 1500,
-                damage: { min: 8, max: 15 },
-                goldDrop: { min: 20, max: 40 },
-                expReward: 80
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
+            });
+        }
+    } else if (gameState.currentMap === 'ruins') {
+        // Ruins - skeletons, demons, and elementals
+        const enemyTypes = ['skeleton', 'demon', 'elemental'];
+        for (let i = 0; i < 16; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] === TILES.GRASS || gameState.map[y][x] === TILES.FLOOR);
+
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            const enemyStats = getEnemyStats(enemyType);
+
+            enemies.push({
+                type: enemyType,
+                x: x,
+                y: y,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
+                lastMoveTime: 0,
+                moveDelay: enemyStats.moveDelay,
+                lastAttackTime: 0,
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
+            });
+        }
+    } else if (gameState.currentMap === 'throne_room') {
+        // Throne room - only dragons as bosses
+        for (let i = 0; i < 3; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.FLOOR);
+
+            const enemyStats = getEnemyStats('dragon');
+
+            enemies.push({
+                type: 'dragon',
+                x: x,
+                y: y,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
+                lastMoveTime: 0,
+                moveDelay: enemyStats.moveDelay,
+                lastAttackTime: 0,
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
             });
         }
     }
 
     return enemies;
+}
+
+// Get enemy stats by type
+function getEnemyStats(enemyType) {
+    const enemyStats = {
+        goblin: {
+            hp: 30,
+            moveDelay: 800 + Math.random() * 400,
+            attackDelay: 2000,
+            damage: { min: 5, max: 10 },
+            goldDrop: { min: 10, max: 20 },
+            expReward: 40
+        },
+        skeleton: {
+            hp: 25,
+            moveDelay: 900 + Math.random() * 300,
+            attackDelay: 1800,
+            damage: { min: 4, max: 9 },
+            goldDrop: { min: 8, max: 18 },
+            expReward: 35
+        },
+        bandit: {
+            hp: 20,
+            moveDelay: 1000 + Math.random() * 500,
+            attackDelay: 2500,
+            damage: { min: 3, max: 8 },
+            goldDrop: { min: 15, max: 25 },
+            expReward: 25
+        },
+        orc: {
+            hp: 50,
+            moveDelay: 600 + Math.random() * 300,
+            attackDelay: 1500,
+            damage: { min: 8, max: 15 },
+            goldDrop: { min: 20, max: 40 },
+            expReward: 80
+        },
+        troll: {
+            hp: 120,
+            moveDelay: 500 + Math.random() * 200,
+            attackDelay: 1200,
+            damage: { min: 15, max: 25 },
+            goldDrop: { min: 50, max: 100 },
+            expReward: 200
+        },
+        dragon: {
+            hp: 200,
+            moveDelay: 400 + Math.random() * 100,
+            attackDelay: 1000,
+            damage: { min: 20, max: 35 },
+            goldDrop: { min: 100, max: 200 },
+            expReward: 500
+        },
+        elemental: {
+            hp: 60,
+            moveDelay: 700 + Math.random() * 300,
+            attackDelay: 1600,
+            damage: { min: 12, max: 20 },
+            goldDrop: { min: 25, max: 45 },
+            expReward: 100
+        },
+        demon: {
+            hp: 80,
+            moveDelay: 550 + Math.random() * 200,
+            attackDelay: 1300,
+            damage: { min: 18, max: 28 },
+            goldDrop: { min: 30, max: 60 },
+            expReward: 150
+        }
+    };
+
+    return enemyStats[enemyType] || enemyStats.goblin;
 }
 
 // Check if tile is walkable
@@ -1336,7 +1847,7 @@ function addExp(amount) {
     updateUI();
 }
 
-// Equip/unequip item (AO style)
+// Use or equip item (AO style)
 function toggleEquipItem(slotIndex) {
     const item = gameState.player.inventory[slotIndex];
     if (!item) return;
@@ -1344,20 +1855,76 @@ function toggleEquipItem(slotIndex) {
     const itemDef = ITEM_TYPES[item.type];
     if (!itemDef) return;
 
-    // Check if item is equippable
-    if (itemDef.stackable) {
-        addChatMessage('system', '❌ Este item no se puede equipar.');
+    // Handle consumables (potions, etc.)
+    if (itemDef.type === 'consumable') {
+        useConsumable(slotIndex);
         return;
     }
 
-    // Determine equipment slot
-    let equipSlot = null;
-    if (item.type === 'SWORD') {
-        equipSlot = 'weapon';
-    } else if (item.type === 'SHIELD') {
-        equipSlot = 'shield';
+    // Handle equipment (weapons, armor)
+    if (itemDef.type === 'weapon' || itemDef.type === 'armor') {
+        equipItem(slotIndex);
+        return;
     }
 
+    // Other item types
+    addChatMessage('system', '❌ No puedes usar este item.');
+}
+
+// Use consumable item
+function useConsumable(slotIndex) {
+    const item = gameState.player.inventory[slotIndex];
+    if (!item) return;
+
+    const itemDef = ITEM_TYPES[item.type];
+    if (!itemDef || itemDef.type !== 'consumable') return;
+
+    // Apply consumable effect
+    switch (itemDef.effect) {
+        case 'heal_hp':
+            const hpBefore = gameState.player.hp;
+            gameState.player.hp = Math.min(gameState.player.hp + itemDef.value, gameState.player.maxHp);
+            const hpHealed = gameState.player.hp - hpBefore;
+            addChatMessage('system', `💚 Has usado ${item.name}! +${hpHealed} HP`);
+            break;
+
+        case 'heal_mana':
+            const manaBefore = gameState.player.mana;
+            gameState.player.mana = Math.min(gameState.player.mana + itemDef.value, gameState.player.maxMana);
+            const manaRestored = gameState.player.mana - manaBefore;
+            addChatMessage('system', `💙 Has usado ${item.name}! +${manaRestored} Mana`);
+            break;
+
+        case 'cure_poison':
+            addChatMessage('system', `💚 Has usado ${item.name}! Veneno curado`);
+            // En el futuro: gameState.player.poisoned = false;
+            break;
+
+        default:
+            addChatMessage('system', `✨ Has usado ${item.name}!`);
+    }
+
+    // Consume one item
+    item.quantity--;
+
+    // Remove from inventory if quantity reaches 0
+    if (item.quantity <= 0) {
+        gameState.player.inventory.splice(slotIndex, 1);
+    }
+
+    updateUI();
+}
+
+// Equip/unequip weapon or armor
+function equipItem(slotIndex) {
+    const item = gameState.player.inventory[slotIndex];
+    if (!item) return;
+
+    const itemDef = ITEM_TYPES[item.type];
+    if (!itemDef) return;
+
+    // Determine equipment slot
+    const equipSlot = itemDef.slot;
     if (!equipSlot) {
         addChatMessage('system', '❌ Este item no se puede equipar.');
         return;
@@ -1665,12 +2232,25 @@ function enemyAttacks(timestamp) {
         
         if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
             // Enemy attacks player
-            const damage = Math.floor(Math.random() * (enemy.damage.max - enemy.damage.min + 1)) + enemy.damage.min;
-            gameState.player.hp -= damage;
+            const baseDamage = Math.floor(Math.random() * (enemy.damage.max - enemy.damage.min + 1)) + enemy.damage.min;
+
+            // Calculate shield defense bonus
+            let shieldDefense = 0;
+            if (gameState.player.equipped.shield) {
+                const shieldDef = ITEM_TYPES[gameState.player.equipped.shield];
+                if (shieldDef && shieldDef.defense) {
+                    shieldDefense = shieldDef.defense;
+                }
+            }
+
+            const totalDamage = Math.max(0, baseDamage - shieldDefense);
+
+            gameState.player.hp -= totalDamage;
 
             if (gameState.player.hp < 0) gameState.player.hp = 0;
 
-            addChatMessage('system', `¡Un ${enemy.type} te ataca causando ${damage} de daño!`);
+            const defenseText = shieldDefense > 0 ? ` (${shieldDefense} defendido)` : '';
+            addChatMessage('system', `¡Un ${enemy.type} te ataca causando ${totalDamage} de daño!${defenseText}`);
             enemy.lastAttackTime = timestamp;
             updateUI();
 
@@ -1688,40 +2268,116 @@ const MOVE_DELAY = 150; // milliseconds
 
 function handleMovement(timestamp) {
     if (timestamp - lastMoveTime < MOVE_DELAY) return;
-    
+
     let newX = gameState.player.x;
     let newY = gameState.player.y;
     let moved = false;
-    
+
+    // Update player facing direction
     if (keys['ArrowUp'] || keys['w'] || keys['W']) {
         newY--;
+        gameState.player.facing = 'up';
         moved = true;
     } else if (keys['ArrowDown'] || keys['s'] || keys['S']) {
         newY++;
+        gameState.player.facing = 'down';
         moved = true;
     } else if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
         newX--;
+        gameState.player.facing = 'left';
         moved = true;
     } else if (keys['ArrowRight'] || keys['d'] || keys['D']) {
         newX++;
+        gameState.player.facing = 'right';
         moved = true;
     }
-    
+
     if (moved && isWalkable(newX, newY)) {
         // Check if there's an enemy in the target position
         const enemyInPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
-        
+
         if (!enemyInPosition) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
         }
     }
-    
+
     if (keys[' ']) {
         interact();
         keys[' '] = false; // Prevent repeated interactions
     }
+
+    // Ranged attack with X key
+    if (keys['x'] || keys['X']) {
+        shootArrow();
+        keys['x'] = false;
+        keys['X'] = false; // Prevent repeated shooting
+    }
+}
+
+// Shoot arrow if player has bow and arrows equipped
+function shootArrow() {
+    // Check if player has a ranged weapon equipped
+    const equippedWeapon = gameState.player.equipped.weapon;
+    if (!equippedWeapon) return;
+
+    const weaponDef = ITEM_TYPES[equippedWeapon];
+    if (!weaponDef || !weaponDef.ranged) return;
+
+    // Check if player has arrows equipped in ammunition slot
+    const equippedAmmunition = gameState.player.equipped.ammunition;
+    if (equippedAmmunition !== 'ARROW') {
+        addChatMessage('system', '❌ ¡No tienes flechas equipadas!');
+        return;
+    }
+
+    // Find the arrow item in inventory to consume
+    const arrowItem = gameState.player.inventory.find(item => item.type === 'ARROW');
+    if (!arrowItem || arrowItem.quantity <= 0) {
+        // Should not happen if equipped, but safety check
+        gameState.player.equipped.ammunition = null; // Unequip empty arrows
+        addChatMessage('system', '❌ ¡Flechas agotadas!');
+        updateUI();
+        return;
+    }
+
+    // Determine shooting direction based on facing
+    let dx = 0, dy = 0;
+    switch (gameState.player.facing) {
+        case 'up': dy = -1; break;
+        case 'down': dy = 1; break;
+        case 'left': dx = -1; break;
+        case 'right': dx = 1; break;
+    }
+
+    // Create projectile
+    const projectile = {
+        type: 'arrow',
+        x: gameState.player.x + dx,
+        y: gameState.player.y + dy,
+        dx: dx,
+        dy: dy,
+        range: weaponDef.range,
+        damage: weaponDef.damage,
+        distanceTravelled: 0
+    };
+
+    gameState.projectiles.push(projectile);
+
+    // Consume one arrow from equipped slot
+    arrowItem.quantity--;
+
+    // Check if arrows are depleted
+    if (arrowItem.quantity <= 0) {
+        // Remove from inventory and unequip
+        gameState.player.inventory = gameState.player.inventory.filter(item => item !== arrowItem);
+        gameState.player.equipped.ammunition = null;
+        addChatMessage('system', '🏹 ¡Flechas agotadas! Desequipando munición');
+    }
+
+    addChatMessage('system', '🏹 ¡Disparas una flecha!');
+    updateUI();
 }
 
 // Get camera position (centered on player, but allows reaching map edges)
@@ -1845,7 +2501,21 @@ function render() {
     for (const enemy of gameState.enemies) {
         if (isInViewport(enemy.x, enemy.y)) {
             const screenPos = worldToScreen(enemy.x, enemy.y);
-            ctx.drawImage(sprites.enemy, screenPos.x, screenPos.y);
+
+            // Choose sprite based on enemy type
+            let enemySprite = sprites.enemy; // Default goblin sprite
+            switch (enemy.type) {
+                case 'goblin': enemySprite = sprites.enemy; break;
+                case 'skeleton': enemySprite = sprites.enemySkeleton; break;
+                case 'orc': enemySprite = sprites.enemy; break; // Reuse goblin sprite for orcs
+                case 'bandit': enemySprite = sprites.enemy; break; // Reuse goblin sprite for bandits
+                case 'troll': enemySprite = sprites.enemyTroll; break;
+                case 'dragon': enemySprite = sprites.enemyDragon; break;
+                case 'elemental': enemySprite = sprites.enemyElemental; break;
+                case 'demon': enemySprite = sprites.enemyDemon; break;
+            }
+
+            ctx.drawImage(enemySprite, screenPos.x, screenPos.y);
 
             // Draw enemy health bar
             const barWidth = TILE_SIZE;
@@ -1859,9 +2529,85 @@ function render() {
         }
     }
 
+    // Draw projectiles (arrows, etc.) - only visible ones
+    for (const projectile of gameState.projectiles) {
+        if (isInViewport(projectile.x, projectile.y)) {
+            const screenPos = worldToScreen(projectile.x, projectile.y);
+            ctx.drawImage(sprites.arrowProjectile, screenPos.x, screenPos.y);
+        }
+    }
+
     // Draw player at correct position in viewport
     const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
     ctx.drawImage(sprites.player, playerScreenPos.x, playerScreenPos.y);
+}
+
+// Update projectiles (arrows, etc.)
+function updateProjectiles() {
+    for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+        const projectile = gameState.projectiles[i];
+
+        // Move projectile
+        projectile.x += projectile.dx;
+        projectile.y += projectile.dy;
+        projectile.distanceTravelled++;
+
+        // Check if projectile has exceeded range
+        if (projectile.distanceTravelled >= projectile.range) {
+            gameState.projectiles.splice(i, 1);
+            continue;
+        }
+
+        // Check bounds
+        if (projectile.x < 0 || projectile.x >= MAP_WIDTH ||
+            projectile.y < 0 || projectile.y >= MAP_HEIGHT) {
+            gameState.projectiles.splice(i, 1);
+            continue;
+        }
+
+        // Check collision with walls/obstacles
+        if (!isWalkable(projectile.x, projectile.y)) {
+            gameState.projectiles.splice(i, 1);
+            continue;
+        }
+
+        // Check collision with enemies
+        let hitEnemy = false;
+        for (let enemy of gameState.enemies) {
+            if (enemy.x === projectile.x && enemy.y === projectile.y) {
+                // Calculate weapon damage bonus
+                let weaponDamage = projectile.damage;
+
+                // Apply damage
+                enemy.hp -= weaponDamage;
+
+                // Show damage message
+                addChatMessage('system', `🏹 ¡Flecha impacta al ${enemy.type} causando ${weaponDamage} de daño!`);
+
+                // Check if enemy died
+                if (enemy.hp <= 0) {
+                    const goldDrop = Math.floor(Math.random() * (enemy.goldDrop.max - enemy.goldDrop.min + 1)) + enemy.goldDrop.min;
+                    const expGain = enemy.expReward;
+
+                    gameState.player.gold += goldDrop;
+                    gameState.stats.enemiesKilled++;
+
+                    addChatMessage('system', `💀 ¡Has derrotado al ${enemy.type} con flecha! +${goldDrop} oro, +${expGain} EXP`);
+                    addExp(expGain);
+
+                    gameState.enemies = gameState.enemies.filter(e => e !== enemy);
+                    updateUI();
+                }
+
+                // Remove projectile
+                gameState.projectiles.splice(i, 1);
+                hitEnemy = true;
+                break;
+            }
+        }
+
+        if (hitEnemy) continue;
+    }
 }
 
 // Game loop
@@ -1869,6 +2615,7 @@ function gameLoop(timestamp) {
     // Only process game logic if player is alive
     if (gameState.player.hp > 0) {
         handleMovement(timestamp);
+        updateProjectiles();
         moveEnemies(timestamp);
         enemyAttacks(timestamp);
     }
@@ -1893,6 +2640,15 @@ function init() {
     // Generate content
     gameState.objects = generateObjects();
     gameState.enemies = generateEnemies();
+
+    // Add some test items for demonstration (AO style)
+    addItemToInventory('BOW', 1);      // Arco para combate a distancia
+    addItemToInventory('ARROW', 50);   // Flechas para el arco
+    addItemToInventory('SWORD', 1);    // Espada para combate cuerpo a cuerpo
+    addItemToInventory('SHIELD', 1);   // Escudo para defensa
+    addItemToInventory('POTION_RED', 20);   // Pociones HP
+    addItemToInventory('POTION_BLUE', 15);  // Pociones Mana
+    addItemToInventory('POTION_GREEN', 10); // Pociones Antídoto
 
     // Add click listeners to inventory slots
     for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
@@ -2264,11 +3020,28 @@ worldMapCanvas.addEventListener('mousemove', (event) => {
     worldMapCanvas.style.cursor = hoveredMap ? 'pointer' : 'default';
 });
 
+// Quest list toggle functionality
+function toggleQuests() {
+    const questList = document.getElementById('questList');
+    const toggleButton = document.getElementById('toggleQuests');
+
+    if (questList.style.display === 'none') {
+        questList.style.display = 'block';
+        toggleButton.textContent = 'Ocultar';
+    } else {
+        questList.style.display = 'none';
+        toggleButton.textContent = 'Mostrar';
+    }
+}
+
 // Add minimap toggle event listener
 document.getElementById('toggleMinimap').addEventListener('click', toggleMinimap);
 
 // Add world map toggle event listener
 document.getElementById('toggleWorldMap').addEventListener('click', toggleWorldMap);
+
+// Add quest toggle event listener
+document.getElementById('toggleQuests').addEventListener('click', toggleQuests);
 
 // Start game when page loads
 window.addEventListener('load', init);
