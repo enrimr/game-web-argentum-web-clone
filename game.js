@@ -1,7 +1,9 @@
 // Game configuration
 const TILE_SIZE = 32;
-const MAP_WIDTH = 20;
-const MAP_HEIGHT = 13;
+const VIEWPORT_WIDTH = 20;  // Celdas visibles horizontalmente
+const VIEWPORT_HEIGHT = 13; // Celdas visibles verticalmente
+const MAP_WIDTH = 60;       // Mapa total ancho (3x más grande)
+const MAP_HEIGHT = 40;      // Mapa total alto (3x más grande)
 const MAX_INVENTORY_SLOTS = 12; // Máximo de tipos diferentes de items
 
 // Game state
@@ -267,8 +269,8 @@ function generateMap() {
 function generateObjects() {
     const objects = [];
 
-    // Add chests (AO style)
-    for (let i = 0; i < 3; i++) {
+    // Add chests (AO style) - more for larger map
+    for (let i = 0; i < 15; i++) {
         let x, y;
         do {
             x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
@@ -284,8 +286,8 @@ function generateObjects() {
         });
     }
 
-    // Add gold coins (AO style)
-    for (let i = 0; i < 5; i++) {
+    // Add gold coins (AO style) - more for larger map
+    for (let i = 0; i < 25; i++) {
         let x, y;
         do {
             x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
@@ -304,7 +306,7 @@ function generateObjects() {
     const itemTypes = Object.keys(ITEM_TYPES);
     const maxAttempts = 50; // Máximo de intentos para encontrar celda libre
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 40; i++) {
         let foundSpot = false;
         let attempts = 0;
 
@@ -341,14 +343,15 @@ function generateObjects() {
 // Generate enemies
 function generateEnemies() {
     const enemies = [];
-    
-    for (let i = 0; i < 4; i++) {
+
+    // More enemies for larger map
+    for (let i = 0; i < 20; i++) {
         let x, y;
         do {
             x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
             y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
         } while (gameState.map[y][x] !== TILES.GRASS);
-        
+
         enemies.push({
             type: 'goblin',
             x: x,
@@ -361,7 +364,7 @@ function generateEnemies() {
             attackDelay: 2000 // Attack every 2 seconds
         });
     }
-    
+
     return enemies;
 }
 
@@ -746,67 +749,118 @@ function handleMovement(timestamp) {
     }
 }
 
+// Get camera position (centered on player)
+function getCameraPosition() {
+    const playerX = gameState.player.x;
+    const playerY = gameState.player.y;
+
+    // Calculate camera top-left corner (centered on player)
+    let cameraX = playerX - Math.floor(VIEWPORT_WIDTH / 2);
+    let cameraY = playerY - Math.floor(VIEWPORT_HEIGHT / 2);
+
+    // Clamp camera to map boundaries
+    cameraX = Math.max(0, Math.min(cameraX, MAP_WIDTH - VIEWPORT_WIDTH));
+    cameraY = Math.max(0, Math.min(cameraY, MAP_HEIGHT - VIEWPORT_HEIGHT));
+
+    return { x: cameraX, y: cameraY };
+}
+
+// Check if a world position is visible in the current viewport
+function isInViewport(worldX, worldY) {
+    const camera = getCameraPosition();
+    return worldX >= camera.x &&
+           worldX < camera.x + VIEWPORT_WIDTH &&
+           worldY >= camera.y &&
+           worldY < camera.y + VIEWPORT_HEIGHT;
+}
+
+// Convert world coordinates to screen coordinates
+function worldToScreen(worldX, worldY) {
+    const camera = getCameraPosition();
+    const screenX = (worldX - camera.x) * TILE_SIZE;
+    const screenY = (worldY - camera.y) * TILE_SIZE;
+    return { x: screenX, y: screenY };
+}
+
 // Render game
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw map
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-        for (let x = 0; x < MAP_WIDTH; x++) {
-            const tile = gameState.map[y][x];
-            let sprite;
-            
-            switch (tile) {
-                case TILES.GRASS:
-                    sprite = sprites.grass;
-                    break;
-                case TILES.WATER:
-                    sprite = sprites.water;
-                    break;
-                case TILES.STONE:
-                    sprite = sprites.stone;
-                    break;
-                case TILES.TREE:
-                    sprite = sprites.tree;
-                    break;
+
+    const camera = getCameraPosition();
+
+    // Draw map (only visible tiles)
+    for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
+        for (let vx = 0; vx < VIEWPORT_WIDTH; vx++) {
+            const worldX = camera.x + vx;
+            const worldY = camera.y + vy;
+
+            // Check bounds
+            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT) {
+                const tile = gameState.map[worldY][worldX];
+                let sprite;
+
+                switch (tile) {
+                    case TILES.GRASS:
+                        sprite = sprites.grass;
+                        break;
+                    case TILES.WATER:
+                        sprite = sprites.water;
+                        break;
+                    case TILES.STONE:
+                        sprite = sprites.stone;
+                        break;
+                    case TILES.TREE:
+                        sprite = sprites.tree;
+                        break;
+                }
+
+                const screenPos = worldToScreen(worldX, worldY);
+                ctx.drawImage(sprite, screenPos.x, screenPos.y);
             }
-            
-            ctx.drawImage(sprite, x * TILE_SIZE, y * TILE_SIZE);
         }
     }
-    
-    // Draw objects
+
+    // Draw objects (only visible ones)
     for (const obj of gameState.objects) {
-        if (obj.type === 'chest') {
-            ctx.drawImage(sprites.chest, obj.x * TILE_SIZE, obj.y * TILE_SIZE);
-        } else if (obj.type === 'gold') {
-            ctx.drawImage(sprites.gold, obj.x * TILE_SIZE, obj.y * TILE_SIZE);
-        } else if (obj.type === 'item') {
-            // Draw item on ground (AO style)
-            const itemSprite = sprites[ITEM_TYPES[obj.itemType].sprite];
-            if (itemSprite) {
-                ctx.drawImage(itemSprite, obj.x * TILE_SIZE, obj.y * TILE_SIZE);
+        if (isInViewport(obj.x, obj.y)) {
+            const screenPos = worldToScreen(obj.x, obj.y);
+
+            if (obj.type === 'chest') {
+                ctx.drawImage(sprites.chest, screenPos.x, screenPos.y);
+            } else if (obj.type === 'gold') {
+                ctx.drawImage(sprites.gold, screenPos.x, screenPos.y);
+            } else if (obj.type === 'item') {
+                // Draw item on ground (AO style)
+                const itemSprite = sprites[ITEM_TYPES[obj.itemType].sprite];
+                if (itemSprite) {
+                    ctx.drawImage(itemSprite, screenPos.x, screenPos.y);
+                }
             }
         }
     }
-    
-    // Draw enemies
+
+    // Draw enemies (only visible ones)
     for (const enemy of gameState.enemies) {
-        ctx.drawImage(sprites.enemy, enemy.x * TILE_SIZE, enemy.y * TILE_SIZE);
-        
-        // Draw enemy health bar
-        const barWidth = TILE_SIZE;
-        const barHeight = 4;
-        const healthPercent = enemy.hp / enemy.maxHp;
-        
-        ctx.fillStyle = '#000';
-        ctx.fillRect(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE - 6, barWidth, barHeight);
-        ctx.fillStyle = '#dc2626';
-        ctx.fillRect(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE - 6, barWidth * healthPercent, barHeight);
+        if (isInViewport(enemy.x, enemy.y)) {
+            const screenPos = worldToScreen(enemy.x, enemy.y);
+            ctx.drawImage(sprites.enemy, screenPos.x, screenPos.y);
+
+            // Draw enemy health bar
+            const barWidth = TILE_SIZE;
+            const barHeight = 4;
+            const healthPercent = enemy.hp / enemy.maxHp;
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(screenPos.x, screenPos.y - 6, barWidth, barHeight);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(screenPos.x, screenPos.y - 6, barWidth * healthPercent, barHeight);
+        }
     }
-    
-    // Draw player
-    ctx.drawImage(sprites.player, gameState.player.x * TILE_SIZE, gameState.player.y * TILE_SIZE);
+
+    // Draw player (always centered in viewport)
+    const playerScreenX = Math.floor(VIEWPORT_WIDTH / 2) * TILE_SIZE;
+    const playerScreenY = Math.floor(VIEWPORT_HEIGHT / 2) * TILE_SIZE;
+    ctx.drawImage(sprites.player, playerScreenX, playerScreenY);
 }
 
 // Game loop
