@@ -6,6 +6,25 @@ const MAP_WIDTH = 60;       // Mapa total ancho (3x más grande)
 const MAP_HEIGHT = 40;      // Mapa total alto (3x más grande)
 const MAX_INVENTORY_SLOTS = 12; // Máximo de tipos diferentes de items
 
+// Map types and transitions
+const MAP_TYPES = {
+    FIELD: 'field',
+    CITY: 'city',
+    DUNGEON: 'dungeon'
+};
+
+// Portal system for map transitions
+const PORTALS = {
+    // From field to city
+    'field_to_city': { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35 },
+    // From city to field
+    'city_to_field': { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18 },
+    // From city to dungeon
+    'city_to_dungeon': { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5 },
+    // From dungeon to city
+    'dungeon_to_city': { x: 5, y: 3, targetMap: 'city', targetX: 45, targetY: 12 }
+};
+
 // Game state
 const gameState = {
     player: {
@@ -102,6 +121,51 @@ const sprites = {
         ctx.beginPath();
         ctx.arc(w/2-3, h/3-2, 8, 0, Math.PI * 2);
         ctx.fill();
+    }),
+
+    // Solid wall sprites (for borders and buildings)
+    wall: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        ctx.fillStyle = '#4b5563';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#6b7280';
+        ctx.fillRect(2, 2, w-4, h-4);
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(w/2-2, h/2-2, 4, 4);
+    }),
+
+    building: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#a16207';
+        ctx.fillRect(2, 2, w-4, h-4);
+        // Windows
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(4, 4, 4, 4);
+        ctx.fillRect(w-8, 4, 4, 4);
+        ctx.fillRect(4, h-8, 4, 4);
+        ctx.fillRect(w-8, h-8, 4, 4);
+    }),
+
+    floor: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#4b5563';
+        ctx.fillRect(2, 2, w-4, h-4);
+        // Stone pattern
+        ctx.fillStyle = '#6b7280';
+        ctx.fillRect(4, 4, 4, 4);
+        ctx.fillRect(w-8, 4, 4, 4);
+        ctx.fillRect(4, h-8, 4, 4);
+        ctx.fillRect(w-8, h-8, 4, 4);
+    }),
+
+    dungeonWall: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(2, 2, w-4, h-4);
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(w/2-2, h/2-2, 4, 4);
     }),
     
     player: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
@@ -234,7 +298,11 @@ const TILES = {
     GRASS: 0,
     WATER: 1,
     STONE: 2,
-    TREE: 3
+    TREE: 3,
+    WALL: 4,      // Solid walls for city/dungeon borders
+    BUILDING: 5,  // Buildings in city
+    FLOOR: 6,     // Dungeon floor
+    DUNGEON_WALL: 7 // Dungeon walls
 };
 
 // Generate map
@@ -243,9 +311,9 @@ function generateMap() {
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
-            // Create water border
+            // Create solid wall border
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                row.push(TILES.WATER);
+                row.push(TILES.WALL);
             }
             // Random trees
             else if (Math.random() < 0.1) {
@@ -374,13 +442,12 @@ function isWalkable(x, y) {
 
     const tile = gameState.map[y][x];
 
-    // Allow walking on water at map edges for better exploration
-    if ((x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) &&
-        tile === TILES.WATER) {
-        return true;
+    // Solid walls are not walkable
+    if (tile === TILES.WALL || tile === TILES.BUILDING || tile === TILES.DUNGEON_WALL) {
+        return false;
     }
 
-    return tile === TILES.GRASS;
+    return tile === TILES.GRASS || tile === TILES.FLOOR;
 }
 
 // Add message to chat
@@ -820,6 +887,18 @@ function render() {
                         break;
                     case TILES.TREE:
                         sprite = sprites.tree;
+                        break;
+                    case TILES.WALL:
+                        sprite = sprites.wall;
+                        break;
+                    case TILES.BUILDING:
+                        sprite = sprites.building;
+                        break;
+                    case TILES.FLOOR:
+                        sprite = sprites.floor;
+                        break;
+                    case TILES.DUNGEON_WALL:
+                        sprite = sprites.dungeonWall;
                         break;
                 }
 
