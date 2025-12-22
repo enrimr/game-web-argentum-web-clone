@@ -527,7 +527,7 @@ function updateUI() {
         chestsOpenedEl.textContent = gameState.stats.chestsOpened;
     }
 
-    // Update inventory UI (AO style)
+    // Update inventory UI (AO style) - Show total quantity per item type
     for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
         const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
         if (!slotEl) continue;
@@ -540,10 +540,18 @@ function updateUI() {
         if (item) {
             slotEl.textContent = item.icon;
 
-            // Always show quantity for stackable items, or "1" for non-stackable
+            // Calculate total quantity of this item type in inventory
+            let totalQuantity = 0;
+            for (const invItem of gameState.player.inventory) {
+                if (invItem.type === item.type) {
+                    totalQuantity += invItem.quantity;
+                }
+            }
+
+            // Always show total quantity for this item type
             const quantityEl = document.createElement('span');
             quantityEl.className = 'item-quantity';
-            quantityEl.textContent = item.stackable ? item.quantity : '1';
+            quantityEl.textContent = totalQuantity;
             slotEl.appendChild(quantityEl);
 
             // Check if this item is equipped
@@ -556,7 +564,7 @@ function updateUI() {
 
             // Update title for tooltips
             const equipStatus = (isWeaponEquipped || isShieldEquipped) ? ' [EQUIPADO]' : '';
-            slotEl.title = `${item.name}${item.stackable ? ` (${item.quantity})` : ''}${equipStatus}`;
+            slotEl.title = `${item.name} (${totalQuantity} total)${equipStatus}`;
         } else {
             slotEl.textContent = '-';
             slotEl.classList.add('empty');
