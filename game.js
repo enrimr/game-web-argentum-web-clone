@@ -749,7 +749,7 @@ function handleMovement(timestamp) {
     }
 }
 
-// Get camera position (centered on player)
+// Get camera position (centered on player, but allows reaching map edges)
 function getCameraPosition() {
     const playerX = gameState.player.x;
     const playerY = gameState.player.y;
@@ -758,7 +758,8 @@ function getCameraPosition() {
     let cameraX = playerX - Math.floor(VIEWPORT_WIDTH / 2);
     let cameraY = playerY - Math.floor(VIEWPORT_HEIGHT / 2);
 
-    // Clamp camera to map boundaries
+    // Clamp camera to map boundaries, but allow player to reach viewport edges
+    // When camera reaches map boundary, player can still move to viewport edge
     cameraX = Math.max(0, Math.min(cameraX, MAP_WIDTH - VIEWPORT_WIDTH));
     cameraY = Math.max(0, Math.min(cameraY, MAP_HEIGHT - VIEWPORT_HEIGHT));
 
