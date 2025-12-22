@@ -27,6 +27,7 @@ const PORTALS = {
 
 // Game state
 const gameState = {
+    currentMap: 'field', // Current map type
     player: {
         x: 10,
         y: 7,
@@ -358,8 +359,21 @@ const TILES = {
     PATH: 8       // Dirt paths to other areas
 };
 
-// Generate map
+// Generate map based on current map type
 function generateMap() {
+    switch (gameState.currentMap) {
+        case 'city':
+            return generateCityMap();
+        case 'dungeon':
+            return generateDungeonMap();
+        case 'field':
+        default:
+            return generateFieldMap();
+    }
+}
+
+// Generate field map (outdoor area)
+function generateFieldMap() {
     const map = [];
     const centerX = Math.floor(MAP_WIDTH / 2);
     const centerY = Math.floor(MAP_HEIGHT / 2);
@@ -390,6 +404,75 @@ function generateMap() {
         }
         map.push(row);
     }
+    return map;
+}
+
+// Generate city map (buildings and streets)
+function generateCityMap() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            // Create solid wall border
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            }
+            // Create streets (horizontal and vertical)
+            else if (x % 8 === 0 || y % 6 === 0) {
+                row.push(TILES.PATH); // Streets
+            }
+            // Create buildings in city blocks
+            else if (Math.random() < 0.3) {
+                row.push(TILES.BUILDING);
+            }
+            // Empty lots or grass
+            else {
+                row.push(TILES.GRASS);
+            }
+        }
+        map.push(row);
+    }
+    return map;
+}
+
+// Generate dungeon map (rooms and corridors)
+function generateDungeonMap() {
+    const map = [];
+
+    // Initialize with walls
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            row.push(TILES.DUNGEON_WALL);
+        }
+        map.push(row);
+    }
+
+    // Create rooms
+    for (let room = 0; room < 8; room++) {
+        const roomX = Math.floor(Math.random() * (MAP_WIDTH - 10)) + 2;
+        const roomY = Math.floor(Math.random() * (MAP_HEIGHT - 8)) + 2;
+        const roomW = Math.floor(Math.random() * 6) + 4;
+        const roomH = Math.floor(Math.random() * 4) + 3;
+
+        // Carve out room
+        for (let y = roomY; y < Math.min(roomY + roomH, MAP_HEIGHT - 1); y++) {
+            for (let x = roomX; x < Math.min(roomX + roomW, MAP_WIDTH - 1); x++) {
+                map[y][x] = TILES.FLOOR;
+            }
+        }
+    }
+
+    // Create corridors connecting rooms (simplified)
+    for (let y = 1; y < MAP_HEIGHT - 1; y += 4) {
+        for (let x = 1; x < MAP_WIDTH - 1; x++) {
+            if (Math.random() < 0.1) {
+                map[y][x] = TILES.FLOOR;
+            }
+        }
+    }
+
     return map;
 }
 
@@ -424,67 +507,154 @@ function isOnLine(x, y, x1, y1, x2, y2, width = 1) {
     return false;
 }
 
-// Generate objects (chests, gold, items)
+// Generate objects (chests, gold, items) based on current map
 function generateObjects() {
     const objects = [];
 
-    // Add chests (AO style) - more for larger map
-    for (let i = 0; i < 15; i++) {
-        let x, y;
-        do {
-            x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-            y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-        } while (gameState.map[y][x] !== TILES.GRASS);
+    if (gameState.currentMap === 'field') {
+        // Field map - outdoor exploration
+        // Add chests (AO style)
+        for (let i = 0; i < 15; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.GRASS);
 
+            objects.push({
+                type: 'chest',
+                x: x,
+                y: y,
+                opened: false,
+                contains: { gold: Math.floor(Math.random() * 50) + 20 }
+            });
+        }
+
+        // Add gold coins
+        for (let i = 0; i < 25; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.GRASS);
+
+            objects.push({
+                type: 'gold',
+                x: x,
+                y: y,
+                amount: Math.floor(Math.random() * 20) + 5
+            });
+        }
+
+        // Add portals
         objects.push({
-            type: 'chest',
-            x: x,
-            y: y,
-            opened: false,
-            contains: { gold: Math.floor(Math.random() * 50) + 20 }
+            type: 'portal',
+            portalId: 'field_to_city',
+            x: PORTALS.field_to_city.x,
+            y: PORTALS.field_to_city.y,
+            targetMap: PORTALS.field_to_city.targetMap,
+            targetX: PORTALS.field_to_city.targetX,
+            targetY: PORTALS.field_to_city.targetY
+        });
+
+    } else if (gameState.currentMap === 'city') {
+        // City map - urban area with buildings
+        // Add some chests in safe spots
+        for (let i = 0; i < 5; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.GRASS);
+
+            objects.push({
+                type: 'chest',
+                x: x,
+                y: y,
+                opened: false,
+                contains: { gold: Math.floor(Math.random() * 30) + 10 }
+            });
+        }
+
+        // Add city portal back to field
+        objects.push({
+            type: 'portal',
+            portalId: 'city_to_field',
+            x: PORTALS.city_to_field.x,
+            y: PORTALS.city_to_field.y,
+            targetMap: PORTALS.city_to_field.targetMap,
+            targetX: PORTALS.city_to_field.targetX,
+            targetY: PORTALS.city_to_field.targetY
+        });
+
+        // Add dungeon portal
+        objects.push({
+            type: 'portal',
+            portalId: 'city_to_dungeon',
+            x: PORTALS.city_to_dungeon.x,
+            y: PORTALS.city_to_dungeon.y,
+            targetMap: PORTALS.city_to_dungeon.targetMap,
+            targetX: PORTALS.city_to_dungeon.targetX,
+            targetY: PORTALS.city_to_dungeon.targetY
+        });
+
+    } else if (gameState.currentMap === 'dungeon') {
+        // Dungeon map - dangerous area with better loot
+        // Add better chests
+        for (let i = 0; i < 10; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] === TILES.FLOOR); // Only on floor tiles
+
+            objects.push({
+                type: 'chest',
+                x: x,
+                y: y,
+                opened: false,
+                contains: { gold: Math.floor(Math.random() * 100) + 50 }
+            });
+        }
+
+        // Add gold coins
+        for (let i = 0; i < 15; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] === TILES.FLOOR);
+
+            objects.push({
+                type: 'gold',
+                x: x,
+                y: y,
+                amount: Math.floor(Math.random() * 30) + 10
+            });
+        }
+
+        // Add portal back to city
+        objects.push({
+            type: 'portal',
+            portalId: 'dungeon_to_city',
+            x: PORTALS.dungeon_to_city.x,
+            y: PORTALS.dungeon_to_city.y,
+            targetMap: PORTALS.dungeon_to_city.targetMap,
+            targetX: PORTALS.dungeon_to_city.targetX,
+            targetY: PORTALS.dungeon_to_city.targetY
         });
     }
 
-    // Add gold coins (AO style) - more for larger map
-    for (let i = 0; i < 25; i++) {
-        let x, y;
-        do {
-            x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-            y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-        } while (gameState.map[y][x] !== TILES.GRASS);
-
-        objects.push({
-            type: 'gold',
-            x: x,
-            y: y,
-            amount: Math.floor(Math.random() * 20) + 5
-        });
-    }
-
-    // Add portals (visible gateways to other maps)
-    // City portal
-    objects.push({
-        type: 'portal',
-        portalId: 'field_to_city',
-        x: PORTALS.field_to_city.x,
-        y: PORTALS.field_to_city.y,
-        targetMap: PORTALS.field_to_city.targetMap
-    });
-
-    // Dungeon portal
-    objects.push({
-        type: 'portal',
-        portalId: 'city_to_dungeon',
-        x: PORTALS.city_to_dungeon.x,
-        y: PORTALS.city_to_dungeon.y,
-        targetMap: PORTALS.city_to_dungeon.targetMap
-    });
-
-    // Add items on ground (AO style) - máximo 1 item por celda
+    // Add items on ground (different amounts per map)
     const itemTypes = Object.keys(ITEM_TYPES);
-    const maxAttempts = 50; // Máximo de intentos para encontrar celda libre
+    let itemCount = 40; // Default for field
 
-    for (let i = 0; i < 40; i++) {
+    if (gameState.currentMap === 'city') itemCount = 20; // Fewer in city
+    if (gameState.currentMap === 'dungeon') itemCount = 30; // More in dungeon
+
+    const maxAttempts = 50;
+
+    for (let i = 0; i < itemCount; i++) {
         let foundSpot = false;
         let attempts = 0;
 
@@ -492,8 +662,17 @@ function generateObjects() {
             const x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
             const y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
 
-            // Verificar que la celda esté libre (césped) y no tenga otros objetos
-            if (gameState.map[y][x] === TILES.GRASS) {
+            // Check appropriate walkable tile for each map
+            let validTile = false;
+            if (gameState.currentMap === 'field' && gameState.map[y][x] === TILES.GRASS) {
+                validTile = true;
+            } else if (gameState.currentMap === 'city' && gameState.map[y][x] === TILES.GRASS) {
+                validTile = true;
+            } else if (gameState.currentMap === 'dungeon' && gameState.map[y][x] === TILES.FLOOR) {
+                validTile = true;
+            }
+
+            if (validTile) {
                 const hasObject = objects.some(obj => obj.x === x && obj.y === y);
                 if (!hasObject) {
                     const randomItemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
@@ -511,36 +690,87 @@ function generateObjects() {
             }
             attempts++;
         }
-
-        // Si no encontró spot después de maxAttempts, simplemente no genera ese item
     }
 
     return objects;
 }
 
-// Generate enemies
+// Generate enemies based on current map
 function generateEnemies() {
     const enemies = [];
 
-    // More enemies for larger map
-    for (let i = 0; i < 20; i++) {
-        let x, y;
-        do {
-            x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-            y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-        } while (gameState.map[y][x] !== TILES.GRASS);
+    if (gameState.currentMap === 'field') {
+        // Field - standard goblins
+        for (let i = 0; i < 20; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.GRASS);
 
-        enemies.push({
-            type: 'goblin',
-            x: x,
-            y: y,
-            hp: 30,
-            maxHp: 30,
-            lastMoveTime: 0,
-            moveDelay: 800 + Math.random() * 400, // Random delay between 800-1200ms
-            lastAttackTime: 0,
-            attackDelay: 2000 // Attack every 2 seconds
-        });
+            enemies.push({
+                type: 'goblin',
+                x: x,
+                y: y,
+                hp: 30,
+                maxHp: 30,
+                lastMoveTime: 0,
+                moveDelay: 800 + Math.random() * 400,
+                lastAttackTime: 0,
+                attackDelay: 2000,
+                damage: { min: 5, max: 10 },
+                goldDrop: { min: 10, max: 20 },
+                expReward: 40
+            });
+        }
+    } else if (gameState.currentMap === 'city') {
+        // City - fewer, weaker enemies (guards or bandits)
+        for (let i = 0; i < 5; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] === TILES.GRASS); // Avoid buildings
+
+            enemies.push({
+                type: 'bandit',
+                x: x,
+                y: y,
+                hp: 20,
+                maxHp: 20,
+                lastMoveTime: 0,
+                moveDelay: 1000 + Math.random() * 500,
+                lastAttackTime: 0,
+                attackDelay: 2500,
+                damage: { min: 3, max: 8 },
+                goldDrop: { min: 15, max: 25 },
+                expReward: 25
+            });
+        }
+    } else if (gameState.currentMap === 'dungeon') {
+        // Dungeon - stronger enemies
+        for (let i = 0; i < 15; i++) {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            } while (gameState.map[y][x] !== TILES.FLOOR);
+
+            enemies.push({
+                type: 'orc',
+                x: x,
+                y: y,
+                hp: 50,
+                maxHp: 50,
+                lastMoveTime: 0,
+                moveDelay: 600 + Math.random() * 300,
+                lastAttackTime: 0,
+                attackDelay: 1500,
+                damage: { min: 8, max: 15 },
+                goldDrop: { min: 20, max: 40 },
+                expReward: 80
+            });
+        }
     }
 
     return enemies;
@@ -557,7 +787,8 @@ function isWalkable(x, y) {
         return false;
     }
 
-    return tile === TILES.GRASS || tile === TILES.FLOOR;
+    // Walkable tiles: grass, floor, and paths
+    return tile === TILES.GRASS || tile === TILES.FLOOR || tile === TILES.PATH;
 }
 
 // Add message to chat
@@ -795,12 +1026,8 @@ function interact() {
                     addChatMessage('system', '❌ ¡Inventario lleno! No puedes recoger el item.');
                 }
             } else if (obj.type === 'portal') {
-                // Portal interaction (future map transitions)
-                if (obj.targetMap === 'city') {
-                    addChatMessage('system', '🌆 ¡Puerta a la Ciudad! (Próximamente: múltiples mapas)');
-                } else if (obj.targetMap === 'dungeon') {
-                    addChatMessage('system', '🏰 ¡Puerta a la Mazmorra! (Próximamente: múltiples mapas)');
-                }
+                // Portal interaction - change map
+                changeMap(obj.targetMap, obj.targetX, obj.targetY);
             }
         }
     }
@@ -811,18 +1038,18 @@ function interact() {
         if (dist === 1) {
             const damage = Math.floor(Math.random() * 15) + 10 + (gameState.player.level * 2);
             enemy.hp -= damage;
-            addChatMessage('player', `¡Atacas al goblin causando ${damage} de daño!`);
-            
+            addChatMessage('player', `¡Atacas al ${enemy.type} causando ${damage} de daño!`);
+
             if (enemy.hp <= 0) {
-                const goldDrop = Math.floor(Math.random() * 20) + 10;
-                const expGain = 25 + (enemy.maxHp / 2); // Base exp based on enemy difficulty
-                
+                const goldDrop = Math.floor(Math.random() * (enemy.goldDrop.max - enemy.goldDrop.min + 1)) + enemy.goldDrop.min;
+                const expGain = enemy.expReward;
+
                 gameState.player.gold += goldDrop;
                 gameState.stats.enemiesKilled++;
-                
-                addChatMessage('system', `¡Has derrotado al goblin! +${goldDrop} oro, +${Math.floor(expGain)} EXP`);
+
+                addChatMessage('system', `¡Has derrotado al ${enemy.type}! +${goldDrop} oro, +${expGain} EXP`);
                 addExp(expGain);
-                
+
                 gameState.enemies = gameState.enemies.filter(e => e !== enemy);
                 updateUI();
             }
@@ -882,15 +1109,15 @@ function enemyAttacks(timestamp) {
         
         if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
             // Enemy attacks player
-            const damage = Math.floor(Math.random() * 10) + 5;
+            const damage = Math.floor(Math.random() * (enemy.damage.max - enemy.damage.min + 1)) + enemy.damage.min;
             gameState.player.hp -= damage;
-            
+
             if (gameState.player.hp < 0) gameState.player.hp = 0;
-            
-            addChatMessage('system', `¡Un goblin te ataca causando ${damage} de daño!`);
+
+            addChatMessage('system', `¡Un ${enemy.type} te ataca causando ${damage} de daño!`);
             enemy.lastAttackTime = timestamp;
             updateUI();
-            
+
             // Check if player died
             if (gameState.player.hp === 0) {
                 addChatMessage('system', '💀 ¡Has muerto! Recarga la página para jugar de nuevo.');
@@ -1105,6 +1332,34 @@ function init() {
 
     updateUI();
     gameLoop(0);
+}
+
+// Change map function
+function changeMap(targetMap, targetX, targetY) {
+    // Save current map for transition message
+    const oldMap = gameState.currentMap;
+
+    // Change map
+    gameState.currentMap = targetMap;
+
+    // Teleport player to target position
+    gameState.player.x = targetX;
+    gameState.player.y = targetY;
+
+    // Regenerate map content
+    gameState.map = generateMap();
+    gameState.objects = generateObjects();
+    gameState.enemies = generateEnemies();
+
+    // Show transition message
+    const mapNames = {
+        'field': 'Campo',
+        'city': 'Ciudad',
+        'dungeon': 'Mazmorra'
+    };
+
+    addChatMessage('system', `🌟 ¡Viajas a ${mapNames[targetMap]}!`);
+    updateUI();
 }
 
 // Start game when page loads
