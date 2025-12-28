@@ -125,17 +125,231 @@ const gameState = {
     },
     stats: {
         enemiesKilled: 0,
-        chestsOpened: 0
+        chestsOpened: 0,
+        bank: 0 // Oro guardado en el banco
     },
     map: [],
     objects: [],
     enemies: [],
+    npcs: [], // NPCs like merchants, healers, etc.
     projectiles: [] // Flechas y otros proyectiles volando
+};
+
+// NPC definitions for the Argentum Online style game
+const NPC_TYPES = {
+    MERCHANT_WEAPONS: {
+        name: 'Herrero',
+        sprite: 'npcBlacksmith',
+        dialogue: '¡Bienvenido a mi armería! ¿Qué arma necesitas?',
+        items: ['SWORD', 'SWORD_IRON', 'BOW', 'BOW_ELVEN'],
+        priceMultiplier: 1.0 // Base prices
+    },
+    MERCHANT_ARMOR: {
+        name: 'Armero',
+        sprite: 'npcArmorsmith',
+        dialogue: '¡Las mejores armaduras de toda la región!',
+        items: ['SHIELD', 'SHIELD_IRON'],
+        priceMultiplier: 1.1 // Slightly more expensive
+    },
+    MERCHANT_POTIONS: {
+        name: 'Alquimista',
+        sprite: 'npcAlchemist',
+        dialogue: 'Tengo pociones para todo tipo de males.',
+        items: ['POTION_RED', 'POTION_BLUE', 'POTION_GREEN'],
+        priceMultiplier: 0.9 // Slightly cheaper
+    },
+    MERCHANT_AMMUNITION: {
+        name: 'Fletero',
+        sprite: 'npcFletcher',
+        dialogue: '¿Necesitas flechas? Las tengo de todos los tipos.',
+        items: ['ARROW'],
+        priceMultiplier: 0.8 // Cheaper for consumables
+    },
+    HEALER: {
+        name: 'Curandero',
+        sprite: 'npcHealer',
+        dialogue: 'Puedo curarte por un pequeño precio.',
+        healingPrice: 50, // Gold per % of HP healed
+        manaPrice: 80 // Gold per % of mana restored
+    },
+    BANKER: {
+        name: 'Banquero',
+        sprite: 'npcBanker',
+        dialogue: 'Guardo tu oro de forma segura.',
+        depositFee: 0.02, // 2% fee for deposits
+        withdrawalFee: 0.01 // 1% fee for withdrawals
+    },
+    TRAINER: {
+        name: 'Instructor',
+        sprite: 'npcTrainer',
+        dialogue: 'Puedo enseñarte técnicas de combate.',
+        trainingPrice: 500 // Gold per training session
+    },
+    QUEST_GIVER: {
+        name: 'Consejero Real',
+        sprite: 'npcQuestGiver',
+        dialogue: 'El reino necesita tu ayuda, aventurero.',
+        quests: ['DEFEAT_BANDITS', 'COLLECT_HERBS', 'CLEAR_DUNGEON']
+    },
+    TOWN_CRIER: {
+        name: 'Pregonero',
+        sprite: 'npcTownCrier',
+        dialogue: '¡Oíd, oíd! ¡Últimas noticias del reino!'
+    }
 };
 
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// Canvas click handler for object inspection
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+
+    // Account for canvas scaling (CSS transforms)
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const canvasX = (event.clientX - rect.left) * scaleX;
+    const canvasY = (event.clientY - rect.top) * scaleY;
+
+    // Convert canvas coordinates to world coordinates
+    const camera = getCameraPosition();
+    const worldX = camera.x + Math.floor(canvasX / TILE_SIZE);
+    const worldY = camera.y + Math.floor(canvasY / TILE_SIZE);
+
+    // Check for objects at clicked position
+    inspectObjectAt(worldX, worldY);
+});
+
+// Inspect object at specific world coordinates and show info in chat
+function inspectObjectAt(x, y) {
+    // Check bounds
+    if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) {
+        addChatMessage('system', '📍 Fuera de los límites del mapa');
+        return;
+    }
+
+    // Check for enemies first
+    const enemy = gameState.enemies.find(e => e.x === x && e.y === y);
+    if (enemy) {
+        const enemyNames = {
+            goblin: 'Goblin',
+            skeleton: 'Esqueleto',
+            orc: 'Orco',
+            bandit: 'Bandido',
+            troll: 'Troll',
+            dragon: 'Dragón',
+            elemental: 'Elemental',
+            demon: 'Demonio'
+        };
+
+        const name = enemyNames[enemy.type] || enemy.type;
+        const healthPercent = Math.floor((enemy.hp / enemy.maxHp) * 100);
+        addChatMessage('system', `👹 ${name} - HP: ${enemy.hp}/${enemy.maxHp} (${healthPercent}%)`);
+        return;
+    }
+
+    // Check for objects
+    const object = gameState.objects.find(o => o.x === x && o.y === y);
+    if (object) {
+        switch (object.type) {
+            case 'chest':
+                if (object.opened) {
+                    addChatMessage('system', '📦 Cofre vacío');
+                } else {
+                    addChatMessage('system', '💰 Cofre cerrado - Presiona ESPACIO para abrir');
+                }
+                break;
+
+            case 'gold':
+                addChatMessage('system', `💰 ${object.amount} monedas de oro - Presiona ESPACIO para recoger`);
+                break;
+
+            case 'item':
+                const itemDef = ITEM_TYPES[object.itemType];
+                const itemName = itemDef ? itemDef.name : object.itemType;
+                addChatMessage('system', `📦 ${itemName} (x${object.quantity}) - Presiona ESPACIO para recoger`);
+                break;
+
+            case 'npc':
+                // Show NPC info and available options
+                const npcInfo = NPC_TYPES[object.npcType];
+                addChatMessage('system', `👤 ${object.name} - ${object.dialogue}`);
+                
+                // Show additional options based on NPC type
+                switch (object.npcType) {
+                    case 'MERCHANT_WEAPONS':
+                    case 'MERCHANT_ARMOR':
+                    case 'MERCHANT_POTIONS':
+                    case 'MERCHANT_AMMUNITION':
+                        addChatMessage('system', `💬 Presiona ESPACIO para comerciar`);
+                        break;
+                    case 'HEALER':
+                        addChatMessage('system', `💬 Presiona ESPACIO para curarte (${NPC_TYPES.HEALER.healingPrice} oro por cada 1% de HP)`);
+                        break;
+                    case 'BANKER':
+                        addChatMessage('system', `💬 Presiona ESPACIO para acceder al banco`);
+                        break;
+                    case 'TRAINER':
+                        addChatMessage('system', `💬 Presiona ESPACIO para entrenar (${NPC_TYPES.TRAINER.trainingPrice} oro)`);
+                        break;
+                    case 'QUEST_GIVER':
+                        addChatMessage('system', `💬 Presiona ESPACIO para ver misiones disponibles`);
+                        break;
+                    case 'TOWN_CRIER':
+                        addChatMessage('system', `💬 Presiona ESPACIO para escuchar las noticias`);
+                        break;
+                }
+                break;
+
+            case 'portal':
+                addChatMessage('system', `🚪 Portal a ${object.name} - Presiona ESPACIO para viajar`);
+                break;
+
+            default:
+                addChatMessage('system', `❓ Objeto desconocido: ${object.type}`);
+        }
+        return;
+    }
+
+    // Check terrain type
+    const tile = gameState.map[y][x];
+    let terrainName = 'Terreno desconocido';
+
+    switch (tile) {
+        case TILES.GRASS:
+            terrainName = 'Hierba';
+            break;
+        case TILES.WATER:
+            terrainName = 'Agua';
+            break;
+        case TILES.STONE:
+            terrainName = 'Piedra';
+            break;
+        case TILES.TREE:
+            terrainName = 'Árbol';
+            break;
+        case TILES.WALL:
+            terrainName = 'Muro';
+            break;
+        case TILES.BUILDING:
+            terrainName = 'Edificio';
+            break;
+        case TILES.FLOOR:
+            terrainName = 'Suelo';
+            break;
+        case TILES.DUNGEON_WALL:
+            terrainName = 'Muro de mazmorra';
+            break;
+        case TILES.PATH:
+            terrainName = 'Camino';
+            break;
+    }
+
+    const walkableText = isWalkable(x, y) ? '(transitable)' : '(bloqueado)';
+    addChatMessage('system', `🌍 ${terrainName} ${walkableText}`);
+}
 
 // Input handling
 const keys = {};
@@ -161,6 +375,181 @@ function createSprite(width, height, drawFunction) {
 
 // Sprite definitions
 const sprites = {
+    // NPC Sprites - Argentum Online style 16-bit sprites
+    npcBlacksmith: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Body
+        ctx.fillStyle = '#964B00'; // Brown
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Beard
+        ctx.fillStyle = '#5A3825'; // Dark brown
+        ctx.fillRect(w/2-3, h/4+2, 6, 4);
+        // Apron
+        ctx.fillStyle = '#8B4513'; // Darker brown
+        ctx.fillRect(w/4+1, h/3+2, w/2-2, h/2-2);
+        // Hammer
+        ctx.fillStyle = '#A9A9A9'; // Gray
+        ctx.fillRect(w/4-5, h/2-2, 8, 4);
+    }),
+    
+    npcArmorsmith: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Body
+        ctx.fillStyle = '#2F4F4F'; // Dark slate gray
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Helmet
+        ctx.fillStyle = '#B8B8B8'; // Silver
+        ctx.beginPath();
+        ctx.arc(w/2, h/4-2, w/7, 0, Math.PI, true);
+        ctx.fill();
+        // Shield 
+        ctx.fillStyle = '#B8B8B8'; // Silver
+        ctx.fillRect(w/4-3, h/2, 6, 8);
+    }),
+    
+    npcAlchemist: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Robe
+        ctx.fillStyle = '#7851A9'; // Purple
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Hat
+        ctx.fillStyle = '#4B0082'; // Indigo
+        ctx.beginPath();
+        ctx.moveTo(w/2-8, h/4-2);
+        ctx.lineTo(w/2, h/4-10);
+        ctx.lineTo(w/2+8, h/4-2);
+        ctx.fill();
+        // Potion
+        ctx.fillStyle = '#FF0000'; // Red
+        ctx.fillRect(w/2+4, h/2, 4, 6);
+    }),
+    
+    npcFletcher: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Body
+        ctx.fillStyle = '#355E3B'; // Forest green
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Arrow
+        ctx.fillStyle = '#8B4513'; // Brown
+        ctx.fillRect(w/4-5, h/2, 10, 2);
+        // Arrow tip
+        ctx.fillStyle = '#C0C0C0'; // Silver
+        ctx.beginPath();
+        ctx.moveTo(w/4-8, h/2);
+        ctx.lineTo(w/4-5, h/2-2);
+        ctx.lineTo(w/4-5, h/2+2);
+        ctx.fill();
+    }),
+    
+    npcHealer: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Robe
+        ctx.fillStyle = '#FFFFFF'; // White
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Cross symbol
+        ctx.fillStyle = '#FF0000'; // Red
+        ctx.fillRect(w/2-1, h/2-5, 2, 10);
+        ctx.fillRect(w/2-5, h/2-1, 10, 2);
+    }),
+    
+    npcBanker: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Suit
+        ctx.fillStyle = '#191970'; // Midnight blue
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Hat
+        ctx.fillStyle = '#191970'; // Midnight blue
+        ctx.fillRect(w/2-6, h/4-8, 12, 3);
+        // Gold
+        ctx.fillStyle = '#FFD700'; // Gold
+        ctx.beginPath();
+        ctx.arc(w/2+6, h/2+2, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }),
+    
+    npcTrainer: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Body
+        ctx.fillStyle = '#8B0000'; // Dark red
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Sword
+        ctx.fillStyle = '#C0C0C0'; // Silver
+        ctx.fillRect(w/4-7, h/2-8, 2, 16);
+        // Sword handle
+        ctx.fillStyle = '#8B4513'; // Brown
+        ctx.fillRect(w/4-9, h/2-2, 6, 4);
+    }),
+    
+    npcQuestGiver: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Robes
+        ctx.fillStyle = '#4B0082'; // Indigo
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Crown
+        ctx.fillStyle = '#FFD700'; // Gold
+        ctx.beginPath();
+        ctx.moveTo(w/2-5, h/4-6);
+        ctx.lineTo(w/2-5, h/4-2);
+        ctx.lineTo(w/2+5, h/4-2);
+        ctx.lineTo(w/2+5, h/4-6);
+        ctx.fill();
+        ctx.fillRect(w/2-3, h/4-9, 2, 3);
+        ctx.fillRect(w/2+1, h/4-9, 2, 3);
+    }),
+    
+    npcTownCrier: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Body
+        ctx.fillStyle = '#800080'; // Purple
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#F5DEB3'; // Skin tone
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+        ctx.fill();
+        // Hat
+        ctx.fillStyle = '#800080'; // Purple
+        ctx.fillRect(w/2-6, h/4-8, 12, 3);
+        ctx.fillRect(w/2-4, h/4-11, 8, 3);
+        // Bell
+        ctx.fillStyle = '#FFD700'; // Gold
+        ctx.beginPath();
+        ctx.arc(w/2+6, h/2+2, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }),
+    
+    // Existing sprites
     grass: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
         ctx.fillStyle = '#2d5016';
         ctx.fillRect(0, 0, w, h);
@@ -1352,9 +1741,72 @@ function generateObjects() {
             });
         }
 
-        // No portals needed - zones are connected by walkable paths
-
-
+        // Add NPCs - Argentum Online style
+        // Place NPCs near buildings or on sidewalks
+        
+        // Find valid positions for NPCs by looking along streets
+        const npcPositions = [];
+        for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+            for (let x = 1; x < MAP_WIDTH - 1; x++) {
+                // Place NPCs on paths adjacent to buildings
+                if (gameState.map[y][x] === TILES.PATH) {
+                    let adjacentToBuilding = false;
+                    // Check if position is adjacent to a building
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if ((dx === 0 && dy === 0) || (Math.abs(dx) === 1 && Math.abs(dy) === 1)) continue;
+                            if (x+dx >= 0 && x+dx < MAP_WIDTH && y+dy >= 0 && y+dy < MAP_HEIGHT) {
+                                if (gameState.map[y+dy][x+dx] === TILES.BUILDING) {
+                                    adjacentToBuilding = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (adjacentToBuilding) break;
+                    }
+                    
+                    if (adjacentToBuilding) {
+                        npcPositions.push({x, y});
+                    }
+                }
+            }
+        }
+        
+        // Shuffle positions to place NPCs randomly
+        for (let i = npcPositions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [npcPositions[i], npcPositions[j]] = [npcPositions[j], npcPositions[i]];
+        }
+        
+        // Place the most important NPCs first
+        const npcTypes = [
+            'MERCHANT_WEAPONS',
+            'MERCHANT_ARMOR',
+            'MERCHANT_POTIONS',
+            'MERCHANT_AMMUNITION',
+            'HEALER',
+            'BANKER',
+            'TRAINER',
+            'QUEST_GIVER',
+            'TOWN_CRIER'
+        ];
+        
+        const maxNpcs = Math.min(npcPositions.length, npcTypes.length);
+        
+        for (let i = 0; i < maxNpcs; i++) {
+            const npcType = npcTypes[i];
+            const position = npcPositions[i];
+            
+            objects.push({
+                type: 'npc',
+                npcType: npcType,
+                x: position.x,
+                y: position.y,
+                name: NPC_TYPES[npcType].name,
+                sprite: NPC_TYPES[npcType].sprite,
+                dialogue: NPC_TYPES[npcType].dialogue
+            });
+        }
 
     } else if (gameState.currentMap === 'dungeon') {
         // Dungeon map - dangerous area with better loot
@@ -2147,6 +2599,10 @@ function interact() {
                 } else {
                     addChatMessage('system', '❌ ¡Inventario lleno! No puedes recoger el item.');
                 }
+            } else if (obj.type === 'npc') {
+                // Handle NPC interaction based on type
+                interactWithNPC(obj);
+                return;
             } else if (obj.type === 'portal') {
                 // Portal interaction - change map
                 changeMap(obj.targetMap, obj.targetX, obj.targetY);
@@ -2414,6 +2870,145 @@ function worldToScreen(worldX, worldY) {
     return { x: screenX, y: screenY };
 }
 
+// Interact with NPC based on type
+function interactWithNPC(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    if (!npcType) {
+        addChatMessage('system', '❓ NPC desconocido.');
+        return;
+    }
+    
+    switch (npc.npcType) {
+        case 'MERCHANT_WEAPONS':
+        case 'MERCHANT_ARMOR':
+        case 'MERCHANT_POTIONS':
+        case 'MERCHANT_AMMUNITION':
+            shopWithMerchant(npc);
+            break;
+            
+        case 'HEALER':
+            visitHealer(npc);
+            break;
+            
+        case 'BANKER':
+            useBankServices(npc);
+            break;
+            
+        case 'TRAINER':
+            trainWithInstructor(npc);
+            break;
+            
+        case 'QUEST_GIVER':
+            getQuests(npc);
+            break;
+            
+        case 'TOWN_CRIER':
+            hearNews(npc);
+            break;
+            
+        default:
+            addChatMessage('system', `${npc.name} dice: "${npc.dialogue}"`);
+    }
+}
+
+// Shopping interface for merchants
+function shopWithMerchant(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    addChatMessage('system', `${npc.name}: "${npc.dialogue}"`);
+    
+    let itemList = '';
+    npcType.items.forEach((itemType, index) => {
+        const item = ITEM_TYPES[itemType];
+        if (item) {
+            const price = Math.floor((item.damage || item.defense || item.value || 50) * npcType.priceMultiplier);
+            itemList += `\n${index + 1}. ${item.name} - ${price} oro (${item.description})`;
+        }
+    });
+    
+    addChatMessage('system', `📜 Productos a la venta:${itemList}\n\nUsa /comprar [número] para adquirir un item.`);
+}
+
+// Healing services
+function visitHealer(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    addChatMessage('system', `${npc.name}: "${npc.dialogue}"`);
+    
+    // Calculate healing costs
+    const missingHp = gameState.player.maxHp - gameState.player.hp;
+    const missingMana = gameState.player.maxMana - gameState.player.mana;
+    
+    const healHpCost = Math.floor(missingHp / 100 * gameState.player.maxHp * npcType.healingPrice);
+    const healManaCost = Math.floor(missingMana / 100 * gameState.player.maxMana * npcType.manaPrice);
+    
+    let options = '';
+    if (missingHp > 0) {
+        options += `\n1. Curar HP (${healHpCost} oro)`;
+    }
+    if (missingMana > 0) {
+        options += `\n2. Restaurar Mana (${healManaCost} oro)`;
+    }
+    if (missingHp === 0 && missingMana === 0) {
+        options = '\nYa estás completamente curado.';
+    }
+    
+    addChatMessage('system', `🧪 Servicios de curación:${options}\n\nUsa /curar [hp/mana] para recibir tratamiento.`);
+}
+
+// Banking services
+function useBankServices(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    addChatMessage('system', `${npc.name}: "${npc.dialogue}"`);
+    
+    addChatMessage('system', `💰 Servicios bancarios:\n` +
+        `Oro en banco: ${gameState.stats.bank}\n` +
+        `Oro en mano: ${gameState.player.gold}\n\n` +
+        `1. Depositar oro (comisión: ${npcType.depositFee * 100}%)\n` +
+        `2. Retirar oro (comisión: ${npcType.withdrawalFee * 100}%)\n\n` +
+        `Usa /depositar [cantidad] o /retirar [cantidad] para usar estos servicios.`);
+}
+
+// Training services
+function trainWithInstructor(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    addChatMessage('system', `${npc.name}: "${npc.dialogue}"`);
+    
+    addChatMessage('system', `⚔️ Entrenamiento disponible:\n` +
+        `Precio: ${npcType.trainingPrice} oro\n` +
+        `Beneficio: Ganarás experiencia adicional al derrotar enemigos.\n\n` +
+        `Usa /entrenar para iniciar el entrenamiento.`);
+}
+
+// Quest system
+function getQuests(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    addChatMessage('system', `${npc.name}: "${npc.dialogue}"`);
+    
+    addChatMessage('system', `📜 Misiones disponibles:\n` +
+        `1. Derrota bandidos (recompensa: 500 oro, 200 EXP)\n` +
+        `2. Recolecta hierbas (recompensa: Pociones, 150 EXP)\n` +
+        `3. Limpia la mazmorra (recompensa: 1000 oro, 500 EXP)\n\n` +
+        `Usa /mision [número] para aceptar una misión.`);
+}
+
+// Town crier news
+function hearNews(npc) {
+    const npcType = NPC_TYPES[npc.npcType];
+    addChatMessage('system', `${npc.name}: "${npc.dialogue}"`);
+    
+    // Random news each time
+    const news = [
+        "¡El rey ha declarado un festival para la próxima luna llena!",
+        "Se han avistado dragones en las montañas del este.",
+        "La guardia busca aventureros para explorar las catacumbas antiguas.",
+        "Un mercader misterioso ha llegado a la ciudad con objetos exóticos.",
+        "Los goblins del bosque han estado atacando viajeros desprevenidos.",
+        "El gremio de magos ofrece recompensas por escamas de dragón."
+    ];
+    
+    const randomNews = news[Math.floor(Math.random() * news.length)];
+    addChatMessage('system', `📰 Últimas noticias: ${randomNews}`);
+}
+
 // Render game
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2630,114 +3225,290 @@ function gameLoop(timestamp) {
 }
 
 // Initialize game
-function init() {
-    // Generate initial map first
-    gameState.map = generateMap();
+async function init() {
+    try {
+        // Generate initial map first (now async)
+        gameState.map = await generateMap();
+        
+        if (!gameState.map || gameState.map.length === 0) {
+            console.error("Failed to generate initial map. Creating fallback map");
+            // Create fallback map with correct dimensions
+            gameState.map = createFallbackMap();
+        }
 
-    // Then validate all portal positions (after map is generated)
-    validatePortalPositions();
+        // Validate and fix map dimensions
+        validateAndFixMapDimensions();
 
-    // Generate content
-    gameState.objects = generateObjects();
-    gameState.enemies = generateEnemies();
+        // Then validate all portal positions (after map is generated) - but make it safe
+        try {
+            await validatePortalPositions();
+        } catch (error) {
+            console.error("Error validating portal positions:", error);
+            // Continue anyway - this is not critical
+        }
 
-    // Add some test items for demonstration (AO style)
-    addItemToInventory('BOW', 1);      // Arco para combate a distancia
-    addItemToInventory('ARROW', 50);   // Flechas para el arco
-    addItemToInventory('SWORD', 1);    // Espada para combate cuerpo a cuerpo
-    addItemToInventory('SHIELD', 1);   // Escudo para defensa
-    addItemToInventory('POTION_RED', 20);   // Pociones HP
-    addItemToInventory('POTION_BLUE', 15);  // Pociones Mana
-    addItemToInventory('POTION_GREEN', 10); // Pociones Antídoto
+        try {
+            // Generate content
+            gameState.objects = generateObjects();
+            gameState.enemies = generateEnemies();
+        } catch (error) {
+            console.error("Error generating game content:", error);
+            gameState.objects = [];
+            gameState.enemies = [];
+        }
 
-    // Add click listeners to inventory slots
-    for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
-        const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
-        if (slotEl) {
-            slotEl.addEventListener('click', () => toggleEquipItem(i));
+        // Add some test items for demonstration (AO style)
+        addItemToInventory('BOW', 1);      // Arco para combate a distancia
+        addItemToInventory('ARROW', 50);   // Flechas para el arco
+        addItemToInventory('SWORD', 1);    // Espada para combate cuerpo a cuerpo
+        addItemToInventory('SHIELD', 1);   // Escudo para defensa
+        addItemToInventory('POTION_RED', 20);   // Pociones HP
+        addItemToInventory('POTION_BLUE', 15);  // Pociones Mana
+        addItemToInventory('POTION_GREEN', 10); // Pociones Antídoto
+
+        // Add click listeners to inventory slots
+        for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+            const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
+            if (slotEl) {
+                slotEl.addEventListener('click', () => toggleEquipItem(i));
+            }
+        }
+
+        updateUI();
+        gameLoop(0);
+    } catch (error) {
+        console.error("Error initializing game:", error);
+        addChatMessage('system', '⚠️ Error al inicializar el juego. Por favor, recarga la página.');
+        
+        // Try to recover with a minimal UI and safe environment
+        try {
+            if (!gameState.map || !Array.isArray(gameState.map)) {
+                gameState.map = createFallbackMap();
+            }
+            
+            if (!gameState.objects) gameState.objects = [];
+            if (!gameState.enemies) gameState.enemies = [];
+            if (!gameState.projectiles) gameState.projectiles = [];
+            
+            updateUI();
+            gameLoop(0);
+        } catch (recoveryError) {
+            console.error("Fatal error - could not recover game state:", recoveryError);
+        }
+    }
+}
+
+// Helper to create a fallback map with safe dimensions
+function createFallbackMap() {
+    const map = [];
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL); // Safe border
+            } else {
+                row.push(TILES.GRASS); // Safe interior
+            }
+        }
+        map.push(row);
+    }
+    return map;
+}
+
+// Helper to validate and fix map dimensions
+function validateAndFixMapDimensions() {
+    // Check if map has proper dimensions
+    if (gameState.map.length !== MAP_HEIGHT) {
+        console.error(`Generated map has incorrect height: ${gameState.map.length} rows`);
+        
+        // Fix map height
+        if (gameState.map.length < MAP_HEIGHT) {
+            // Add missing rows
+            while (gameState.map.length < MAP_HEIGHT) {
+                const row = [];
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    row.push(TILES.GRASS);
+                }
+                gameState.map.push(row);
+            }
+        } else if (gameState.map.length > MAP_HEIGHT) {
+            // Trim excess rows
+            gameState.map = gameState.map.slice(0, MAP_HEIGHT);
         }
     }
 
-    updateUI();
-    gameLoop(0);
-}
-
-// Validate portal positions to ensure they are on walkable tiles
-function validatePortalPositions() {
-    for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
-        if (mapDef.portals) {
-            // Generate the map to check portal positions
-            const tempGameState = { currentMap: mapKey };
-            const originalGameState = gameState.currentMap;
-            gameState.currentMap = mapKey;
-
-            const tempMap = generateMap();
-            gameState.currentMap = originalGameState; // Restore
-
-            for (const portal of mapDef.portals) {
-                const px = portal.x;
-                const py = portal.y;
-
-                // Check if portal position is walkable
-                if (!isWalkableOnMap(tempMap, px, py)) {
-                    console.warn(`Portal ${portal.name} en ${mapKey} está en posición no walkable (${px}, ${py})`);
-                    // Could auto-adjust portal position here if needed
+    // Validate map width at each row
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        if (!gameState.map[y] || !Array.isArray(gameState.map[y])) {
+            console.error(`Map row ${y} is invalid or missing`);
+            gameState.map[y] = [];
+        }
+        
+        if (gameState.map[y].length !== MAP_WIDTH) {
+            console.error(`Map row ${y} has incorrect width: ${gameState.map[y].length}`);
+            
+            // Fix row width
+            if (gameState.map[y].length < MAP_WIDTH) {
+                // Add missing columns
+                while (gameState.map[y].length < MAP_WIDTH) {
+                    gameState.map[y].push(TILES.GRASS);
                 }
-
-                // Validate target position exists and is walkable
-                const targetMapDef = MAP_DEFINITIONS[portal.targetMap];
-                if (targetMapDef) {
-                    const targetGameState = { currentMap: portal.targetMap };
-                    gameState.currentMap = portal.targetMap;
-                    const targetMap = generateMap();
-                    gameState.currentMap = originalGameState; // Restore
-
-                    const tx = portal.targetX;
-                    const ty = portal.targetY;
-
-                    if (!isWalkableOnMap(targetMap, tx, ty)) {
-                        console.error(`Destino del portal ${portal.name} (${portal.targetMap}) está en posición no walkable (${tx}, ${ty})`);
-                        // Auto-adjust target position to nearest walkable tile
-                        const adjusted = findNearestWalkableTile(targetMap, tx, ty);
-                        if (adjusted) {
-                            portal.targetX = adjusted.x;
-                            portal.targetY = adjusted.y;
-                            console.log(`Auto-ajustado destino del portal ${portal.name} a (${adjusted.x}, ${adjusted.y})`);
-                        }
-                    }
-                }
+            } else if (gameState.map[y].length > MAP_WIDTH) {
+                // Trim excess columns
+                gameState.map[y] = gameState.map[y].slice(0, MAP_WIDTH);
             }
         }
     }
 }
 
+// Validate portal positions to ensure they are on walkable tiles
+async function validatePortalPositions() {
+    try {
+        for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
+            if (mapDef.portals) {
+                // Generate the map to check portal positions
+                const originalMap = gameState.currentMap;
+                gameState.currentMap = mapKey;
+
+                try {
+                    const tempMap = await generateMap();
+                    
+                    // Skip validation if map generation failed
+                    if (!tempMap || !Array.isArray(tempMap)) {
+                        console.warn(`Failed to generate map for ${mapKey}, skipping portal validation`);
+                        continue;
+                    }
+
+                    for (const portal of mapDef.portals) {
+                        const px = portal.x;
+                        const py = portal.y;
+
+                        // Check if portal position is walkable
+                        try {
+                            if (!isWalkableOnMap(tempMap, px, py)) {
+                                console.warn(`Portal ${portal.name} en ${mapKey} está en posición no walkable (${px}, ${py})`);
+                                // Could auto-adjust portal position here if needed
+                            }
+                        } catch (error) {
+                            console.error(`Error checking walkability for portal position in ${mapKey}:`, error);
+                        }
+
+                        // Validate target position exists and is walkable
+                        const targetMapDef = MAP_DEFINITIONS[portal.targetMap];
+                        if (targetMapDef) {
+                            gameState.currentMap = portal.targetMap;
+                            
+                            try {
+                                const targetMap = await generateMap();
+                                
+                                // Skip validation if target map generation failed
+                                if (!targetMap || !Array.isArray(targetMap)) {
+                                    console.warn(`Failed to generate target map ${portal.targetMap}, skipping target validation`);
+                                    continue;
+                                }
+                                
+                                const tx = portal.targetX;
+                                const ty = portal.targetY;
+
+                                try {
+                                    if (!isWalkableOnMap(targetMap, tx, ty)) {
+                                        console.warn(`Destino del portal ${portal.name} (${portal.targetMap}) está en posición no walkable (${tx}, ${ty})`);
+                                        // Auto-adjust target position to nearest walkable tile
+                                        try {
+                                            const adjusted = findNearestWalkableTile(targetMap, tx, ty);
+                                            if (adjusted) {
+                                                portal.targetX = adjusted.x;
+                                                portal.targetY = adjusted.y;
+                                                console.log(`Auto-ajustado destino del portal ${portal.name} a (${adjusted.x}, ${adjusted.y})`);
+                                            }
+                                        } catch (error) {
+                                            console.error(`Error finding walkable tile for portal target:`, error);
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error(`Error checking walkability for portal target position:`, error);
+                                }
+                            } catch (error) {
+                                console.error(`Error generating target map for validation:`, error);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error generating map for validation:`, error);
+                } finally {
+                    // Always restore original map
+                    gameState.currentMap = originalMap;
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error in validatePortalPositions:", error);
+    }
+}
+
 // Helper function to check if a position is walkable on a specific map
 function isWalkableOnMap(map, x, y) {
+    // Check bounds
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
-
+    
+    // Check if map is properly structured
+    if (!map || !Array.isArray(map)) return false;
+    
+    // Check if y index exists in map
+    if (!map[y] || !Array.isArray(map[y])) return false;
+    
+    // Check if x index exists in the row
+    if (x >= map[y].length) return false;
+    
     const tile = map[y][x];
     return tile === TILES.GRASS || tile === TILES.FLOOR || tile === TILES.PATH;
 }
 
 // Find nearest walkable tile to a given position
 function findNearestWalkableTile(map, startX, startY) {
+    // Validate map exists
+    if (!map || !Array.isArray(map)) {
+        console.error("Invalid map provided to findNearestWalkableTile");
+        return null;
+    }
+    
+    // Check if the starting position itself is walkable
+    try {
+        if (isWalkableOnMap(map, startX, startY)) {
+            return { x: startX, y: startY };
+        }
+    } catch (error) {
+        console.error("Error checking walkability of starting position:", error);
+    }
+    
+    // Default to a safe position if starting position is invalid
+    const defaultX = Math.min(Math.max(1, startX), MAP_WIDTH - 2);
+    const defaultY = Math.min(Math.max(1, startY), MAP_HEIGHT - 2);
+    
     // Search in expanding circles around the target position
-    for (let radius = 0; radius < 10; radius++) {
+    for (let radius = 1; radius < 10; radius++) {
         for (let dy = -radius; dy <= radius; dy++) {
             for (let dx = -radius; dx <= radius; dx++) {
                 // Only check perimeter of current radius
                 if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
-                    const x = startX + dx;
-                    const y = startY + dy;
+                    const x = defaultX + dx;
+                    const y = defaultY + dy;
 
-                    if (isWalkableOnMap(map, x, y)) {
-                        return { x, y };
+                    try {
+                        if (isWalkableOnMap(map, x, y)) {
+                            return { x, y };
+                        }
+                    } catch (error) {
+                        // Skip this position if there's an error
+                        continue;
                     }
                 }
             }
         }
     }
-    return null; // No walkable tile found nearby
+    
+    // If no walkable tile found, return a safe default position
+    return { x: defaultX, y: defaultY };
 }
 
 // Change map function with safety checks
@@ -3043,5 +3814,360 @@ document.getElementById('toggleWorldMap').addEventListener('click', toggleWorldM
 // Add quest toggle event listener
 document.getElementById('toggleQuests').addEventListener('click', toggleQuests);
 
+// Game configuration and state
+const GAME_MODES = {
+    RANDOM: 'random',
+    OFFICIAL: 'official'
+};
+
+// Set default game mode
+let gameMode = GAME_MODES.RANDOM;
+
+// Main menu handlers
+function setupMenuListeners() {
+    // Random maps button
+    document.getElementById('randomMapsBtn').addEventListener('click', () => {
+        gameMode = GAME_MODES.RANDOM;
+        hideMenu();
+        init();
+    });
+
+    // Official maps button
+    document.getElementById('officialMapsBtn').addEventListener('click', () => {
+        gameMode = GAME_MODES.OFFICIAL;
+        hideMenu();
+        init();
+    });
+}
+
+// Hide menu and show game container
+function hideMenu() {
+    document.getElementById('gameMenu').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'block';
+}
+
+// Show menu and hide game container
+function showMenu() {
+    document.getElementById('gameMenu').style.display = 'flex';
+    document.getElementById('gameContainer').style.display = 'none';
+}
+
+// Predefined map data to avoid CORS issues with local file loading
+const PREDEFINED_MAPS = {
+    'field': `
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WGGGGGTGGGGGGGGTGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGTGGGGGGGGW
+WGGGTGGGGTGGGGGGGGGGGGGTGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGTGGGW
+WGGGGGGGGGGGGTGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGW
+WGGTGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGW
+WGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGTGGGGGGGW
+WGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGW
+WPPPPPPPPPGGGGGGGGGGGGGGGGGGGGGGGPPPPPPPPPPPGGGGGGGGGGGGGGW
+WGGGGGGGPPGGGGGGGGTGGGGGGGGGGGGTGPGGGGGGGGGPGGGGGGGGGGGGGGW
+WGGGGGGGPGGGGTGGGGGGGGGGGGGGGGGGPGGGGTGGGGGPGGTGGGGGGGGGGPW
+WGGGGGTGPGGGGGGGGGGGGTGGGGGTGGGGPGGGGGGGGGGPGGGGGGGGGGGGGPW
+WGGGGGGGPGGGGGGGGGGGGGGGGGGGGGGGPGGGGGGGGGGPGGGTGGGGGGTGGPW
+WGGGGGGPPGGGGGGTGGGGGGGGTGGGGGGPPGGGGGGGGGGPGGGGGGGGGGGGGPW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGPGGGTGGGGGGPGGGGGGTGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGTGGGGGGGTGPGGGGGGGGGGPGGGGGGGGGGGGGPW
+WGGGTGGGGGGTGGGGGGGGGGGGGGTGGGGGPGGGGGGGGGGPGGGGGGGGTGGGGPW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGPPGGGGGTGGGGPGGGTGGGGGGGGGPW
+WGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGPGGGGGGGGGGPGGGGGGGGGGGGGPW
+WGGGGTGGGGGGGGGGGGGGGGGGGGGGGGTGPGGGGTGGGGGPGGGGGGGGGGTGGGW
+WGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGPPGGGGGGGGGPPGGGGGTGGGGGGGPW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGPGGGGGGGGGGPGGGGGGGGGGGGGPW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGPGGGGGTGGGGPGGGGGGGGGGGGGPW
+WGTGGGGGGGGGGTGGGGGGGGGTGGGGGGGGPGGGGGGGGGGPGGGGGTGGGGGGGPW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGPPGGGGGGGTGGPGGGGGGGGGGGGGGW
+WGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGPGGTGGGGGGGPGGGGGGGGGGGGTPW
+WGGGGGGGGGGGGGGGGTGGGGGGTGGGGGGGGGGGGGGGGGGPGGGGTGGGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGW
+WGGGGGGGTGGGGGGTGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGTGGGGGGGGTGGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGW
+WGGGGTGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGTGGGGGGGGTGGGGGGGGGGGGGGGGGW
+WGTGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGTGW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW`,
+    'city': `
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPGPW
+WGBGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGBGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGBGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPW
+WPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPGBGPGPGPGPW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW`,
+    'dungeon': `
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WWWWWWWWWWWWWWDDDWWWWWWWWWWWWWWWWWDDDWWWWWWWWWWWWWWWWWWWWWW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDW
+WDDDDDDDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWWWWWWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDWDDDDDWDDDDDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WDDDDDDDDDWDDDDDDDDDDDDDDDDWDDDDDDDDDDDDDDDDDDDDWDDDDDDDDDW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW`,
+    'forest': `
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+WGGGGGGGGTGGGGGGGGGGGTGGGGGGGGGGTTGGGGGGTGGGGGGTGGGGGGGGGTW
+WGGGGGGTGGGGGGGGGGGGTGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGTGGGGW
+WGGGGGGGGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGTTGGGGGGGGGGGGGTGW
+WGGTGTGGGGGGGGGTGGGGTGGGGGGTGGGGGGGGGGGGGTTGGGGGGGGGTGGGGGW
+WGGGGGGGGTGGGGGGGGGGGGGTGGGGGGGGGGGTGGGGGGTGGGGGGTGGGGGGTGW
+WTTTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGW
+WGTTTGGGGGGGGGGTGGGGGGGGGGGTGGGGGGGGGGGGTTGGGGTGGGGGGGGGTGW
+WGGTTTGGGGGGGGGGGGGGGGTGGGGGGGGGGTGGGGGTGTTTGGGGGGGGGGTGGGW
+WGGGTTGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTTGGGGGGGGGGGGGGGW
+WGGGGTTGGGGGGGGGGGGGTGGGGGGGGGGGTTGGGGGGGGTGGGGGGGGGGGGGTGW
+WGGGGTTTGGGGGGGGGGGGGGGGGGGTGGGTTTGGGGGGGGGGGGGGTGGGGGGGGGW
+WGGGGTTTTTTGGGGGGGTGGGGGGGGGGGGGTTTTTTTGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGTTTTGGGGGGGGGGGGGGGGGGGGGGGTTTTTTGGGGTGGGGGGGTGGGGW
+WGGGGGGGTTTTTGTGGGGGGGTGGGGTGGGGGGGGGTTTTGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGTTTTGGGGGGGGGGGGGGGGGGGGGGGTTTTGGGGGGGGGGGGGGGGGW
+WGGGGGGTGGTTTTGGGGGGGGGGGGGGGGGGGGGGGGTTTTGGGGGGGGGGGGGGTGW
+WGGGGGGGGTTTTTGGGGGGGGGGGGGGGGGGGGGGGGTTTTGTGGGGGTGGGGGGGGW
+WGGGGGGGGGTTTTGGGGGGGGGGGGGGGGTGGGGGGGTTTTTGGGGGGGGGGGGGGGW
+WGGGGGGGGGTTTGGGGGTGGGGGGGGGGGGGGGGGGGTTTTTGGGGTGGGGGGGGTGW
+WGGGGGGGGGGTTGGGGGGGGGGGTGGGGGGGGGGTGGGTTTTGGGGGGGGGGGGGTGW
+WGGGGGGGTTTTTTGGGGGGGGGGGGGGGGGGGGGGGGTTTTTGGGGGGGGGGGGGGGW
+WGGGGGTGTTGGTTGGGGGGGGGGGGGGGGGGTGGGGGTTTTGGGGGGGTGGGGGGTGW
+WGGGGTTTTTGGTTTGGGGGGTGGGGGGGGGGGGGGGTTTTGGGGGGGGGGGGGGGGGW
+WGGGTTTTTGGGTTTGGGGGGGGGGGGGGGGGGGGGTTTTGGGGGGGGGGGGGGGGTGW
+WGGGGTTTTGGTTTTGGGGGGGGTGGGGGGGGGGGGTTTTGGGGGGGGTGGGGGGGGGW
+WGGGGGTTTTTTTTGGGGGGGGGGGGGGGGTGGGTTTTTTTGGGGGGGGGGGGGGGTGW
+WGGGGGGGTTTTTTGGGGGGGGGGGGGGGGGGGTTTTTTGGGGGGTGGGGGGGGGGGGW
+WGTGGGGGGGTTGGGGGGGTGGGGGTGGGGGTTTTTTTGGGGGGGGGGGGGGGGGGTGW
+WGGGGGGTGGTTGGGGGGGGGGGGGGGGGTTTTTTTGGGGGGGGGGGGGGGGTGGGGGW
+WGGGGGGGGGTTGGGGGGGGGGGGGGTTTTTTTTTGGGGGGGGGGTGGGGGGGGGGTGW
+WGGGGGGGGTTGGGGGTGGGGGGGTTTTTTTTTGGGGGGGGGGGGGGGGGGTGGGGGWW
+WGGGTGGGGGTTGGGGGGGGGTTTTTTTTTGGGGGTGGGGGGGGGGGGGGGGGGGGGGW
+WGGGGGGGGGTTTGTTTTTTTTTTTTTGGGGGGGGGGGGGGGGGTGGGGGGGGGGGTGW
+WGGGGGGGGGTTTTTTTTTTTTTTTGGGGGGGGGGGGGGGGGTGGGGGGGGGGGTGTGW
+WGGGGGGGGGGTTTGGGGTTTTTGGGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+WGGGGGTGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGTGGGGGGGGGGGG
+WGGGGGGGGGGTGGGGGGGTGGGGGGGGTGGGGGGGTGGGGGGGGGGGGGGGTGGGGTW
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW`
+};
+
+// Load a map from preloaded map string
+function loadMapFromString(mapName) {
+    try {
+        const mapString = PREDEFINED_MAPS[mapName];
+        
+        if (!mapString) {
+            console.error(`Map data for ${mapName} not found`);
+            return null;
+        }
+        
+        const mapRows = mapString.trim().split('\n').filter(row => row.trim() !== '');
+        
+        // Check if we have enough rows to make a valid map
+        if (mapRows.length < MAP_HEIGHT) {
+            console.error(`Map data for ${mapName} has insufficient rows (${mapRows.length}), expected ${MAP_HEIGHT}`);
+            return null;
+        }
+        
+        // Convert characters to tile types
+        const map = [];
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            const row = [];
+            
+            // Make sure we have this row in the mapRows array
+            if (y < mapRows.length) {
+                // Ensure each row has the correct number of columns
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    const char = x < mapRows[y].length ? mapRows[y][x] : 'G';
+                    
+                    switch (char) {
+                        case 'W': row.push(TILES.WALL); break;
+                        case 'G': row.push(TILES.GRASS); break;
+                        case 'T': row.push(TILES.TREE); break;
+                        case 'S': row.push(TILES.STONE); break;
+                        case 'P': row.push(TILES.PATH); break;
+                        case 'B': row.push(TILES.BUILDING); break;
+                        case 'D': row.push(TILES.FLOOR); break; // Dungeon floor
+                        case 'X': row.push(TILES.DUNGEON_WALL); break;
+                        case 'R': row.push(TILES.WATER); break; // River/water
+                        default: row.push(TILES.GRASS); // Default to grass
+                    }
+                }
+            } else {
+                // Fill missing rows with grass
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    row.push(TILES.GRASS);
+                }
+            }
+            
+            map.push(row);
+        }
+        
+        console.log(`Successfully loaded map: ${mapName}`);
+        return map;
+    } catch (error) {
+        console.error('Error loading map:', error);
+        return null;
+    }
+}
+
+// Deprecated function kept for backward compatibility, now redirects to loadMapFromString
+async function loadMapFromFile(mapName) {
+    return loadMapFromString(mapName);
+}
+
+// Generate map based on current map type, using either files or procedural generation
+async function generateMap() {
+    try {
+        // If using official maps, try to load from file first
+        if (gameMode === GAME_MODES.OFFICIAL) {
+            const loadedMap = await loadMapFromFile(gameState.currentMap);
+            if (loadedMap) {
+                // Validate the map has correct dimensions
+                if (loadedMap.length === MAP_HEIGHT) {
+                    // Check each row has the right width
+                    let validMap = true;
+                    for (let y = 0; y < MAP_HEIGHT; y++) {
+                        if (!loadedMap[y] || loadedMap[y].length !== MAP_WIDTH) {
+                            console.error(`Map row ${y} has incorrect width: ${loadedMap[y] ? loadedMap[y].length : 'undefined'}`);
+                            validMap = false;
+                            break;
+                        }
+                    }
+                    
+                    if (validMap) {
+                        return loadedMap;
+                    }
+                }
+            }
+            // Fall back to procedural generation if map file loading fails
+            console.warn(`Map file for ${gameState.currentMap} not found or invalid, using procedural generation`);
+        }
+    } catch (error) {
+        console.error("Error in map generation:", error);
+    }
+
+    // Use procedural generation (original code)
+    try {
+        const mapDefinition = MAP_DEFINITIONS[gameState.currentMap];
+
+        if (!mapDefinition) {
+            // Fallback to field if map not found
+            return generateFieldMap();
+        }
+
+        switch (gameState.currentMap) {
+            case 'field':
+                return generateFieldMap();
+            case 'city':
+                return generateCityMap();
+            case 'dungeon':
+                return generateDungeonMap();
+            case 'forest':
+                return generateForestMap();
+            case 'castle':
+                return generateCastleMap();
+            case 'market':
+                return generateMarketMap();
+            case 'deep_dungeon':
+                return generateDeepDungeonMap();
+            case 'ruins':
+                return generateRuinsMap();
+            case 'throne_room':
+                return generateThroneRoomMap();
+            default:
+                return generateFieldMap();
+        }
+    } catch (error) {
+        console.error("Error in procedural map generation:", error);
+        // Emergency fallback - generate a simple safe map
+        const safeMap = [];
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            const row = [];
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                    row.push(TILES.WALL); // Border walls
+                } else {
+                    row.push(TILES.GRASS); // Safe grass everywhere else
+                }
+            }
+            safeMap.push(row);
+        }
+        return safeMap;
+    }
+}
+
 // Start game when page loads
-window.addEventListener('load', init);
+window.addEventListener('load', () => {
+    // First, setup menu listeners
+    setupMenuListeners();
+    
+    // Show the menu by default
+    showMenu();
+});
