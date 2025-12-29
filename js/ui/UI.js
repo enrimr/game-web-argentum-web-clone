@@ -6,7 +6,7 @@
 import { gameState } from '../state.js';
 import { CONFIG } from '../config.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
-import { toggleEquipItem } from '../systems/Inventory.js';
+import { toggleEquipItem, dropItem } from '../systems/Inventory.js';
 
 const { MAX_INVENTORY_SLOTS } = CONFIG;
 
@@ -145,13 +145,175 @@ function updateMinimap() {
  * Initialize UI event listeners
  */
 export function initUI() {
+    // Create context menu for inventory
+    const contextMenu = document.createElement('div');
+    contextMenu.id = 'context-menu';
+    contextMenu.className = 'context-menu';
+    document.body.appendChild(contextMenu);
+
     // Add click listeners to inventory slots
     for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
         const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
         if (slotEl) {
+            // Left click to equip/use
             slotEl.addEventListener('click', () => toggleEquipItem(i));
+            
+            // Right click to open context menu
+            slotEl.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const item = gameState.player.inventory[i];
+                if (!item) return; // No menu for empty slots
+                
+                showContextMenu(e, i, item);
+            });
         }
     }
+
+    // Close context menu when clicking elsewhere
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.context-menu')) {
+            hideContextMenu();
+        }
+    });
+}
+
+/**
+ * Show context menu for inventory item
+ * @param {Event} e - Mouse event
+ * @param {number} slotIndex - Inventory slot index
+ * @param {Object} item - Item data
+ */
+function showContextMenu(e, slotIndex, item) {
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu) return;
+
+    // Clear previous items
+    contextMenu.innerHTML = '';
+
+    // Add actions based on item type
+    const itemDef = ITEM_TYPES[item.type];
+    
+    // Use/Equip option
+    const useOption = document.createElement('div');
+    useOption.className = 'context-menu-item';
+    
+    if (itemDef.type === 'weapon' || itemDef.type === 'armor') {
+        const isEquipped = gameState.player.equipped.weapon === item.type || 
+                          gameState.player.equipped.shield === item.type;
+        
+        useOption.innerHTML = isEquipped ? 
+            '<span class="icon">📤</span> Desequipar' : 
+            '<span class="icon">⚔️</span> Equipar';
+    } else {
+        useOption.innerHTML = '<span class="icon">✨</span> Usar';
+    }
+    
+    useOption.addEventListener('click', () => {
+        toggleEquipItem(slotIndex);
+        hideContextMenu();
+    });
+    
+    contextMenu.appendChild(useOption);
+    
+    // Drop option
+    const dropOption = document.createElement('div');
+    dropOption.className = 'context-menu-item';
+    dropOption.innerHTML = '<span class="icon">🗑️</span> Tirar al suelo';
+    dropOption.addEventListener('click', () => {
+        if (item.quantity > 1) {
+            showQuantityPrompt(slotIndex, item);
+        } else {
+            dropItem(slotIndex);
+        }
+        hideContextMenu();
+    });
+    
+    contextMenu.appendChild(dropOption);
+
+    // Position and show menu
+    contextMenu.style.top = `${e.clientY}px`;
+    contextMenu.style.left = `${e.clientX}px`;
+    contextMenu.style.display = 'block';
+}
+
+/**
+ * Hide context menu
+ */
+function hideContextMenu() {
+    const contextMenu = document.getElementById('context-menu');
+    if (contextMenu) {
+        contextMenu.style.display = 'none';
+    }
+}
+
+/**
+ * Show prompt for quantity selection
+ * @param {number} slotIndex - Inventory slot index
+ * @param {Object} item - Item data
+ */
+function showQuantityPrompt(slotIndex, item) {
+    // Create modal elements if they don't exist
+    let modal = document.getElementById('quantity-modal');
+    let backdrop = document.getElementById('modal-backdrop');
+    
+    if (!modal) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'modal-backdrop';
+        backdrop.className = 'modal-backdrop';
+        document.body.appendChild(backdrop);
+        
+        modal = document.createElement('div');
+        modal.id = 'quantity-modal';
+        modal.className = 'quantity-modal';
+        modal.innerHTML = `
+            <h3 class="quantity-modal-title">¿Cuántos items quieres tirar?</h3>
+            <div class="quantity-modal-input">
+                <input type="number" id="quantity-input" min="1" value="1">
+            </div>
+            <div class="quantity-modal-buttons">
+                <button class="quantity-modal-btn cancel">Cancelar</button>
+                <button class="quantity-modal-btn confirm">Confirmar</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        const cancelBtn = modal.querySelector('.cancel');
+        cancelBtn.addEventListener('click', hideQuantityPrompt);
+        
+        backdrop.addEventListener('click', hideQuantityPrompt);
+    }
+    
+    // Set up the quantity input
+    const quantityInput = document.getElementById('quantity-input');
+    quantityInput.max = item.quantity;
+    quantityInput.value = 1;
+    
+    // Set up confirm button
+    const confirmBtn = modal.querySelector('.confirm');
+    confirmBtn.onclick = null; // Remove previous listeners
+    confirmBtn.addEventListener('click', () => {
+        const quantity = parseInt(quantityInput.value);
+        if (quantity > 0 && quantity <= item.quantity) {
+            dropItem(slotIndex, quantity);
+            hideQuantityPrompt();
+        }
+    });
+    
+    // Show the modal
+    backdrop.style.display = 'block';
+    modal.style.display = 'flex';
+}
+
+/**
+ * Hide quantity prompt
+ */
+function hideQuantityPrompt() {
+    const modal = document.getElementById('quantity-modal');
+    const backdrop = document.getElementById('modal-backdrop');
+    
+    if (modal) modal.style.display = 'none';
+    if (backdrop) backdrop.style.display = 'none';
 }
 
 /**
