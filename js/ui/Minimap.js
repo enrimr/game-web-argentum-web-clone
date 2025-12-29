@@ -8,20 +8,37 @@ import { CONFIG } from '../config.js';
 import { TILES } from '../world/TileTypes.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 
+// Ensure all DOM elements exist before accessing
+
 const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
-// Minimap canvas setup
-const minimapCanvas = document.getElementById('minimapCanvas');
-const minimapCtx = minimapCanvas.getContext('2d');
+// Minimap variables
+let minimapCanvas = null;
+let minimapCtx = null;
 let minimapVisible = false;
+
+// Initialize canvas references when needed
+function initMinimapCanvas() {
+    if (!minimapCanvas) {
+        minimapCanvas = document.getElementById('minimapCanvas');
+        if (minimapCanvas) {
+            minimapCtx = minimapCanvas.getContext('2d');
+        }
+    }
+}
 
 /**
  * Toggle minimap visibility
  */
 export function toggleMinimap() {
+    // Initialize canvas if not already done
+    initMinimapCanvas();
+    
     const container = document.getElementById('minimapContainer');
     const button = document.getElementById('toggleMinimap');
-
+    
+    if (!container || !button) return; // Safety check
+    
     minimapVisible = !minimapVisible;
 
     if (minimapVisible) {
@@ -38,7 +55,10 @@ export function toggleMinimap() {
  * Render the minimap
  */
 export function renderMinimap() {
-    if (!minimapVisible) return;
+    // Initialize canvas if not already done
+    initMinimapCanvas();
+    
+    if (!minimapVisible || !minimapCanvas || !minimapCtx) return;
 
     const scaleX = minimapCanvas.width / MAP_WIDTH;
     const scaleY = minimapCanvas.height / MAP_HEIGHT;

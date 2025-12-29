@@ -6,18 +6,33 @@
 import { gameState } from '../state.js';
 import { MAP_DEFINITIONS, WORLD_CONNECTIONS } from '../world/MapDefinitions.js';
 
-// World map canvas setup
-const worldMapCanvas = document.getElementById('worldMapCanvas');
-const worldMapCtx = worldMapCanvas.getContext('2d');
+// World map variables
+let worldMapCanvas = null;
+let worldMapCtx = null;
 let worldMapVisible = false;
+
+// Initialize canvas references when needed
+function initWorldMapCanvas() {
+    if (!worldMapCanvas) {
+        worldMapCanvas = document.getElementById('worldMapCanvas');
+        if (worldMapCanvas) {
+            worldMapCtx = worldMapCanvas.getContext('2d');
+        }
+    }
+}
 
 /**
  * Toggle world map visibility
  */
 export function toggleWorldMap() {
+    // Initialize canvas if not already done
+    initWorldMapCanvas();
+    
     const container = document.getElementById('worldMapContainer');
     const button = document.getElementById('toggleWorldMap');
-
+    
+    if (!container || !button) return; // Safety check
+    
     worldMapVisible = !worldMapVisible;
 
     if (worldMapVisible) {
@@ -27,7 +42,8 @@ export function toggleWorldMap() {
     } else {
         container.style.display = 'none';
         button.textContent = 'Mostrar Mapa del Mundo';
-        document.getElementById('worldMapDetails').innerHTML = '';
+        const detailsDiv = document.getElementById('worldMapDetails');
+        if (detailsDiv) detailsDiv.innerHTML = '';
     }
 }
 
@@ -35,7 +51,10 @@ export function toggleWorldMap() {
  * Render the world map
  */
 export function renderWorldMap() {
-    if (!worldMapVisible) return;
+    // Initialize canvas if not already done
+    initWorldMapCanvas();
+    
+    if (!worldMapVisible || !worldMapCanvas || !worldMapCtx) return;
 
     const canvas = worldMapCanvas;
     const ctx = worldMapCtx;
@@ -102,7 +121,10 @@ export function renderWorldMap() {
  * World map click handler
  */
 function handleWorldMapClick(event) {
-    if (!worldMapVisible) return;
+    // Initialize canvas if not already done
+    initWorldMapCanvas();
+    
+    if (!worldMapVisible || !worldMapCanvas) return;
 
     const rect = worldMapCanvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -135,7 +157,10 @@ function handleWorldMapClick(event) {
  * World map hover handler
  */
 function handleWorldMapHover(event) {
-    if (!worldMapVisible) return;
+    // Initialize canvas if not already done
+    initWorldMapCanvas();
+    
+    if (!worldMapVisible || !worldMapCanvas) return;
 
     const rect = worldMapCanvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -159,6 +184,23 @@ function handleWorldMapHover(event) {
  * Initialize world map event listeners
  */
 export function initWorldMap() {
+    // Initialize canvas references
+    initWorldMapCanvas();
+    
+    if (!worldMapCanvas) {
+        // The canvas might not be available yet at module load time
+        // Try again when the DOM is fully loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            initWorldMapCanvas();
+            if (worldMapCanvas) {
+                worldMapCanvas.addEventListener('click', handleWorldMapClick);
+                worldMapCanvas.addEventListener('mousemove', handleWorldMapHover);
+            }
+        });
+        return;
+    }
+    
+    // If we already have the canvas, attach listeners now
     worldMapCanvas.addEventListener('click', handleWorldMapClick);
     worldMapCanvas.addEventListener('mousemove', handleWorldMapHover);
 }
