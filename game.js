@@ -130,6 +130,7 @@ const gameState = {
     map: [],
     objects: [],
     enemies: [],
+    npcs: [], // NPCs del juego
     projectiles: [] // Flechas y otros proyectiles volando
 };
 
@@ -583,7 +584,139 @@ const sprites = {
         // Plumas
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(w/2-1, h/2+6, 2, 2);
+    }),
+
+    npc_merchant: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Mercader - ropa verde
+        ctx.fillStyle = '#16a34a'; // Verde
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/4-2, 2, 2);
+        ctx.fillRect(w/2+2, h/4-2, 2, 2);
+        // Sombrero de mercader
+        ctx.fillStyle = '#15803d';
+        ctx.fillRect(w/2-6, h/4-6, 12, 3);
+        // Bolsa de oro
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(w/4-2, h/2+6, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }),
+
+    npc_blacksmith: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Herrero - delantal gris
+        ctx.fillStyle = '#6b7280'; // Gris
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/4-2, 2, 2);
+        ctx.fillRect(w/2+2, h/4-2, 2, 2);
+        // Martillo
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillRect(w/4-8, h/2, 4, h/3);
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(w/4-10, h/2-2, 8, 4);
+    }),
+
+    npc_healer: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Curandero - túnica blanca
+        ctx.fillStyle = '#f3f4f6'; // Blanco
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/4-2, 2, 2);
+        ctx.fillRect(w/2+2, h/4-2, 2, 2);
+        // Cruz roja
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(w/2-1, h/2-4, 2, 10);
+        ctx.fillRect(w/2-4, h/2-1, 8, 2);
+    }),
+
+    npc_banker: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Banquero - traje elegante
+        ctx.fillStyle = '#1f2937'; // Negro
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#fef3c7';
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/4-2, 2, 2);
+        ctx.fillRect(w/2+2, h/4-2, 2, 2);
+        // Moneda de oro
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(w/4-2, h/2+6, 4, 0, Math.PI * 2);
+        ctx.fill();
+        // Sombrero de copa
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(w/2-4, h/4-8, 8, 4);
+        ctx.fillRect(w/2-6, h/4-4, 12, 2);
+    }),
+
+    npc_trainer: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Entrenador - túnica púrpura
+        ctx.fillStyle = '#7c3aed'; // Púrpura
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/4-2, 2, 2);
+        ctx.fillRect(w/2+2, h/4-2, 2, 2);
+        // Barba larga
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillRect(w/2-3, h/4+2, 6, 6);
+        // Bastón mágico
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(w/4-6, h/3, 2, h/2);
+        ctx.fillStyle = '#a855f7';
+        ctx.beginPath();
+        ctx.arc(w/4-5, h/3-2, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }),
+
+    npc_alchemist: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+        // Alquimista - túnica verde oscuro
+        ctx.fillStyle = '#065f46'; // Verde oscuro
+        ctx.fillRect(w/4, h/3, w/2, h/2);
+        // Head
+        ctx.fillStyle = '#d1d5db';
+        ctx.beginPath();
+        ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(w/2-4, h/4-2, 2, 2);
+        ctx.fillRect(w/2+2, h/4-2, 2, 2);
+        // Poción en mano
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(w/4-4, h/2+4, 4, 6);
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(w/4-3, h/2+3, 2, 2);
     })
+
 };
 
 // Item types (inspirado en Argentum Online)
@@ -1720,6 +1853,84 @@ function generateEnemies() {
     return enemies;
 }
 
+// Generate NPCs based on current map
+function generateNPCs() {
+    const npcs = [];
+    
+    // Definiciones simplificadas de NPCs
+    const npcDefs = {
+        merchant: { name: 'Mercader', sprite: 'npc_merchant', type: 'merchant', dialogue: '¡Bienvenido! Tengo pociones y items.' },
+        blacksmith: { name: 'Herrero', sprite: 'npc_blacksmith', type: 'blacksmith', dialogue: '¿Necesitas armas o armaduras?' },
+        healer: { name: 'Curandero', sprite: 'npc_healer', type: 'healer', dialogue: 'Puedo curarte por 50 de oro.' },
+        banker: { name: 'Banquero', sprite: 'npc_banker', type: 'banker', dialogue: 'Tu oro está seguro conmigo.' },
+        trainer: { name: 'Entrenador', sprite: 'npc_trainer', type: 'trainer', dialogue: '¿Quieres entrenar tus habilidades?' },
+        alchemist: { name: 'Alquimista', sprite: 'npc_alchemist', type: 'alchemist', dialogue: 'Puedo crear pociones para ti.' }
+    };
+    
+    if (gameState.currentMap === 'city') {
+        // Ciudad: Mercader, Herrero, Curandero, Banquero
+        const cityNPCs = [
+            { type: 'merchant', x: 25, y: 15 },
+            { type: 'blacksmith', x: 18, y: 22 },
+            { type: 'healer', x: 32, y: 18 },
+            { type: 'banker', x: 20, y: 10 }
+        ];
+        
+        for (const npcSpawn of cityNPCs) {
+            const def = npcDefs[npcSpawn.type];
+            // Buscar posición walkable cercana
+            let x = npcSpawn.x;
+            let y = npcSpawn.y;
+            
+            // Ajustar si no es walkable
+            for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -2; dx <= 2; dx++) {
+                    const testX = npcSpawn.x + dx;
+                    const testY = npcSpawn.y + dy;
+                    if (testX > 0 && testX < MAP_WIDTH - 1 && 
+                        testY > 0 && testY < MAP_HEIGHT - 1 &&
+                        isWalkable(testX, testY)) {
+                        x = testX;
+                        y = testY;
+                        break;
+                    }
+                }
+            }
+            
+            npcs.push({
+                ...def,
+                x: x,
+                y: y
+            });
+        }
+    } else if (gameState.currentMap === 'market') {
+        // Mercado: Mercader y Alquimista
+        const marketNPCs = [
+            { type: 'merchant', x: 15, y: 12 },
+            { type: 'alchemist', x: 25, y: 18 }
+        ];
+        
+        for (const npcSpawn of marketNPCs) {
+            const def = npcDefs[npcSpawn.type];
+            npcs.push({
+                ...def,
+                x: npcSpawn.x,
+                y: npcSpawn.y
+            });
+        }
+    } else if (gameState.currentMap === 'field') {
+        // Campo: Entrenador
+        const def = npcDefs.trainer;
+        npcs.push({
+            ...def,
+            x: 30,
+            y: 25
+        });
+    }
+    
+    return npcs;
+}
+
 // Get enemy stats by type
 function getEnemyStats(enemyType) {
     const enemyStats = {
@@ -2155,6 +2366,32 @@ function interact() {
         }
     }
     
+    // Check for NPCs
+    for (let npc of gameState.npcs) {
+        const dist = Math.abs(npc.x - px) + Math.abs(npc.y - py);
+        if (dist === 1 || (npc.x === px && npc.y === py)) {
+            // Interacción básica con NPC
+            if (npc.type === 'healer') {
+                // Curandero cura al jugador
+                if (gameState.player.gold >= 50 && gameState.player.hp < gameState.player.maxHp) {
+                    const healAmount = gameState.player.maxHp - gameState.player.hp;
+                    gameState.player.hp = gameState.player.maxHp;
+                    gameState.player.gold -= 50;
+                    addChatMessage('system', `💚 ${npc.name}: ¡Te he curado! +${healAmount} HP (-50 oro)`);
+                    updateUI();
+                } else if (gameState.player.hp >= gameState.player.maxHp) {
+                    addChatMessage('system', `${npc.name}: Ya estás completamente sano.`);
+                } else {
+                    addChatMessage('system', `${npc.name}: Necesitas 50 de oro para curar te.`);
+                }
+            } else {
+                // Otros NPCs: mostrar diálogo
+                addChatMessage('system', `💬 ${npc.name}: ${npc.dialogue}`);
+            }
+            return;
+        }
+    }
+
     // Check for enemies
     for (let enemy of gameState.enemies) {
         const dist = Math.abs(enemy.x - px) + Math.abs(enemy.y - py);
@@ -2529,6 +2766,23 @@ function render() {
         }
     }
 
+    // Draw NPCs (only visible ones)
+    for (const npc of gameState.npcs) {
+        if (isInViewport(npc.x, npc.y)) {
+            const screenPos = worldToScreen(npc.x, npc.y);
+            const npcSprite = sprites[npc.sprite];
+            if (npcSprite) {
+                ctx.drawImage(npcSprite, screenPos.x, screenPos.y);
+                
+                // Draw NPC name above sprite
+                ctx.fillStyle = '#fbbf24';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(npc.name, screenPos.x + TILE_SIZE/2, screenPos.y - 2);
+            }
+        }
+    }
+
     // Draw projectiles (arrows, etc.) - only visible ones
     for (const projectile of gameState.projectiles) {
         if (isInViewport(projectile.x, projectile.y)) {
@@ -2640,6 +2894,7 @@ function init() {
     // Generate content
     gameState.objects = generateObjects();
     gameState.enemies = generateEnemies();
+    gameState.npcs = generateNPCs();
 
     // Add some test items for demonstration (AO style)
     addItemToInventory('BOW', 1);      // Arco para combate a distancia
@@ -2783,6 +3038,7 @@ function changeMap(targetMap, targetX, targetY) {
     gameState.map = generateMap();
     gameState.objects = generateObjects();
     gameState.enemies = generateEnemies();
+    gameState.npcs = generateNPCs();
 
     // Show transition message
     const mapNames = {
@@ -2864,6 +3120,17 @@ function renderMinimap() {
         }
     }
 
+    // Draw NPCs (yellow/gold color)
+    for (const npc of gameState.npcs) {
+        minimapCtx.fillStyle = '#fbbf24'; // Dorado para NPCs
+        minimapCtx.fillRect(
+            npc.x * scaleX - 1,
+            npc.y * scaleY - 1,
+            scaleX * 2,
+            scaleY * 2
+        );
+    }
+
     // Draw player position
     minimapCtx.fillStyle = '#3b82f6';
     minimapCtx.fillRect(
@@ -2872,6 +3139,7 @@ function renderMinimap() {
         scaleX * 3,
         scaleY * 3
     );
+    
 }
 
 // Update minimap when needed
