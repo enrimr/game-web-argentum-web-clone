@@ -41,9 +41,13 @@ function handleCanvasClick(event) {
     // Convertir a coordenadas del mundo
     const worldCoords = screenToWorld(screenX, screenY);
 
+    // Mostrar coordenadas en consola
+    console.log(`🖱️ Clic en: Pantalla(${Math.floor(screenX)}, ${Math.floor(screenY)}) → Mundo(${worldCoords.x}, ${worldCoords.y})`);
+
     // Verificar si las coordenadas están dentro del mapa
     if (worldCoords.x < 0 || worldCoords.x >= CONFIG.MAP_WIDTH ||
         worldCoords.y < 0 || worldCoords.y >= CONFIG.MAP_HEIGHT) {
+        console.log(`❌ Coordenadas fuera del mapa: (${worldCoords.x}, ${worldCoords.y})`);
         return; // Fuera del mapa
     }
 
@@ -192,22 +196,27 @@ export function updateAutoMovement(timestamp) {
     const dx = target.x - player.x;
     const dy = target.y - player.y;
 
-    // Algoritmo mejorado: intentar movimiento diagonal cuando sea posible
-    // Esto hace el pathfinding más directo y eficiente
+    // Solo movimientos ortogonales (arriba, abajo, izquierda, derecha)
     const possibleMoves = [];
 
-    // Intentar movimientos diagonales primero (más eficientes)
-    if (dx > 0 && dy > 0) possibleMoves.push({ x: 1, y: 1, priority: 1 }); // diagonal abajo-derecha
-    if (dx > 0 && dy < 0) possibleMoves.push({ x: 1, y: -1, priority: 1 }); // diagonal arriba-derecha
-    if (dx < 0 && dy > 0) possibleMoves.push({ x: -1, y: 1, priority: 1 }); // diagonal abajo-izquierda
-    if (dx < 0 && dy < 0) possibleMoves.push({ x: -1, y: -1, priority: 1 }); // diagonal arriba-izquierda
-
-    // Luego movimientos ortogonales
-    if (dx !== 0) possibleMoves.push({ x: dx > 0 ? 1 : -1, y: 0, priority: 2 }); // horizontal
-    if (dy !== 0) possibleMoves.push({ x: 0, y: dy > 0 ? 1 : -1, priority: 2 }); // vertical
-
-    // Ordenar por prioridad (diagonales primero, luego ortogonales)
-    possibleMoves.sort((a, b) => a.priority - b.priority);
+    // Determinar eje prioritario (el que tiene mayor distancia)
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Priorizar movimiento horizontal
+        if (dx !== 0) {
+            possibleMoves.push({ x: dx > 0 ? 1 : -1, y: 0 }); // izquierda/derecha
+        }
+        if (dy !== 0) {
+            possibleMoves.push({ x: 0, y: dy > 0 ? 1 : -1 }); // arriba/abajo
+        }
+    } else {
+        // Priorizar movimiento vertical
+        if (dy !== 0) {
+            possibleMoves.push({ x: 0, y: dy > 0 ? 1 : -1 }); // arriba/abajo
+        }
+        if (dx !== 0) {
+            possibleMoves.push({ x: dx > 0 ? 1 : -1, y: 0 }); // izquierda/derecha
+        }
+    }
 
     // Intentar cada movimiento posible
     for (const move of possibleMoves) {

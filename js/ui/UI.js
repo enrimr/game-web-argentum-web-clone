@@ -46,6 +46,12 @@ function updatePlayerStats() {
         expBarEl.style.width = expPercent + '%';
     }
 
+    // Update player position
+    const playerPosEl = document.getElementById('playerPos');
+    if (playerPosEl) {
+        playerPosEl.textContent = `${gameState.player.x},${gameState.player.y}`;
+    }
+
     // Update character stats
     const enemiesKilledEl = document.getElementById('enemiesKilled');
     const chestsOpenedEl = document.getElementById('chestsOpened');
@@ -112,6 +118,7 @@ function updateInventory() {
  */
 function updateCurrentMap() {
     const currentMapEl = document.getElementById('currentMap');
+    const currentMapIdEl = document.getElementById('currentMapId');
     const mapNames = {
         'field': '🏞️ Campo',
         'city': '🏘️ Ciudad',
@@ -120,6 +127,10 @@ function updateCurrentMap() {
 
     if (currentMapEl) {
         currentMapEl.textContent = mapNames[gameState.currentMap] || '🏞️ Campo';
+    }
+
+    if (currentMapIdEl) {
+        currentMapIdEl.textContent = gameState.currentMap;
     }
 }
 
