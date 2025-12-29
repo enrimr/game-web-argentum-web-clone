@@ -76,6 +76,75 @@ function handleCanvasClick(event) {
     if (clickedEntity) {
         // Hay una entidad en la posición (enemigo, NPC, objeto)
         console.log(`🎯 Entidad encontrada: ${clickedEntity.type} - ${getTargetDescription(clickedEntity)}`);
+        
+        // Verificar si es un enemigo y está adyacente al jugador
+        if (clickedEntity.type === 'enemy') {
+            const enemy = clickedEntity.entity;
+            const dist = Math.abs(enemy.x - gameState.player.x) + Math.abs(enemy.y - gameState.player.y);
+            
+            // Si está adyacente (distancia = 1), atacar directamente
+            if (dist === 1) {
+                console.log(`⚔️ Atacando directamente al enemigo adyacente`);
+                
+                // Importar y ejecutar la función de ataque
+                import('./Combat.js').then(({ playerAttack }) => {
+                    playerAttack(enemy);
+                    addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type}!`);
+                });
+                
+                // Actualizar la dirección del jugador para mirar hacia el enemigo
+                updatePlayerFacingTowardsTarget(enemy.x, enemy.y);
+                
+                return; // Salir sin iniciar movimiento automático
+            }
+        }
+        
+        // Verificar si es un NPC y está adyacente al jugador
+        if (clickedEntity.type === 'npc') {
+            const npc = clickedEntity.entity;
+            const dist = Math.abs(npc.x - gameState.player.x) + Math.abs(npc.y - gameState.player.y);
+            
+            // Si está adyacente (distancia = 1), hablar directamente
+            if (dist === 1) {
+                console.log(`💬 Hablando directamente con NPC adyacente`);
+                
+                // Importar y ejecutar la función de diálogo
+                import('./Dialogue.js').then(({ showDialogue, isDialogueOpen }) => {
+                    if (!isDialogueOpen()) {
+                        showDialogue(npc);
+                        addChatMessage('system', `💬 Conversando con ${npc.name}`);
+                    }
+                });
+                
+                // Actualizar la dirección del jugador para mirar hacia el NPC
+                updatePlayerFacingTowardsTarget(npc.x, npc.y);
+                
+                return; // Salir sin iniciar movimiento automático
+            }
+        }
+        
+        // Verificar si es un objeto y está adyacente al jugador o en su posición
+        if (clickedEntity.type === 'object') {
+            const obj = clickedEntity.entity;
+            const dist = Math.abs(obj.x - gameState.player.x) + Math.abs(obj.y - gameState.player.y);
+            
+            // Si está adyacente (distancia = 1) o el jugador está encima (distancia = 0)
+            if (dist <= 1) {
+                console.log(`📦 Interactuando directamente con objeto adyacente`);
+                
+                // Actualizar la dirección del jugador para mirar hacia el objeto
+                if (dist > 0) { // Solo si no estamos encima del objeto
+                    updatePlayerFacingTowardsTarget(obj.x, obj.y);
+                }
+                
+                // Manejar la interacción con el objeto
+                handleObjectInteraction(obj);
+                
+                return; // Salir sin iniciar movimiento automático
+            }
+        }
+        
+        // Si no es un enemigo adyacente, establecer objetivo de movimiento
         setAutoMoveTarget(worldCoords.x, worldCoords.y, clickedEntity.type, clickedEntity.entity);
         addChatMessage('system', `🎯 Objetivo: ${getTargetDescription(clickedEntity)}`);
     } else if (isWalkable(gameState.map, worldCoords.x, worldCoords.y)) {
@@ -413,6 +482,32 @@ function handleObjectInteraction(obj) {
 function cancelAutoMovement() {
     autoMoveTarget = null;
     isAutoMoving = false;
+}
+
+/**
+ * Actualizar la dirección del jugador para que mire hacia una posición objetivo
+ * @param {number} targetX - Coordenada X del objetivo
+ * @param {number} targetY - Coordenada Y del objetivo
+ */
+function updatePlayerFacingTowardsTarget(targetX, targetY) {
+    const player = gameState.player;
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    
+    // Determinar la dirección basada en la posición relativa del objetivo
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Principalmente horizontal
+        player.facing = dx > 0 ? 'right' : 'left';
+    } else {
+        // Principalmente vertical
+        player.facing = dy > 0 ? 'down' : 'up';
+    }
+    
+    // Importar la función para cambiar la animación
+    import('./Renderer.js').then(({ setPlayerFacing, setPlayerAnimationState }) => {
+        setPlayerFacing(player.facing);
+        setPlayerAnimationState('attacking'); // Activar animación de ataque
+    });
 }
 
 /**
