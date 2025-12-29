@@ -27,7 +27,7 @@ export function gameLoop(timestamp) {
     // Only process game logic if player is alive
     if (isPlayerAlive()) {
         // Handle automatic movement from mouse clicks first
-        const autoMoving = updateAutoMovement();
+        const autoMoving = updateAutoMovement(timestamp);
 
         // Only handle manual movement if not auto-moving
         if (!autoMoving) {

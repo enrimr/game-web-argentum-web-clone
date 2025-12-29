@@ -13,6 +13,8 @@ const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT } = CONFIG;
 // Estado del movimiento automático
 let autoMoveTarget = null; // {x, y, type, target}
 let isAutoMoving = false;
+let lastAutoMoveTime = 0;
+const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
 
 /**
  * Inicializar controles de ratón
@@ -163,11 +165,17 @@ function getCameraPosition() {
 
 /**
  * Actualizar movimiento automático del jugador
+ * @param {number} timestamp - Timestamp actual para controlar velocidad
  * @returns {boolean} True si el movimiento continúa
  */
-export function updateAutoMovement() {
+export function updateAutoMovement(timestamp) {
     if (!isAutoMoving || !autoMoveTarget) {
         return false;
+    }
+
+    // Aplicar el mismo delay que el movimiento manual
+    if (timestamp - lastAutoMoveTime < MOVE_DELAY) {
+        return true; // Continuar esperando
     }
 
     const player = gameState.player;
@@ -184,44 +192,72 @@ export function updateAutoMovement() {
     const dx = target.x - player.x;
     const dy = target.y - player.y;
 
-    // Determinar movimiento prioritario (primero eje con mayor distancia)
-    let moveX = 0;
-    let moveY = 0;
+    // Algoritmo mejorado: intentar movimiento diagonal cuando sea posible
+    // Esto hace el pathfinding más directo y eficiente
+    const possibleMoves = [];
 
-    if (Math.abs(dx) > Math.abs(dy)) {
-        moveX = dx > 0 ? 1 : -1;
-    } else if (dy !== 0) {
-        moveY = dy > 0 ? 1 : -1;
-    } else if (dx !== 0) {
-        moveX = dx > 0 ? 1 : -1;
-    }
+    // Intentar movimientos diagonales primero (más eficientes)
+    if (dx > 0 && dy > 0) possibleMoves.push({ x: 1, y: 1, priority: 1 }); // diagonal abajo-derecha
+    if (dx > 0 && dy < 0) possibleMoves.push({ x: 1, y: -1, priority: 1 }); // diagonal arriba-derecha
+    if (dx < 0 && dy > 0) possibleMoves.push({ x: -1, y: 1, priority: 1 }); // diagonal abajo-izquierda
+    if (dx < 0 && dy < 0) possibleMoves.push({ x: -1, y: -1, priority: 1 }); // diagonal arriba-izquierda
 
-    // Intentar mover en la dirección calculada
-    const newX = player.x + moveX;
-    const newY = player.y + moveY;
+    // Luego movimientos ortogonales
+    if (dx !== 0) possibleMoves.push({ x: dx > 0 ? 1 : -1, y: 0, priority: 2 }); // horizontal
+    if (dy !== 0) possibleMoves.push({ x: 0, y: dy > 0 ? 1 : -1, priority: 2 }); // vertical
 
-    // Verificar si la nueva posición es válida
-    if (isWalkable(gameState.map, newX, newY)) {
-        // Verificar que no haya un enemigo bloqueando el camino
-        const enemyAtPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
-        if (!enemyAtPosition) {
-            player.x = newX;
-            player.y = newY;
+    // Ordenar por prioridad (diagonales primero, luego ortogonales)
+    possibleMoves.sort((a, b) => a.priority - b.priority);
 
-            // Actualizar dirección del jugador
-            if (moveX > 0) player.facing = 'right';
-            else if (moveX < 0) player.facing = 'left';
-            else if (moveY > 0) player.facing = 'down';
-            else if (moveY < 0) player.facing = 'up';
+    // Intentar cada movimiento posible
+    for (const move of possibleMoves) {
+        const newX = player.x + move.x;
+        const newY = player.y + move.y;
 
-            return true; // Continuar movimiento
+        // Verificar si la nueva posición es válida
+        if (isWalkable(gameState.map, newX, newY)) {
+            // Verificar que no haya un enemigo bloqueando el camino
+            const enemyAtPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
+            if (!enemyAtPosition) {
+                // Movimiento válido encontrado
+                player.x = newX;
+                player.y = newY;
+                lastAutoMoveTime = timestamp;
+
+                // Actualizar dirección del jugador basada en el movimiento
+                updatePlayerFacing(move.x, move.y);
+
+                return true; // Continuar movimiento
+            }
         }
     }
 
-    // No se puede mover - cancelar movimiento automático
+    // No se puede mover en ninguna dirección - cancelar movimiento automático
     cancelAutoMovement();
     addChatMessage('system', '❌ Camino bloqueado, movimiento cancelado');
     return false;
+}
+
+/**
+ * Actualizar dirección del jugador basada en el movimiento
+ * @param {number} moveX - Movimiento en X
+ * @param {number} moveY - Movimiento en Y
+ */
+function updatePlayerFacing(moveX, moveY) {
+    // Determinar dirección principal basada en el movimiento
+    if (Math.abs(moveX) > Math.abs(moveY)) {
+        // Movimiento principalmente horizontal
+        gameState.player.facing = moveX > 0 ? 'right' : 'left';
+    } else if (Math.abs(moveY) > Math.abs(moveX)) {
+        // Movimiento principalmente vertical
+        gameState.player.facing = moveY > 0 ? 'down' : 'up';
+    } else {
+        // Movimiento diagonal - usar la dirección más lógica
+        if (moveX > 0 && moveY > 0) gameState.player.facing = 'down'; // diagonal abajo-derecha
+        else if (moveX > 0 && moveY < 0) gameState.player.facing = 'right'; // diagonal arriba-derecha
+        else if (moveX < 0 && moveY > 0) gameState.player.facing = 'down'; // diagonal abajo-izquierda
+        else if (moveX < 0 && moveY < 0) gameState.player.facing = 'up'; // diagonal arriba-izquierda
+    }
 }
 
 /**
