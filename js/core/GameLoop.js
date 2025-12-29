@@ -34,6 +34,9 @@ export function gameLoop(timestamp) {
             handleMovement(timestamp);
         }
 
+        // Update UI after movement (both manual and automatic)
+        updateUI();
+
         updateProjectiles();
         updateEnemies(timestamp);
         enemyAttacks(timestamp);
