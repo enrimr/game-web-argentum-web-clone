@@ -44,7 +44,7 @@ function handleCanvasClick(event) {
     // Obtener posición de la cámara para debugging
     const camera = getCameraPosition();
 
-    // Convertir a coordenadas del mundo
+    // Convertir a coordenadas del mundo usando Math.round en lugar de Math.floor
     const worldCoords = screenToWorld(screenX, screenY);
 
     // Debug detallado
@@ -55,6 +55,7 @@ function handleCanvasClick(event) {
     console.log(`   Cámara actual: (${camera.x}, ${camera.y})`);
     console.log(`   Mundo calculado: (${worldCoords.x}, ${worldCoords.y})`);
     console.log(`   TILE_SIZE: ${TILE_SIZE}`);
+    console.log(`   Cálculo manual: (${camera.x + Math.floor(screenX / TILE_SIZE)}, ${camera.y + Math.floor(screenY / TILE_SIZE)})`);
 
     // Verificar si las coordenadas están dentro del mapa
     if (worldCoords.x < 0 || worldCoords.x >= CONFIG.MAP_WIDTH ||
@@ -160,9 +161,9 @@ function screenToWorld(screenX, screenY) {
     const camera = getCameraPosition();
 
     // Convertir coordenadas de pantalla a coordenadas del mundo
-    // Usar Math.floor para ser consistente con la lógica de renderizado
-    const worldX = camera.x + Math.floor(screenX / TILE_SIZE);
-    const worldY = camera.y + Math.floor(screenY / TILE_SIZE);
+    // Usar Math.round para un mapeo más preciso
+    const worldX = camera.x + Math.round(screenX / TILE_SIZE);
+    const worldY = camera.y + Math.round(screenY / TILE_SIZE);
 
     return { x: worldX, y: worldY };
 }
