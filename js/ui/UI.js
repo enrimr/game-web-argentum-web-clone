@@ -6,7 +6,8 @@
 import { gameState } from '../state.js';
 import { CONFIG } from '../config.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
-import { toggleEquipItem, dropItem } from '../systems/Inventory.js';
+import { toggleEquipItem } from '../systems/Inventory.js';
+// Note: We import the Inventory module dynamically when needed to avoid circular dependencies
 
 const { MAX_INVENTORY_SLOTS } = CONFIG;
 
@@ -223,7 +224,10 @@ function showContextMenu(e, slotIndex, item) {
         if (item.quantity > 1) {
             showQuantityPrompt(slotIndex, item);
         } else {
-            dropItem(slotIndex);
+            // Import dropItem dynamically to avoid circular dependencies
+            import('../systems/Inventory.js').then(({ dropItem }) => {
+                dropItem(slotIndex);
+            });
         }
         hideContextMenu();
     });
@@ -295,8 +299,11 @@ function showQuantityPrompt(slotIndex, item) {
     confirmBtn.addEventListener('click', () => {
         const quantity = parseInt(quantityInput.value);
         if (quantity > 0 && quantity <= item.quantity) {
-            dropItem(slotIndex, quantity);
-            hideQuantityPrompt();
+            // Import dropItem dynamically to avoid circular dependencies
+            import('../systems/Inventory.js').then(({ dropItem }) => {
+                dropItem(slotIndex, quantity);
+                hideQuantityPrompt();
+            });
         }
     });
     
