@@ -83,52 +83,56 @@ function handleCanvasClick(event) {
             const dist = Math.abs(enemy.x - gameState.player.x) + Math.abs(enemy.y - gameState.player.y);
             const player = gameState.player;
             
-            // Si está adyacente (distancia = 1), atacar directamente
-            if (dist === 1) {
-                console.log(`⚔️ Atacando directamente al enemigo adyacente`);
-                
-                // Importar y ejecutar la función de ataque
-                import('../systems/Combat.js').then(({ playerAttack }) => {
-                    playerAttack(enemy);
-                    addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type}!`);
-                });
-                
-                // Actualizar la dirección del jugador para mirar hacia el enemigo
-                updatePlayerFacingTowardsTarget(enemy.x, enemy.y);
-                
-                return; // Salir sin iniciar movimiento automático
-            }
-            // Verificar si el jugador ya está mirando hacia el enemigo aunque no esté adyacente
-            else if (isPlayerFacingTarget(enemy.x, enemy.y)) {
-                // Importar funciones de inventario para verificar arma a distancia y munición
-                import('../systems/Inventory.js').then(({ hasRangedWeaponEquipped, hasAmmunitionEquipped }) => {
-                    // Solo permitir ataque a distancia si tiene arco y flechas equipadas
-                    if (hasRangedWeaponEquipped() && hasAmmunitionEquipped()) {
-                        console.log(`🏹 Atacando a distancia con arco`);
+            // Verificar primero si el jugador tiene arco y flechas equipadas para atacar a distancia
+            import('../systems/Inventory.js').then(({ hasRangedWeaponEquipped, hasAmmunitionEquipped }) => {
+                if (hasRangedWeaponEquipped() && hasAmmunitionEquipped()) {
+                    console.log(`🏹 Atacando a distancia con arco`);
+                    
+                    // Si el enemigo no está en la dirección a la que mira el jugador, girar primero
+                    if (!isPlayerFacingTarget(enemy.x, enemy.y)) {
+                        // Actualizar la dirección del jugador para mirar hacia el enemigo
+                        updatePlayerFacingTowardsTarget(enemy.x, enemy.y);
+                    }
+                    
+                    // Importar y ejecutar la función de ataque a distancia
+                    import('../systems/Combat.js').then(({ shootArrow }) => {
+                        const success = shootArrow();
+                        if (success) {
+                            // La lógica de daño y mensajes se maneja en shootArrow
+                            import('./Renderer.js').then(({ setPlayerAnimationState }) => {
+                                setPlayerAnimationState('attacking');
+                            });
+                        }
+                    });
+                    
+                    return; // Salir sin iniciar movimiento automático
+                }
+                // Si no tiene arco y flechas, continuar con la lógica de ataque cuerpo a cuerpo
+                else {
+                    // Si está adyacente (distancia = 1), atacar directamente
+                    if (dist === 1) {
+                        console.log(`⚔️ Atacando directamente al enemigo adyacente`);
                         
                         // Importar y ejecutar la función de ataque
-                        import('../systems/Combat.js').then(({ shootArrow }) => {
-                            // Usar shootArrow en lugar de playerAttack para ataques a distancia
-                            const success = shootArrow();
-                            if (success) {
-                                // La lógica de daño y mensajes se maneja en shootArrow
-                                import('./Renderer.js').then(({ setPlayerAnimationState }) => {
-                                    setPlayerAnimationState('attacking');
-                                });
-                            }
+                        import('../systems/Combat.js').then(({ playerAttack }) => {
+                            playerAttack(enemy);
+                            addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type}!`);
                         });
                         
-                        return; // Salir sin iniciar movimiento automático
-                    } else {
-                        console.log(`⚔️ No puedes atacar a distancia sin arco y flechas equipadas, moviéndote hacia el enemigo`);
-                        // Si no tiene arco y flechas, establecer movimiento automático hacia el enemigo
+                        // Actualizar la dirección del jugador para mirar hacia el enemigo
+                        updatePlayerFacingTowardsTarget(enemy.x, enemy.y);
+                    }
+                    // Si no está adyacente, moverse hacia el enemigo
+                    else {
+                        console.log(`🚶 Moviéndose hacia enemigo para ataque cuerpo a cuerpo`);
+                        // Establecer movimiento automático hacia el enemigo
                         setAutoMoveTarget(enemy.x, enemy.y, 'enemy', enemy);
                         addChatMessage('system', `🎯 Objetivo: ${getTargetDescription({type: 'enemy', entity: enemy})}`);
                     }
-                });
-                
-                return; // Salir sin iniciar movimiento automático
-            }
+                }
+            });
+            
+            return; // Salir sin iniciar movimiento automático
         }
         
         // Verificar si es un NPC y está adyacente al jugador
@@ -141,7 +145,7 @@ function handleCanvasClick(event) {
                 console.log(`💬 Hablando directamente con NPC adyacente`);
                 
                 // Importar y ejecutar la función de diálogo
-                import('./Dialogue.js').then(({ showDialogue, isDialogueOpen }) => {
+                import('../ui/Dialogue.js').then(({ showDialogue, isDialogueOpen }) => {
                     if (!isDialogueOpen()) {
                         showDialogue(npc);
                         addChatMessage('system', `💬 Conversando con ${npc.name}`);
@@ -481,8 +485,8 @@ function handleObjectInteraction(obj) {
             gameState.objects.splice(gameState.objects.indexOf(obj), 1);
         } else if (obj.type === 'item') {
             // Importar y usar la función de inventario
-            import('./Inventory.js').then(({ addItemToInventory }) => {
-                import('./ItemTypes.js').then(({ ITEM_TYPES }) => {
+            import('../systems/Inventory.js').then(({ addItemToInventory }) => {
+                import('../systems/ItemTypes.js').then(({ ITEM_TYPES }) => {
                     const success = addItemToInventory(obj.itemType, obj.quantity);
                     if (success) {
                         const itemName = ITEM_TYPES[obj.itemType].name;
@@ -496,13 +500,13 @@ function handleObjectInteraction(obj) {
             });
         } else if (obj.type === 'portal') {
             // Importar y usar la función de cambio de mapa
-            import('./Game.js').then(({ changeMap }) => {
+            import('../core/Game.js').then(({ changeMap }) => {
                 changeMap(obj.targetMap, obj.targetX, obj.targetY);
             });
         }
 
         // Actualizar UI
-        import('./UI.js').then(({ updateUI }) => {
+        import('../ui/UI.js').then(({ updateUI }) => {
             updateUI();
         });
     }
