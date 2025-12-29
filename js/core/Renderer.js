@@ -290,10 +290,10 @@ function renderHealthBar(x, y, currentHp, maxHp) {
 }
 
 /**
- * Get camera position (centered on player, but allows reaching map edges)
+ * Obtener posición de la cámara (centered on player, but allows reaching map edges)
  * @returns {Object} Camera position {x, y}
  */
-function getCameraPosition() {
+export function getCameraPosition() {
     const playerX = gameState.player.x;
     const playerY = gameState.player.y;
 

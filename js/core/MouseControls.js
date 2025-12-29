@@ -8,6 +8,9 @@ import { CONFIG } from '../config.js';
 import { isWalkable } from '../world/MapGenerator.js';
 import { addChatMessage } from '../ui/UI.js';
 
+// Importar la función getCameraPosition del renderer para consistencia
+import { getCameraPosition } from './Renderer.js';
+
 const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT } = CONFIG;
 
 // Estado del movimiento automático
@@ -138,34 +141,18 @@ function getTargetDescription(entityInfo) {
  * @returns {Object} Coordenadas del mundo {x, y}
  */
 function screenToWorld(screenX, screenY) {
-    // Obtener la posición de la cámara
+    // Obtener la posición de la cámara (misma función que en Renderer)
     const camera = getCameraPosition();
 
     // Convertir coordenadas de pantalla a coordenadas del mundo
+    // Usar Math.floor para ser consistente con la lógica de renderizado
     const worldX = camera.x + Math.floor(screenX / TILE_SIZE);
     const worldY = camera.y + Math.floor(screenY / TILE_SIZE);
 
     return { x: worldX, y: worldY };
 }
 
-/**
- * Obtener posición de la cámara (código duplicado del renderer, debería refactorizarse)
- * @returns {Object} Posición de la cámara {x, y}
- */
-function getCameraPosition() {
-    const playerX = gameState.player.x;
-    const playerY = gameState.player.y;
 
-    // Calculate camera top-left corner (centered on player)
-    let cameraX = playerX - Math.floor(VIEWPORT_WIDTH / 2);
-    let cameraY = playerY - Math.floor(VIEWPORT_HEIGHT / 2);
-
-    // Clamp camera to map boundaries, but allow player to reach viewport edges
-    cameraX = Math.max(0, Math.min(cameraX, CONFIG.MAP_WIDTH - VIEWPORT_WIDTH));
-    cameraY = Math.max(0, Math.min(cameraY, CONFIG.MAP_HEIGHT - VIEWPORT_HEIGHT));
-
-    return { x: cameraX, y: cameraY };
-}
 
 /**
  * Actualizar movimiento automático del jugador
