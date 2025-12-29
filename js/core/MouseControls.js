@@ -159,12 +159,16 @@ function getTargetDescription(entityInfo) {
 function screenToWorld(screenX, screenY) {
     // Obtener la posición de la cámara (misma función que en Renderer)
     const camera = getCameraPosition();
-
-    // Convertir coordenadas de pantalla a coordenadas del mundo
-    // Usar Math.round para un mapeo más preciso
-    const worldX = camera.x + Math.round(screenX / TILE_SIZE);
-    const worldY = camera.y + Math.round(screenY / TILE_SIZE);
-
+    
+    // Problema: Estamos usando una lógica diferente a la del renderizador
+    // Solución: Usar Math.floor y asegurarnos de que es consistente con el renderizado
+    const tileX = Math.floor(screenX / TILE_SIZE);
+    const tileY = Math.floor(screenY / TILE_SIZE);
+    
+    // Aplicamos el offset de la cámara
+    const worldX = camera.x + tileX;
+    const worldY = camera.y + tileY;
+    
     return { x: worldX, y: worldY };
 }
 
