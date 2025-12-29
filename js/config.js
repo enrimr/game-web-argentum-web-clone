@@ -6,13 +6,16 @@
 export const CONFIG = {
     // Dimensiones del juego
     TILE_SIZE: 32,
-    MAP_WIDTH: 20,
-    MAP_HEIGHT: 13,
-    
+    VIEWPORT_WIDTH: 20,  // Celdas visibles horizontalmente
+    VIEWPORT_HEIGHT: 13, // Celdas visibles verticalmente
+    MAP_WIDTH: 60,       // Mapa total ancho (3x más grande)
+    MAP_HEIGHT: 40,      // Mapa total alto (3x más grande)
+    MAX_INVENTORY_SLOTS: 9, // Máximo de tipos diferentes de items
+
     // Canvas
     CANVAS_WIDTH: 640,
     CANVAS_HEIGHT: 416,
-    
+
     // Jugador
     PLAYER: {
         STARTING_X: 10,
@@ -24,7 +27,7 @@ export const CONFIG = {
         BASE_DAMAGE_MAX: 15,
         DAMAGE_PER_LEVEL: 2,
     },
-    
+
     // Sistema de niveles
     LEVEL: {
         STARTING_LEVEL: 1,
@@ -34,7 +37,7 @@ export const CONFIG = {
         HP_GAIN_PER_LEVEL: 20,
         MANA_GAIN_PER_LEVEL: 10,
     },
-    
+
     // Enemigos
     ENEMY: {
         COUNT: 4,
@@ -50,7 +53,7 @@ export const CONFIG = {
         GOLD_DROP_MIN: 10,
         GOLD_DROP_MAX: 20,
     },
-    
+
     // Objetos del mundo
     WORLD: {
         CHEST_COUNT: 3,
@@ -60,18 +63,23 @@ export const CONFIG = {
         COIN_VALUE_MIN: 5,
         COIN_VALUE_MAX: 20,
     },
-    
+
     // Generación del mapa
     MAP: {
         TREE_PROBABILITY: 0.1,
         STONE_PROBABILITY: 0.05,
     },
-    
+
     // Tiles
     TILES: {
         GRASS: 0,
         WATER: 1,
         STONE: 2,
         TREE: 3,
+        WALL: 4,      // Solid walls for city/dungeon borders
+        BUILDING: 5,  // Buildings in city
+        FLOOR: 6,     // Dungeon floor
+        DUNGEON_WALL: 7, // Dungeon walls
+        PATH: 8       // Dirt paths to other areas
     },
 };

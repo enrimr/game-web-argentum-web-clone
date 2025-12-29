@@ -546,3 +546,134 @@ body {
 .quest-toggle:hover {
     background: rgba(255, 215, 0, 0.1) !important;
 }
+
+/* Dialogue system styles */
+.dialogue-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.dialogue-box {
+    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+    border: 4px solid #ffd700;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    animation: dialogue-appear 0.3s ease-out;
+}
+
+@keyframes dialogue-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.dialogue-speaker {
+    color: #ffd700;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 8px;
+}
+
+.dialogue-text {
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.dialogue-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.dialogue-option {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    border: 2px solid #66bb6a;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    text-align: left;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dialogue-option:hover {
+    background: linear-gradient(135deg, #66bb6a 0%, #4CAF50 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dialogue-option:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dialogue-close {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    border: 2px solid #ef5350;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    align-self: center;
+    transition: all 0.3s;
+}
+
+.dialogue-close:hover {
+    background: linear-gradient(135deg, #ef5350 0%, #f44336 100%);
+    transform: translateY(-1px);
+}
+
+/* Responsive dialogue */
+@media (max-width: 600px) {
+    .dialogue-box {
+        padding: 15px;
+        max-width: 95%;
+    }
+
+    .dialogue-speaker {
+        font-size: 16px;
+    }
+
+    .dialogue-text {
+        font-size: 13px;
+        padding: 12px;
+    }
+
+    .dialogue-option {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}

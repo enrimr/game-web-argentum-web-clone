@@ -116,6 +116,18 @@
         </div>
     </div>
     
-    <script src="game.js"></script>
+    <script type="module">
+        import { init, toggleQuests } from './js/core/Game.js';
+        import { toggleMinimap } from './js/ui/Minimap.js';
+        import { toggleWorldMap } from './js/ui/WorldMap.js';
+
+        // Initialize the game when the page loads
+        window.addEventListener('load', init);
+
+        // Make functions globally available for HTML buttons
+        window.toggleMinimap = toggleMinimap;
+        window.toggleWorldMap = toggleWorldMap;
+        window.toggleQuests = toggleQuests;
+    </script>
 </body>
 </html>
