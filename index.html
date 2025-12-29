@@ -68,7 +68,7 @@
                 
                 <div class="panel">
                     <h3>📜 Misiones
-                        <button id="toggleQuests" class="quest-toggle" style="float: right; font-size: 12px; background: none; border: 1px solid #ffd700; color: #ffd700; padding: 2px 6px; cursor: pointer;">Ocultar</button>
+                        <button id="toggleQuests" onclick="toggleQuests()" class="quest-toggle" style="float: right; font-size: 12px; background: none; border: 1px solid #ffd700; color: #ffd700; padding: 2px 6px; cursor: pointer;">Ocultar</button>
                     </h3>
                     <div id="questList" class="quest-list">
                         <ul>
@@ -92,7 +92,7 @@
 
                 <div class="panel">
                     <h3>🗺️ Mapas</h3>
-                    <button id="toggleMinimap" class="minimap-toggle">Mostrar Minimap</button>
+                    <button id="toggleMinimap" onclick="toggleMinimap()" class="minimap-toggle">Mostrar Minimap</button>
                     <div id="minimapContainer" class="minimap-container" style="display: none;">
                         <canvas id="minimapCanvas" width="200" height="150"></canvas>
                         <div class="minimap-legend">
@@ -102,7 +102,7 @@
                             <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Jugador</div>
                         </div>
                     </div>
-                    <button id="toggleWorldMap" class="minimap-toggle" style="margin-top: 8px;">Mostrar Mapa del Mundo</button>
+                    <button id="toggleWorldMap" onclick="toggleWorldMap()" class="minimap-toggle" style="margin-top: 8px;">Mostrar Mapa del Mundo</button>
                     <div id="worldMapContainer" class="world-map-container" style="display: none;">
                         <canvas id="worldMapCanvas" width="400" height="300"></canvas>
                         <div class="world-map-info">
