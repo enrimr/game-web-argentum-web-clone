@@ -77,10 +77,11 @@ function handleCanvasClick(event) {
         // Hay una entidad en la posición (enemigo, NPC, objeto)
         console.log(`🎯 Entidad encontrada: ${clickedEntity.type} - ${getTargetDescription(clickedEntity)}`);
         
-        // Verificar si es un enemigo y está adyacente al jugador
+        // Verificar si es un enemigo
         if (clickedEntity.type === 'enemy') {
             const enemy = clickedEntity.entity;
             const dist = Math.abs(enemy.x - gameState.player.x) + Math.abs(enemy.y - gameState.player.y);
+            const player = gameState.player;
             
             // Si está adyacente (distancia = 1), atacar directamente
             if (dist === 1) {
@@ -94,6 +95,23 @@ function handleCanvasClick(event) {
                 
                 // Actualizar la dirección del jugador para mirar hacia el enemigo
                 updatePlayerFacingTowardsTarget(enemy.x, enemy.y);
+                
+                return; // Salir sin iniciar movimiento automático
+            }
+            // Verificar si el jugador ya está mirando hacia el enemigo aunque no esté adyacente
+            else if (isPlayerFacingTarget(enemy.x, enemy.y)) {
+                console.log(`⚔️ Atacando a distancia, ya estabas mirando al enemigo`);
+                
+                // Importar y ejecutar la función de ataque
+                import('./Combat.js').then(({ playerAttack }) => {
+                    playerAttack(enemy);
+                    addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type} a distancia!`);
+                });
+                
+                // Mantener la dirección, ya estamos mirando hacia el enemigo
+                import('./Renderer.js').then(({ setPlayerAnimationState }) => {
+                    setPlayerAnimationState('attacking'); // Solo activar la animación de ataque
+                });
                 
                 return; // Salir sin iniciar movimiento automático
             }
@@ -516,6 +534,32 @@ function updatePlayerFacingTowardsTarget(targetX, targetY) {
  */
 export function isPlayerAutoMoving() {
     return isAutoMoving;
+}
+
+/**
+ * Verificar si el jugador está mirando hacia un objetivo específico
+ * @param {number} targetX - Coordenada X del objetivo
+ * @param {number} targetY - Coordenada Y del objetivo
+ * @returns {boolean} True si el jugador está mirando hacia el objetivo
+ */
+function isPlayerFacingTarget(targetX, targetY) {
+    const player = gameState.player;
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    
+    // Determinar la dirección esperada basada en la posición relativa del objetivo
+    let expectedFacing;
+    
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Principalmente horizontal
+        expectedFacing = dx > 0 ? 'right' : 'left';
+    } else {
+        // Principalmente vertical
+        expectedFacing = dy > 0 ? 'down' : 'up';
+    }
+    
+    // Verificar si la dirección actual del jugador coincide con la esperada
+    return player.facing === expectedFacing;
 }
 
 /**
