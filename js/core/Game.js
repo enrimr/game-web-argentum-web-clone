@@ -17,6 +17,7 @@ import { initWorldMap } from '../ui/WorldMap.js';
 import { initDialogue } from '../ui/Dialogue.js';
 import { isPlayerAlive } from '../systems/Combat.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
+import { initMouseControls } from './MouseControls.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
@@ -52,6 +53,9 @@ export function init() {
 
     // Initialize input handling
     initInput();
+
+    // Initialize mouse controls
+    initMouseControls();
 
     // Initialize UI
     initUI();

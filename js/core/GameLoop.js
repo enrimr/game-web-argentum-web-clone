@@ -14,6 +14,7 @@ import { changeMap } from './Game.js';
 import { addChatMessage, updateUI } from '../ui/UI.js';
 import { showDialogue, isDialogueOpen } from '../ui/Dialogue.js';
 import { updatePlayerAnimation, setPlayerAnimationState, setPlayerFacing } from './Renderer.js';
+import { updateAutoMovement, isPlayerAutoMoving, getAutoMoveTarget } from './MouseControls.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -25,7 +26,14 @@ const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
 export function gameLoop(timestamp) {
     // Only process game logic if player is alive
     if (isPlayerAlive()) {
-        handleMovement(timestamp);
+        // Handle automatic movement from mouse clicks first
+        const autoMoving = updateAutoMovement();
+
+        // Only handle manual movement if not auto-moving
+        if (!autoMoving) {
+            handleMovement(timestamp);
+        }
+
         updateProjectiles();
         updateEnemies(timestamp);
         enemyAttacks(timestamp);
