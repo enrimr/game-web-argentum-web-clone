@@ -41,30 +41,45 @@ function handleCanvasClick(event) {
     const screenX = event.clientX - rect.left;
     const screenY = event.clientY - rect.top;
 
+    // Obtener posición de la cámara para debugging
+    const camera = getCameraPosition();
+
     // Convertir a coordenadas del mundo
     const worldCoords = screenToWorld(screenX, screenY);
 
-    // Mostrar coordenadas en consola
-    console.log(`🖱️ Clic en: Pantalla(${Math.floor(screenX)}, ${Math.floor(screenY)}) → Mundo(${worldCoords.x}, ${worldCoords.y})`);
+    // Debug detallado
+    console.log(`🖱️ Clic Debug:`);
+    console.log(`   Mouse global: (${event.clientX}, ${event.clientY})`);
+    console.log(`   Canvas rect: (${rect.left}, ${rect.top})`);
+    console.log(`   Pantalla relativa: (${Math.floor(screenX)}, ${Math.floor(screenY)})`);
+    console.log(`   Cámara actual: (${camera.x}, ${camera.y})`);
+    console.log(`   Mundo calculado: (${worldCoords.x}, ${worldCoords.y})`);
+    console.log(`   TILE_SIZE: ${TILE_SIZE}`);
 
     // Verificar si las coordenadas están dentro del mapa
     if (worldCoords.x < 0 || worldCoords.x >= CONFIG.MAP_WIDTH ||
         worldCoords.y < 0 || worldCoords.y >= CONFIG.MAP_HEIGHT) {
-        console.log(`❌ Coordenadas fuera del mapa: (${worldCoords.x}, ${worldCoords.y})`);
+        console.log(`❌ Coordenadas fuera del mapa: (${worldCoords.x}, ${worldCoords.y}) - Mapa: ${CONFIG.MAP_WIDTH}x${CONFIG.MAP_HEIGHT}`);
         return; // Fuera del mapa
     }
+
+    console.log(`✅ Coordenadas válidas en mapa`);
 
     // Determinar qué hay en la posición clickeada
     const clickedEntity = getEntityAtPosition(worldCoords.x, worldCoords.y);
 
     if (clickedEntity) {
         // Hay una entidad en la posición (enemigo, NPC, objeto)
+        console.log(`🎯 Entidad encontrada: ${clickedEntity.type} - ${getTargetDescription(clickedEntity)}`);
         setAutoMoveTarget(worldCoords.x, worldCoords.y, clickedEntity.type, clickedEntity.entity);
         addChatMessage('system', `🎯 Objetivo: ${getTargetDescription(clickedEntity)}`);
     } else if (isWalkable(gameState.map, worldCoords.x, worldCoords.y)) {
         // Posición vacía walkable - moverse hacia allí
+        console.log(`🚶 Posición walkable encontrada`);
         setAutoMoveTarget(worldCoords.x, worldCoords.y, 'position', null);
         addChatMessage('system', `🎯 Moviendo hacia posición (${worldCoords.x}, ${worldCoords.y})`);
+    } else {
+        console.log(`❌ Posición no walkable (tile: ${gameState.map[worldCoords.y][worldCoords.x]})`);
     }
 }
 

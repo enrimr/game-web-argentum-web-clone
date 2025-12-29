@@ -118,10 +118,36 @@ function renderMap(camera) {
                 if (sprite) {
                     const screenPos = worldToScreen(worldX, worldY);
                     ctx.drawImage(sprite, screenPos.x, screenPos.y);
+
+                    // Debug: Mostrar coordenadas de cada celda
+                    renderDebugCoordinates(screenPos.x, screenPos.y, worldX, worldY);
                 }
             }
         }
     }
+}
+
+/**
+ * Render debug coordinates for each tile
+ * @param {number} screenX - Screen X position
+ * @param {number} screenY - Screen Y position
+ * @param {number} worldX - World X coordinate
+ * @param {number} worldY - World Y coordinate
+ */
+function renderDebugCoordinates(screenX, screenY, worldX, worldY) {
+    ctx.save();
+
+    // Fondo semi-transparente para el texto
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(screenX, screenY, TILE_SIZE, 20);
+
+    // Texto de coordenadas
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${worldX},${worldY}`, screenX + TILE_SIZE/2, screenY + 14);
+
+    ctx.restore();
 }
 
 /**
