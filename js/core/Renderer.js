@@ -118,9 +118,6 @@ function renderMap(camera) {
                 if (sprite) {
                     const screenPos = worldToScreen(worldX, worldY);
                     ctx.drawImage(sprite, screenPos.x, screenPos.y);
-
-                    // Debug: Mostrar coordenadas de cada celda
-                    renderDebugCoordinates(screenPos.x, screenPos.y, worldX, worldY);
                 }
             }
         }

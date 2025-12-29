@@ -88,7 +88,7 @@ function handleCanvasClick(event) {
                 console.log(`⚔️ Atacando directamente al enemigo adyacente`);
                 
                 // Importar y ejecutar la función de ataque
-                import('./Combat.js').then(({ playerAttack }) => {
+                import('../systems/Combat.js').then(({ playerAttack }) => {
                     playerAttack(enemy);
                     addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type}!`);
                 });
@@ -103,7 +103,7 @@ function handleCanvasClick(event) {
                 console.log(`⚔️ Atacando a distancia, ya estabas mirando al enemigo`);
                 
                 // Importar y ejecutar la función de ataque
-                import('./Combat.js').then(({ playerAttack }) => {
+                import('../systems/Combat.js').then(({ playerAttack }) => {
                     playerAttack(enemy);
                     addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type} a distancia!`);
                 });
@@ -394,7 +394,7 @@ function executeTargetAction() {
                 const dist = Math.abs(target.target.x - gameState.player.x) + Math.abs(target.target.y - gameState.player.y);
                 if (dist === 1) {
                     // Importar y ejecutar el ataque
-                    import('./Combat.js').then(({ playerAttack }) => {
+                    import('../systems/Combat.js').then(({ playerAttack }) => {
                         playerAttack(target.target);
                         addChatMessage('system', '⚔️ ¡Atacando al enemigo!');
                     });
