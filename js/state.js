@@ -9,23 +9,29 @@ import { MAP_DEFINITIONS } from './world/MapDefinitions.js';
 export const gameState = {
     currentMap: 'field', // Current map type
     player: {
-        x: CONFIG.PLAYER.STARTING_X,
-        y: CONFIG.PLAYER.STARTING_Y,
-        hp: CONFIG.PLAYER.STARTING_HP,
-        maxHp: CONFIG.PLAYER.STARTING_HP,
-        mana: CONFIG.PLAYER.STARTING_MANA,
-        maxMana: CONFIG.PLAYER.STARTING_MANA,
+        x: 5,
+        y: 5,
+        hp: 100,
+        maxHp: 100,
+        mana: 50,
+        maxMana: 50,
+        level: 1,
+        exp: 0,
+        expToNextLevel: 100,
         gold: 0,
-        inventory: [], // Array de {type, name, quantity, icon, equipped?}
-        equipped: {
-            weapon: null, // Item equipado como arma
-            shield: null, // Item equipado como escudo
-            ammunition: null // Flechas equipadas (requiere arco)
+        facing: 'down', // Dirección del jugador: 'up', 'down', 'left', 'right'
+        animation: {
+            state: 'idle', // 'idle', 'walking', 'attacking', 'talking'
+            frame: 0, // Frame actual de animación
+            frameTime: 0, // Tiempo acumulado para el frame
+            frameDelay: 150 // Milisegundos entre frames
         },
-        level: CONFIG.LEVEL.STARTING_LEVEL,
-        exp: CONFIG.LEVEL.STARTING_EXP,
-        expToNextLevel: CONFIG.LEVEL.BASE_EXP_TO_LEVEL,
-        facing: 'down' // Dirección a la que mira el jugador
+        inventory: [],
+        equipped: {
+            weapon: null,
+            shield: null,
+            ammunition: null
+        }
     },
     stats: {
         enemiesKilled: 0,
@@ -60,7 +66,13 @@ export function resetGameState() {
         level: CONFIG.LEVEL.STARTING_LEVEL,
         exp: CONFIG.LEVEL.STARTING_EXP,
         expToNextLevel: CONFIG.LEVEL.BASE_EXP_TO_LEVEL,
-        facing: 'down'
+        facing: 'down',
+        animation: {
+            state: 'idle',
+            frame: 0,
+            frameTime: 0,
+            frameDelay: 150
+        }
     };
     gameState.stats = {
         enemiesKilled: 0,

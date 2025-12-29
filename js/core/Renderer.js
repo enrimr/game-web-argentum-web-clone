@@ -19,6 +19,61 @@ const ctx = canvas.getContext('2d');
 const sprites = generateAllSprites(TILE_SIZE);
 
 /**
+ * Update player animation frames
+ * @param {number} deltaTime - Time elapsed since last update (ms)
+ */
+export function updatePlayerAnimation(deltaTime) {
+    const { animation } = gameState.player;
+
+    // Update animation frame timing
+    animation.frameTime += deltaTime;
+
+    // Check if it's time to advance to next frame
+    if (animation.frameTime >= animation.frameDelay) {
+        animation.frameTime = 0;
+
+        // Advance frame based on animation state
+        if (animation.state === 'walking') {
+            animation.frame = (animation.frame + 1) % 4; // 4 frames for walking
+        } else if (animation.state === 'attacking') {
+            animation.frame = (animation.frame + 1) % 3; // 3 frames for attacking
+        } else if (animation.state === 'talking') {
+            animation.frame = (animation.frame + 1) % 2; // 2 frames for talking
+        } else {
+            // Idle state - minimal animation
+            animation.frame = (animation.frame + 1) % 2; // 2 frames for idle
+        }
+    }
+}
+
+/**
+ * Set player animation state
+ * @param {string} state - New animation state ('idle', 'walking', 'attacking', 'talking')
+ */
+export function setPlayerAnimationState(state) {
+    const { animation } = gameState.player;
+
+    if (animation.state !== state) {
+        animation.state = state;
+        animation.frame = 0; // Reset frame when changing state
+        animation.frameTime = 0; // Reset timing
+    }
+}
+
+/**
+ * Set player facing direction and update animation
+ * @param {string} direction - Direction ('up', 'down', 'left', 'right')
+ */
+export function setPlayerFacing(direction) {
+    if (gameState.player.facing !== direction) {
+        gameState.player.facing = direction;
+        // Reset animation frame when changing direction
+        gameState.player.animation.frame = 0;
+        gameState.player.animation.frameTime = 0;
+    }
+}
+
+/**
  * Render the entire game
  */
 export function render() {
@@ -160,12 +215,60 @@ function renderProjectiles(camera) {
 }
 
 /**
- * Render player
+ * Render player with animations
  * @param {Object} camera - Camera position {x, y}
  */
 function renderPlayer(camera) {
     const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
-    ctx.drawImage(sprites.player, playerScreenPos.x, playerScreenPos.y);
+
+    // Get animated player sprite based on direction and animation state
+    const playerSprite = getAnimatedPlayerSprite();
+
+    ctx.drawImage(playerSprite, playerScreenPos.x, playerScreenPos.y);
+}
+
+/**
+ * Get animated player sprite based on direction and animation state
+ * @returns {Image} Player sprite for current animation frame
+ */
+function getAnimatedPlayerSprite() {
+    const { facing, animation } = gameState.player;
+
+    // Base sprite based on direction and animation state
+    let spriteName;
+
+    // Choose sprite based on animation state and direction
+    if (animation.state === 'walking') {
+        // For walking, use animated frames if available, otherwise base directional sprite
+        const frameSuffix = animation.frame > 0 ? animation.frame.toString() : '';
+        spriteName = `playerWalk${facing.charAt(0).toUpperCase() + facing.slice(1)}${frameSuffix}`;
+    } else if (animation.state === 'attacking') {
+        // For attacking, use animated frames if available
+        const frameSuffix = animation.frame > 0 ? animation.frame.toString() : '';
+        spriteName = `playerAttack${facing.charAt(0).toUpperCase() + facing.slice(1)}${frameSuffix}`;
+    } else if (animation.state === 'talking') {
+        // For talking, use animated frames if available
+        const frameSuffix = animation.frame > 0 ? animation.frame.toString() : '';
+        spriteName = `playerTalk${facing.charAt(0).toUpperCase() + facing.slice(1)}${frameSuffix}`;
+    } else {
+        // Idle state - use directional base sprites
+        if (facing === 'up') {
+            spriteName = 'playerUp';
+        } else if (facing === 'down') {
+            spriteName = 'player';
+        } else if (facing === 'left') {
+            spriteName = 'playerLeft';
+        } else if (facing === 'right') {
+            spriteName = 'playerRight';
+        } else {
+            spriteName = 'player';
+        }
+    }
+
+    // Fallback chain: animated sprite -> directional sprite -> base player sprite
+    return sprites[spriteName] ||
+           sprites[`player${facing.charAt(0).toUpperCase() + facing.slice(1)}`] ||
+           sprites.player;
 }
 
 /**

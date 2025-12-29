@@ -9,12 +9,16 @@ import { getEquippedWeaponDamage, getEquippedArmorDefense, hasAmmunitionEquipped
 import { ITEM_TYPES } from './ItemTypes.js';
 import { CONFIG } from '../config.js';
 import { addChatMessage, updateUI } from '../ui/UI.js';
+import { setPlayerAnimationState } from '../core/Renderer.js';
 
 /**
  * Handle player attack interaction
  * @param {Object} enemy - Enemy being attacked
  */
 export function playerAttack(enemy) {
+    // Set attacking animation
+    setPlayerAnimationState('attacking');
+
     const damage = calculatePlayerDamage();
     enemy.hp -= damage;
     addChatMessage('player', `¡Atacas al ${enemy.type} causando ${damage} de daño!`);

@@ -10,7 +10,7 @@ import { generateMap, isWalkable } from '../world/MapGenerator.js';
 import { generateObjects, generateEnemies, generateNPCs } from '../world/ObjectGenerator.js';
 import { addItemToInventory } from '../systems/Inventory.js';
 import { gameLoop } from './GameLoop.js';
-import { render } from './Renderer.js';
+import { render, updatePlayerAnimation } from './Renderer.js';
 import { updateUI, initUI, addChatMessage } from '../ui/UI.js';
 import { updateMinimap, isMinimapVisible } from '../ui/Minimap.js';
 import { initWorldMap } from '../ui/WorldMap.js';
@@ -90,8 +90,15 @@ export function init() {
  * @param {number} timestamp - Current timestamp
  */
 function gameLoopWrapper(timestamp) {
+    // Calculate delta time for animations
+    const deltaTime = timestamp - (gameLoopWrapper.lastTimestamp || timestamp);
+    gameLoopWrapper.lastTimestamp = timestamp;
+
     // Run game logic
     gameLoop(timestamp);
+
+    // Update player animations
+    updatePlayerAnimation(deltaTime);
 
     // Render the game
     render();

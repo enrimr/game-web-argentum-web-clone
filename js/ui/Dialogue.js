@@ -5,6 +5,7 @@
 
 import { gameState } from '../state.js';
 import { addChatMessage, updateUI } from './UI.js';
+import { setPlayerAnimationState } from '../core/Renderer.js';
 
 // Estado del diálogo actual
 let currentDialogue = null;
@@ -51,6 +52,9 @@ export function showDialogue(npc) {
 
     currentDialogue = npc;
     currentDialogueState = 'initial'; // Estado inicial del diálogo
+
+    // Cambiar estado de animación del jugador a "talking"
+    setPlayerAnimationState('talking');
 
     // Obtener diálogo basado en el tipo de NPC
     const dialogueData = getNPCDialogue(npc);
@@ -133,6 +137,9 @@ function closeDialogue() {
         dialogueContainer.style.display = 'none';
     }
     currentDialogue = null;
+
+    // Cambiar estado de animación del jugador de vuelta a "idle"
+    setPlayerAnimationState('idle');
 }
 
 /**

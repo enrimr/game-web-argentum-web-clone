@@ -144,19 +144,94 @@ export function generateAllSprites(TILE_SIZE) {
             ctx.fillRect(w/2-1, h/2-1, 3, 3);
         }),
         
-        // Character sprites
+        // Character sprites - Base player (facing down - full face visible)
         player: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Body (blue)
             ctx.fillStyle = '#3b82f6';
             ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing down - full face visible)
             ctx.fillStyle = '#fbbf24';
             ctx.beginPath();
             ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
             ctx.fill();
+            // Eyes (black, looking straight down)
             ctx.fillStyle = '#000';
-            ctx.fillRect(w/2-4, h/4-2, 2, 2);
-            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillRect(w/2-3, h/4-1, 2, 2);
+            ctx.fillRect(w/2+1, h/4-1, 2, 2);
+            // Arms (gray)
             ctx.fillStyle = '#9ca3af';
             ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Sword/Weapon (gold)
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        // Facing right - eyes looking right
+        playerRight: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing right)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking right - positioned to the right)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-1, h/4-1, 2, 2);
+            ctx.fillRect(w/2+3, h/4-1, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Sword/Weapon (gold)
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        // Facing left - eyes looking left
+        playerLeft: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing left)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking left - positioned to the left)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-5, h/4-1, 2, 2);
+            ctx.fillRect(w/2-1, h/4-1, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Sword/Weapon (gold)
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        // Facing up - hair visible from behind
+        playerUp: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Hair (brown, visible from behind)
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(w/2-6, h/4-4, 12, 4);
+            ctx.fillRect(w/2-4, h/4-2, 8, 2);
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing up - only bottom visible)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking up - positioned higher)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-3, h/4-3, 2, 2);
+            ctx.fillRect(w/2+1, h/4-3, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Sword/Weapon (gold)
             ctx.fillStyle = '#ffd700';
             ctx.fillRect(w/4-7, h/2-3, 5, 3);
         }),
@@ -487,6 +562,742 @@ export function generateAllSprites(TILE_SIZE) {
             ctx.fill();
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(w/2-1, h/2+6, 2, 2);
+        }),
+
+        // Animated player sprites (placeholders - all point to base player sprite for now)
+        // Walking animations - with staff movement
+        playerWalkUp: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Hair (brown, visible from behind)
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(w/2-6, h/4-4, 12, 4);
+            ctx.fillRect(w/2-4, h/4-2, 8, 2);
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing up)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking up)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-3, h/4-3, 2, 2);
+            ctx.fillRect(w/2+1, h/4-3, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Staff/Weapon (gold) - slightly angled for walking
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-8, h/2-4, 6, 3); // Staff leaning back slightly
+        }),
+
+        playerWalkDown: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing down)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking down)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-3, h/4-1, 2, 2);
+            ctx.fillRect(w/2+1, h/4-1, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Staff/Weapon (gold) - slightly forward for walking
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-6, h/2-2, 6, 3); // Staff leaning forward slightly
+        }),
+
+        playerWalkLeft: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing left)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking left)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-5, h/4-1, 2, 2);
+            ctx.fillRect(w/2-1, h/4-1, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Staff/Weapon (gold) - swinging to the side
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-9, h/2-1, 6, 3); // Staff swinging left
+        }),
+
+        playerWalkRight: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Body (blue)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Face (yellow, facing right)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes (black, looking right)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-1, h/4-1, 2, 2);
+            ctx.fillRect(w/2+3, h/4-1, 2, 2);
+            // Arms (gray)
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            // Staff/Weapon (gold) - swinging to the side
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-3, h/2-1, 6, 3); // Staff swinging right
+        }),
+
+        // Attack animations
+        playerAttackUp: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Attack effect - weapon raised
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2-8, h/4-4, 6, 2);
+        }),
+
+        playerAttackDown: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Attack effect - weapon extended
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2+4, h/2+4, 6, 2);
+        }),
+
+        playerAttackLeft: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Attack effect - weapon to the left
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/4-8, h/2-2, 6, 2);
+        }),
+
+        playerAttackRight: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Attack effect - weapon to the right
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2+4, h/2-2, 6, 2);
+        }),
+
+        // Talking animations
+        playerTalkUp: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Talking effect - speech bubble
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/2-2, h/4-6, 4, 3);
+        }),
+
+        playerTalkDown: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Talking effect - speech bubble
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/2-2, h/2+6, 4, 3);
+        }),
+
+        playerTalkLeft: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Talking effect - speech bubble
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/4-6, h/2-2, 4, 3);
+        }),
+
+        playerTalkRight: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Talking effect - speech bubble
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/2+4, h/2-2, 4, 3);
+        }),
+
+        // Idle animations (directional)
+        playerIdleUp: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Looking up effect
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4-2, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }),
+
+        playerIdleDown: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerIdleLeft: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerIdleRight: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        // Frame variations for animations (placeholders)
+        playerWalkUp1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Frame 1 effect
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillRect(w/4+3, h/3-1, 2, 2);
+        }),
+
+        playerWalkUp2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Frame 2 effect
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillRect(w/4-1, h/3-1, 2, 2);
+        }),
+
+        playerWalkUp3: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            // Frame 3 effect
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillRect(w/4+1, h/3-2, 2, 2);
+        }),
+
+        // Similar frames for other directions (simplified placeholders)
+        playerWalkDown1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkDown2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkDown3: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkLeft1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkLeft2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkLeft3: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkRight1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkRight2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        playerWalkRight3: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+        }),
+
+        // Attack frames
+        playerAttackUp1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2-8, h/4-6, 6, 2);
+        }),
+
+        playerAttackUp2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2-10, h/4-8, 8, 2);
+        }),
+
+        // Similar attack frames for other directions (placeholders)
+        playerAttackDown1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2+4, h/2+6, 6, 2);
+        }),
+
+        playerAttackDown2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2+2, h/2+8, 8, 2);
+        }),
+
+        playerAttackLeft1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/4-10, h/2-2, 6, 2);
+        }),
+
+        playerAttackLeft2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/4-12, h/2-2, 8, 2);
+        }),
+
+        playerAttackRight1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2+4, h/2-2, 6, 2);
+        }),
+
+        playerAttackRight2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/2+6, h/2-2, 8, 2);
+        }),
+
+        // Talking frames
+        playerTalkUp1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/2-2, h/4-8, 4, 4);
+        }),
+
+        playerTalkDown1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/2-2, h/2+6, 4, 4);
+        }),
+
+        playerTalkLeft1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/4-8, h/2-2, 4, 4);
+        }),
+
+        playerTalkRight1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4-6, h/2, 3, h/3);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(w/4-7, h/2-3, 5, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(w/2+4, h/2-2, 4, 4);
         })
     };
 }

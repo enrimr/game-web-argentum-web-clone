@@ -13,6 +13,7 @@ import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { changeMap } from './Game.js';
 import { addChatMessage, updateUI } from '../ui/UI.js';
 import { showDialogue, isDialogueOpen } from '../ui/Dialogue.js';
+import { updatePlayerAnimation, setPlayerAnimationState, setPlayerFacing } from './Renderer.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -43,24 +44,35 @@ function handleMovement(timestamp) {
     let newX = gameState.player.x;
     let newY = gameState.player.y;
     let moved = false;
+    let newDirection = gameState.player.facing;
 
-    // Update player facing direction
+    // Update player facing direction and movement
     if (isKeyPressed('ArrowUp') || isKeyPressed('w') || isKeyPressed('W')) {
         newY--;
-        gameState.player.facing = 'up';
+        newDirection = 'up';
         moved = true;
     } else if (isKeyPressed('ArrowDown') || isKeyPressed('s') || isKeyPressed('S')) {
         newY++;
-        gameState.player.facing = 'down';
+        newDirection = 'down';
         moved = true;
     } else if (isKeyPressed('ArrowLeft') || isKeyPressed('a') || isKeyPressed('A')) {
         newX--;
-        gameState.player.facing = 'left';
+        newDirection = 'left';
         moved = true;
     } else if (isKeyPressed('ArrowRight') || isKeyPressed('d') || isKeyPressed('D')) {
         newX++;
-        gameState.player.facing = 'right';
+        newDirection = 'right';
         moved = true;
+    }
+
+    // Update player direction
+    setPlayerFacing(newDirection);
+
+    // Set animation state based on movement
+    if (moved) {
+        setPlayerAnimationState('walking');
+    } else {
+        setPlayerAnimationState('idle');
     }
 
     if (moved && isWalkable(gameState.map, newX, newY)) {
@@ -89,11 +101,37 @@ function handleMovement(timestamp) {
 }
 
 /**
+ * Check if target is in the direction the player is facing
+ * @param {number} targetX - Target X position
+ * @param {number} targetY - Target Y position
+ * @param {string} playerFacing - Direction player is facing
+ * @returns {boolean} True if target is in facing direction
+ */
+function isTargetInFacingDirection(targetX, targetY, playerFacing) {
+    const px = gameState.player.x;
+    const py = gameState.player.y;
+
+    switch (playerFacing) {
+        case 'up':
+            return targetY < py && targetX === px; // Directly above
+        case 'down':
+            return targetY > py && targetX === px; // Directly below
+        case 'left':
+            return targetX < px && targetY === py; // Directly left
+        case 'right':
+            return targetX > px && targetY === py; // Directly right
+        default:
+            return false;
+    }
+}
+
+/**
  * Handle player interactions (chests, NPCs, portals, enemies)
  */
 function handleInteractions() {
     const px = gameState.player.x;
     const py = gameState.player.y;
+    const playerFacing = gameState.player.facing;
 
     // Check for objects
     let interacted = false;
@@ -137,24 +175,30 @@ function handleInteractions() {
         updateUI();
     }
 
-    // Check for NPCs
+    // Check for NPCs - only if facing the NPC
     for (let npc of gameState.npcs) {
         const dist = Math.abs(npc.x - px) + Math.abs(npc.y - py);
         if (dist === 1 || (npc.x === px && npc.y === py)) {
-            // Mostrar diálogo interactivo con NPC
-            if (!isDialogueOpen()) {
-                showDialogue(npc);
+            // Check if player is facing the NPC
+            if (isTargetInFacingDirection(npc.x, npc.y, playerFacing)) {
+                // Mostrar diálogo interactivo con NPC
+                if (!isDialogueOpen()) {
+                    showDialogue(npc);
+                }
+                return;
             }
-            return;
         }
     }
 
-    // Check for enemies
+    // Check for enemies - only attack if facing the enemy
     for (let enemy of gameState.enemies) {
         const dist = Math.abs(enemy.x - px) + Math.abs(enemy.y - py);
         if (dist === 1) {
-            playerAttack(enemy);
-            break;
+            // Check if player is facing the enemy
+            if (isTargetInFacingDirection(enemy.x, enemy.y, playerFacing)) {
+                playerAttack(enemy);
+                break;
+            }
         }
     }
 }
