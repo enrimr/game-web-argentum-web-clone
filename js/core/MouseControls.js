@@ -38,8 +38,12 @@ function handleCanvasClick(event) {
     const rect = canvas.getBoundingClientRect();
 
     // Obtener coordenadas del clic relativo al canvas
-    const screenX = event.clientX - rect.left;
-    const screenY = event.clientY - rect.top;
+    // Ajustar por cualquier escalado del canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const screenX = (event.clientX - rect.left) * scaleX;
+    const screenY = (event.clientY - rect.top) * scaleY;
 
     // Obtener posición de la cámara para debugging
     const camera = getCameraPosition();
@@ -157,17 +161,29 @@ function getTargetDescription(entityInfo) {
  * @returns {Object} Coordenadas del mundo {x, y}
  */
 function screenToWorld(screenX, screenY) {
-    // Obtener la posición de la cámara (misma función que en Renderer)
+    // Vamos a simplificar completamente la lógica e ir directo a lo que necesitamos:
+    // 1. Medir la coordenada exacta del clic
+    // 2. Determinar qué celda del mundo corresponde
+    
+    // Obtener la posición de la cámara
     const camera = getCameraPosition();
     
-    // Problema: Estamos usando una lógica diferente a la del renderizador
-    // Solución: Usar Math.floor y asegurarnos de que es consistente con el renderizado
-    const tileX = Math.floor(screenX / TILE_SIZE);
-    const tileY = Math.floor(screenY / TILE_SIZE);
+    // Convertir directamente a coordenadas de celda
+    // El renderizador usa estas fórmulas inversas:
+    // screenX = (worldX - camera.x) * TILE_SIZE;
+    // screenY = (worldY - camera.y) * TILE_SIZE;
     
-    // Aplicamos el offset de la cámara
-    const worldX = camera.x + tileX;
-    const worldY = camera.y + tileY;
+    // Despejando worldX y worldY:
+    // worldX = camera.x + (screenX / TILE_SIZE);
+    // worldY = camera.y + (screenY / TILE_SIZE);
+    
+    // Necesitamos usar el mismo método de redondeo usado en renderizado:
+    // Ese método es Math.floor para ambas coordenadas
+    const worldX = camera.x + Math.floor(screenX / TILE_SIZE);
+    const worldY = camera.y + Math.floor(screenY / TILE_SIZE);
+
+    // Log adicional para depuración
+    console.log(`   Cálculo directo: screenX=${screenX}, screenY=${screenY} → worldX=${worldX}, worldY=${worldY}`);
     
     return { x: worldX, y: worldY };
 }
