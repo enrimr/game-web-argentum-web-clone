@@ -100,17 +100,31 @@ function handleCanvasClick(event) {
             }
             // Verificar si el jugador ya está mirando hacia el enemigo aunque no esté adyacente
             else if (isPlayerFacingTarget(enemy.x, enemy.y)) {
-                console.log(`⚔️ Atacando a distancia, ya estabas mirando al enemigo`);
-                
-                // Importar y ejecutar la función de ataque
-                import('../systems/Combat.js').then(({ playerAttack }) => {
-                    playerAttack(enemy);
-                    addChatMessage('system', `⚔️ ¡Atacando al enemigo ${enemy.type} a distancia!`);
-                });
-                
-                // Mantener la dirección, ya estamos mirando hacia el enemigo
-                import('./Renderer.js').then(({ setPlayerAnimationState }) => {
-                    setPlayerAnimationState('attacking'); // Solo activar la animación de ataque
+                // Importar funciones de inventario para verificar arma a distancia y munición
+                import('../systems/Inventory.js').then(({ hasRangedWeaponEquipped, hasAmmunitionEquipped }) => {
+                    // Solo permitir ataque a distancia si tiene arco y flechas equipadas
+                    if (hasRangedWeaponEquipped() && hasAmmunitionEquipped()) {
+                        console.log(`🏹 Atacando a distancia con arco`);
+                        
+                        // Importar y ejecutar la función de ataque
+                        import('../systems/Combat.js').then(({ shootArrow }) => {
+                            // Usar shootArrow en lugar de playerAttack para ataques a distancia
+                            const success = shootArrow();
+                            if (success) {
+                                // La lógica de daño y mensajes se maneja en shootArrow
+                                import('./Renderer.js').then(({ setPlayerAnimationState }) => {
+                                    setPlayerAnimationState('attacking');
+                                });
+                            }
+                        });
+                        
+                        return; // Salir sin iniciar movimiento automático
+                    } else {
+                        console.log(`⚔️ No puedes atacar a distancia sin arco y flechas equipadas, moviéndote hacia el enemigo`);
+                        // Si no tiene arco y flechas, establecer movimiento automático hacia el enemigo
+                        setAutoMoveTarget(enemy.x, enemy.y, 'enemy', enemy);
+                        addChatMessage('system', `🎯 Objetivo: ${getTargetDescription({type: 'enemy', entity: enemy})}`);
+                    }
                 });
                 
                 return; // Salir sin iniciar movimiento automático
@@ -412,10 +426,10 @@ function executeTargetAction() {
                 const dist = Math.abs(target.target.x - gameState.player.x) + Math.abs(target.target.y - gameState.player.y);
                 if (dist === 1) {
                     // Importar y ejecutar el diálogo
-                    import('./Dialogue.js').then(({ showDialogue, isDialogueOpen }) => {
+                    import('../ui/Dialogue.js').then(({ showDialogue, isDialogueOpen }) => {
                         if (!isDialogueOpen()) {
                             showDialogue(target.target);
-                            addChatMessage('system', '💬 Hablando con NPC');
+                            addChatMessage('system', `💬 Conversando con ${target.target.name}`);
                         }
                     });
                 } else {
