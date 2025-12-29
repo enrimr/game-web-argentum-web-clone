@@ -6,6 +6,7 @@
 import { gameState } from '../state.js';
 import { addChatMessage, updateUI } from './UI.js';
 import { setPlayerAnimationState } from '../core/Renderer.js';
+import { openTrade } from './Trading.js';
 
 // Estado del diálogo actual
 let currentDialogue = null;
@@ -153,18 +154,15 @@ function getNPCDialogue(npc) {
             text: "¡Hola aventurero! Tengo los mejores items y pociones para tu viaje. ¿Qué te interesa?",
             options: [
                 {
-                    text: "Comprar pociones",
-                    response: "Tengo pociones rojas por 25 oro cada una, azules por 35 oro. ¿Cuántas quieres?",
+                    text: "Comerciar",
+                    response: "¡Por supuesto! Aquí tienes mi mercancía.",
                     action: () => {
-                        // Aquí iría lógica de compra
-                        addChatMessage('system', 'Sistema de compra próximamente...');
-                    }
-                },
-                {
-                    text: "Vender items",
-                    response: "Puedo comprarte items por la mitad de su valor. Muéstrame lo que tienes.",
-                    action: () => {
-                        addChatMessage('system', 'Sistema de venta próximamente...');
+                        if (currentDialogue) {
+                            // Cerrar el diálogo antes de abrir el comercio
+                            closeDialogue();
+                            // Abrir la ventana de comercio
+                            openTrade(currentDialogue);
+                        }
                     }
                 },
                 {

@@ -162,6 +162,51 @@ export function equipItem(slotIndex) {
 }
 
 /**
+ * Drop item from inventory to the ground
+ * @param {number} slotIndex - Index of the item in inventory
+ * @param {number} quantity - Quantity to drop (defaults to all)
+ * @returns {boolean} True if item was dropped successfully
+ */
+export function dropItem(slotIndex, quantity = null) {
+    const item = gameState.player.inventory[slotIndex];
+    if (!item) return false;
+
+    // If quantity is null, drop all
+    if (quantity === null) {
+        quantity = item.quantity;
+    }
+    
+    // Don't drop more than we have
+    quantity = Math.min(quantity, item.quantity);
+    if (quantity <= 0) return false;
+
+    // Create object on ground at player position
+    gameState.objects.push({
+        type: 'item',
+        x: gameState.player.x,
+        y: gameState.player.y,
+        itemType: item.type,
+        quantity: quantity
+    });
+
+    // Reduce quantity in inventory
+    item.quantity -= quantity;
+    
+    // Remove from inventory if quantity reaches 0
+    if (item.quantity <= 0) {
+        gameState.player.inventory.splice(slotIndex, 1);
+    }
+
+    // Message
+    addChatMessage('system', `🗑️ Has tirado ${quantity}x ${item.name} al suelo`);
+    
+    // Update UI
+    updateUI();
+    
+    return true;
+}
+
+/**
  * Get total quantity of an item type in inventory
  * @param {string} itemType - Type of item to count
  * @returns {number} Total quantity of the item type

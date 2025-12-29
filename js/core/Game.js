@@ -15,6 +15,7 @@ import { updateUI, initUI, addChatMessage } from '../ui/UI.js';
 import { updateMinimap, isMinimapVisible } from '../ui/Minimap.js';
 import { initWorldMap } from '../ui/WorldMap.js';
 import { initDialogue } from '../ui/Dialogue.js';
+import { initTrading } from '../ui/Trading.js';
 import { isPlayerAlive } from '../systems/Combat.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 import { initMouseControls } from './MouseControls.js';
@@ -62,6 +63,9 @@ export function init() {
 
     // Initialize dialogue system
     initDialogue();
+
+    // Initialize trading system
+    initTrading();
 
     // Initialize world map
     initWorldMap();
