@@ -49,7 +49,7 @@ function findNearestWalkableTile(map, startX, startY) {
 /**
  * Initialize the game
  */
-export function init() {
+export async function init() {
     console.log('Initializing game...');
 
     // Initialize input handling
@@ -77,6 +77,19 @@ export function init() {
     gameState.objects = generateObjects(gameState.currentMap);
     gameState.enemies = generateEnemies(gameState.currentMap);
     gameState.npcs = generateNPCs(gameState.currentMap);
+
+    // Debug: log NPCs generated
+    console.log(`🎭 NPCs generados: ${gameState.npcs.length}`);
+    gameState.npcs.forEach((npc, index) => {
+        console.log(`  NPC ${index + 1}: ${npc.name} en (${npc.x}, ${npc.y}) - Tipo: ${npc.npcType}`);
+    });
+
+    // Añadir NPC de prueba cerca del jugador para testing de colisión
+    console.log(`🎭 Creando NPC de prueba cerca del jugador (${gameState.player.x}, ${gameState.player.y})`);
+    const { NPC } = await import('../entities/NPC.js');
+    const testNPC = new NPC('merchant_general', gameState.player.x + 2, gameState.player.y);
+    gameState.npcs.push(testNPC);
+    console.log(`✅ NPC de prueba: ${testNPC.name} en (${testNPC.x}, ${testNPC.y}) - ¡Prueba caminar hacia él!`);
 
     // Add some test items for demonstration (AO style)
     addItemToInventory('BOW', 1);      // Arco para combate a distancia

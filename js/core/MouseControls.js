@@ -355,7 +355,11 @@ export function updateAutoMovement(timestamp) {
         if (isWalkable(gameState.map, newX, newY)) {
             // Verificar que no haya un enemigo bloqueando el camino
             const enemyAtPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
-            if (!enemyAtPosition) {
+            
+            // Verificar que no haya un NPC bloqueando el camino
+            const npcAtPosition = gameState.npcs.some(npc => npc.x === newX && npc.y === newY);
+            
+            if (!enemyAtPosition && !npcAtPosition) {
                 // Movimiento válido encontrado
                 player.x = newX;
                 player.y = newY;

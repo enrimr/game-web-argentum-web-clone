@@ -288,6 +288,34 @@ export class NPC extends Character {
     }
     
     /**
+     * Check if NPC can move to position (collision detection)
+     * @param {number} x - Target X coordinate
+     * @param {number} y - Target Y coordinate
+     * @param {object} gameState - Game state object
+     * @returns {boolean} True if position is free
+     */
+    canMoveTo(x, y, gameState) {
+        // Check if position has player
+        if (gameState.player.x === x && gameState.player.y === y) {
+            return false;
+        }
+        
+        // Check if position has another NPC
+        const hasNPC = gameState.npcs.some(npc => 
+            npc !== this && npc.x === x && npc.y === y
+        );
+        if (hasNPC) return false;
+        
+        // Check if position has an enemy
+        const hasEnemy = gameState.enemies.some(enemy => 
+            enemy.x === x && enemy.y === y
+        );
+        if (hasEnemy) return false;
+        
+        return true;
+    }
+    
+    /**
      * Update NPC (for guards that patrol, etc.)
      */
     update(timestamp) {

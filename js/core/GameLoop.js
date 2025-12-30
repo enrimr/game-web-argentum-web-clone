@@ -90,7 +90,15 @@ function handleMovement(timestamp) {
         // Check if there's an enemy in the target position
         const enemyInPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
 
-        if (!enemyInPosition) {
+        // Check if there's an NPC in the target position
+        const npcInPosition = gameState.npcs.some(npc => npc.x === newX && npc.y === newY);
+
+        // Debug logging
+        if (npcInPosition) {
+            console.log(`🚫 Bloqueado por NPC en posición (${newX}, ${newY})`);
+        }
+
+        if (!enemyInPosition && !npcInPosition) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
@@ -242,13 +250,17 @@ function updateEnemies(timestamp) {
             newX += dx > 0 ? 1 : -1;
         }
 
-        // Check if new position is valid and not occupied by another enemy
+        // Check if new position is valid and not occupied by another enemy or NPC
         if (isWalkable(gameState.map, newX, newY)) {
-            const occupied = gameState.enemies.some(e =>
+            const occupiedByEnemy = gameState.enemies.some(e =>
                 e !== enemy && e.x === newX && e.y === newY
             );
+            
+            const occupiedByNPC = gameState.npcs.some(npc =>
+                npc.x === newX && npc.y === newY
+            );
 
-            if (!occupied && (newX !== gameState.player.x || newY !== gameState.player.y)) {
+            if (!occupiedByEnemy && !occupiedByNPC && (newX !== gameState.player.x || newY !== gameState.player.y)) {
                 enemy.x = newX;
                 enemy.y = newY;
                 enemy.lastMoveTime = timestamp;
