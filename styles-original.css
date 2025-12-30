@@ -876,19 +876,22 @@ body {
     .stats-compact {
         display: flex;
         justify-content: space-around;
-        gap: 10px;
-        font-size: 12px;
+        gap: 8px;
+        font-size: 10px;
+        font-weight: bold;
         flex-wrap: wrap;
     }
 
     .stats-compact span {
         background: rgba(255, 255, 255, 0.1);
-        padding: 4px 8px;
-        border-radius: 5px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 3px 6px;
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
+        min-width: 45px;
+        justify-content: center;
     }
 
     .stat-hp { color: #ef4444; }
