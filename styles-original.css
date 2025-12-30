@@ -938,16 +938,24 @@ body {
         background: rgba(255, 215, 0, 0.8);
         border: 2px solid #ffd700;
         color: #000;
-        width: 30px;
-        height: 30px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: bold;
         z-index: 101;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Hide mobile HUD toggle on desktop */
+    @media (min-width: 769px) {
+        .mobile-hud-toggle {
+            display: none !important;
+        }
     }
 
     .stat-hp { color: #ef4444; }
