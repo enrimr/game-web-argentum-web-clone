@@ -87,55 +87,22 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Chat section with toggle */
+/* Chat section at the top */
 .chat-section {
     background: rgba(0, 0, 0, 0.8);
     border: 3px solid #ffd700;
     border-radius: 10px;
-    padding: 8px;
+    padding: 10px;
     margin-bottom: 5px;
     flex-shrink: 0;
 }
 
-.chat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 5px;
-}
-
-.chat-toggle {
-    background: rgba(255, 215, 0, 0.1);
-    border: 2px solid rgba(255, 215, 0, 0.3);
+.chat-section h3 {
     color: #ffd700;
-    padding: 4px 8px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s;
-    position: relative;
-}
-
-.chat-toggle:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: #ffd700;
-}
-
-.chat-notification {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    background: #ef4444;
-    color: white;
-    border-radius: 50%;
-    width: 12px;
-    height: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 8px;
-    font-weight: bold;
-    border: 2px solid #000;
+    margin-bottom: 8px;
+    font-size: 14px;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 3px;
 }
 
 .chat-log {
@@ -145,7 +112,6 @@ body {
     height: 70px;
     overflow-y: auto;
     font-size: 11px;
-    transition: all 0.3s;
 }
 
 .chat-log p {
@@ -416,68 +382,36 @@ body {
 }
 
 @media (max-width: 768px) {
-.header {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 8px 12px;
-    border-radius: 10px 10px 0 0;
-    border: 3px solid #ffd700;
-    border-bottom: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header h1 {
-    font-size: 18px;
-    color: #ffd700;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    margin: 0;
-}
-
-.menu-button {
-    background: rgba(255, 215, 0, 0.1);
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    color: #ffd700;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s;
-}
-
-.menu-button:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: #ffd700;
-}
-
-.stats-compact {
-    display: flex;
-    justify-content: space-around;
-    gap: 10px;
-    font-size: 12px;
-    flex-wrap: wrap;
-}
-
-.stats-compact span {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 4px 8px;
-    border-radius: 5px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.stat-hp { color: #ef4444; }
-.stat-gold { color: #f59e0b; }
-.stat-level { color: #8b5cf6; }
+    .header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        padding: 8px;
+    }
+    
+    .header h1 {
+        font-size: 18px;
+    }
+    
+    .stats {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        font-size: 11px;
+    }
+    
+    .sidebar {
+        flex-direction: column;
+    }
+    
+    .inventory {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .chat-log {
+        height: 60px;
+        font-size: 10px;
+    }
 }
 
 /* Animation effects */
@@ -903,14 +837,122 @@ body {
     }
 }
 
-/* Mobile-specific styles */
+/* Mobile-specific styles - Responsive design without affecting desktop */
 @media (max-width: 768px) {
-    /* Hide sidebar in mobile, show bottom inventory instead */
+    /* Header adjustments for mobile */
+    .header {
+        padding: 8px 12px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .header h1 {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .menu-button {
+        background: rgba(255, 215, 0, 0.1);
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        color: #ffd700;
+        padding: 6px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+
+    .menu-button:hover {
+        background: rgba(255, 215, 0, 0.2);
+        border-color: #ffd700;
+    }
+
+    .stats-compact {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+        font-size: 12px;
+        flex-wrap: wrap;
+    }
+
+    .stats-compact span {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 4px 8px;
+        border-radius: 5px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .stat-hp { color: #ef4444; }
+    .stat-gold { color: #f59e0b; }
+    .stat-level { color: #8b5cf6; }
+
+    /* Chat adjustments for mobile */
+    .chat-section {
+        padding: 8px;
+    }
+
+    .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .chat-toggle {
+        background: rgba(255, 215, 0, 0.1);
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        color: #ffd700;
+        padding: 4px 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .chat-toggle:hover {
+        background: rgba(255, 215, 0, 0.2);
+        border-color: #ffd700;
+    }
+
+    .chat-notification {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: bold;
+        border: 2px solid #000;
+    }
+
+    .chat-log {
+        height: 50px;
+        font-size: 10px;
+        transition: all 0.3s;
+    }
+
+    /* Hide sidebar in mobile */
     .sidebar {
         display: none;
     }
 
-    /* Bottom inventory bar */
+    /* Bottom inventory bar for mobile */
     .inventory-bottom {
         background: rgba(0, 0, 0, 0.9);
         border: 3px solid #ffd700;
@@ -1032,18 +1074,7 @@ body {
         text-align: center;
     }
 
-    /* Chat improvements for mobile */
-    .chat-log {
-        height: 50px;
-        font-size: 10px;
-    }
-
-    .chat-toggle {
-        font-size: 11px;
-        padding: 3px 6px;
-    }
-
-    /* Game area adjustments */
+    /* Game area adjustments for mobile */
     .game-area {
         flex: 1;
         min-height: 200px;
@@ -1053,16 +1084,35 @@ body {
         min-height: 200px;
     }
 
-    /* Controls adjustments */
+    /* Controls adjustments for mobile */
     .controls {
         font-size: 9px;
         padding: 6px;
     }
 }
 
-/* Hide bottom inventory on desktop */
+/* Hide mobile-specific elements on desktop */
 @media (min-width: 769px) {
     .inventory-bottom {
         display: none;
+    }
+
+    .mobile-menu {
+        display: none !important;
+    }
+
+    /* Hide mobile header elements on desktop */
+    .header-top,
+    .menu-button,
+    .stats-compact,
+    .chat-header,
+    .chat-toggle,
+    .chat-notification {
+        display: none !important;
+    }
+
+    /* Show original desktop header elements */
+    .stats {
+        display: flex;
     }
 }

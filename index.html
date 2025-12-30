@@ -8,11 +8,20 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Compact header for mobile -->
+        <!-- Header with title and stats -->
     <div class="header">
         <div class="header-top">
-            <h1>🗡️ Argentum</h1>
+            <h1>🗡️ Argentum Demo</h1>
             <button id="menuButton" class="menu-button">☰</button>
+        </div>
+        <div class="stats">
+            <span>Mapa: <span id="currentMap">Campo</span></span>
+            <span>Nivel: <span id="level">1</span></span>
+            <span>HP: <span id="hp">100</span>/<span id="hpMax">100</span></span>
+            <span>Mana: <span id="mana">50</span>/<span id="manaMax">50</span></span>
+            <span>Oro: <span id="gold">0</span></span>
+            <span>Pos: <span id="playerPos">5,5</span></span>
+            <span>MapaID: <span id="currentMapId">field</span></span>
         </div>
         <div class="stats-compact">
             <span class="stat-hp">❤️ <span id="hp">100</span>/<span id="hpMax">100</span></span>
@@ -31,9 +40,10 @@
             </div>
         </div>
         
-        <!-- Chat section with toggle button -->
+        <!-- Chat section at the top -->
         <div class="chat-section">
             <div class="chat-header">
+                <h3>💬 Chat del Juego</h3>
                 <button id="toggleChat" class="chat-toggle">💬</button>
                 <div id="chatNotification" class="chat-notification" style="display: none;">●</div>
             </div>
@@ -44,12 +54,77 @@
             </div>
         </div>
         
-        <!-- Main game area -->
+        <!-- Main game area with canvas and sidebar -->
         <div class="game-area">
             <div class="main-game">
                 <canvas id="gameCanvas" width="640" height="416"></canvas>
                 <div class="controls">
                     <p>🎮 Controles: Flechas o WASD para moverte | ESPACIO para interactuar/atacar</p>
+                </div>
+            </div>
+            
+            <!-- Sidebar with inventory and quests -->
+            <div class="sidebar">
+                <div class="panel">
+                    <h3>📦 Inventario</h3>
+                    <div id="inventory" class="inventory">
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                        <div class="item-slot empty" title="Espacio vacío">-</div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>📜 Misiones
+                        <button id="toggleQuests" onclick="toggleQuests()" class="quest-toggle" style="float: right; font-size: 12px; background: none; border: 1px solid #ffd700; color: #ffd700; padding: 2px 6px; cursor: pointer;">Ocultar</button>
+                    </h3>
+                    <div id="questList" class="quest-list">
+                        <ul>
+                            <li>🗺️ Explora todo el mapa</li>
+                            <li>💰 Encuentra y abre los cofres</li>
+                            <li>⚔️ Derrota a los goblins</li>
+                            <li>🏆 Acumula 500 de oro</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="panel character-panel">
+                    <h3> Personaje</h3>
+                    <div class="character-info">
+                        <p><span class="stat-label">Nivel:</span> <span class="stat-value">1</span></p>
+                        <p><span class="stat-label">Clase:</span> <span class="stat-value">Guerrero</span></p>
+                        <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
+                        <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>🗺️ Mapas</h3>
+                    <button id="toggleMinimap" onclick="toggleMinimap()" class="minimap-toggle">Mostrar Minimap</button>
+                    <div id="minimapContainer" class="minimap-container" style="display: none;">
+                        <canvas id="minimapCanvas" width="200" height="150"></canvas>
+                        <div class="minimap-legend">
+                            <div class="legend-item"><span class="legend-color" style="background: #2d5016;"></span> Terreno</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Portal Ciudad</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Portal Mazmorra</div>
+                            <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Jugador</div>
+                        </div>
+                    </div>
+                    <button id="toggleWorldMap" onclick="toggleWorldMap()" class="minimap-toggle" style="margin-top: 8px;">Mostrar Mapa del Mundo</button>
+                    <div id="worldMapContainer" class="world-map-container" style="display: none;">
+                        <canvas id="worldMapCanvas" width="400" height="300"></canvas>
+                        <div class="world-map-info">
+                            <p>🗺️ <strong>Mapa del Mundo Argentum</strong></p>
+                            <p>Haz click en un mapa para viajar (si tienes acceso)</p>
+                            <div id="worldMapDetails" class="world-map-details"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,7 +173,7 @@
             </div>
         </div>
     </div>
-    
+
     <script type="module">
         import { init, toggleQuests } from './js/core/Game.js';
         import { toggleMinimap } from './js/ui/Minimap.js';
@@ -118,34 +193,40 @@
         // Mobile UI functions
         function setupMobileUI() {
             // Menu button
-            document.getElementById('menuButton').addEventListener('click', () => {
-                document.getElementById('mobileMenu').style.display = 'flex';
-            });
+            const menuButton = document.getElementById('menuButton');
+            if (menuButton) {
+                menuButton.addEventListener('click', () => {
+                    document.getElementById('mobileMenu').style.display = 'flex';
+                });
+            }
 
             // Chat toggle
-            let chatVisible = true;
             const chatLog = document.getElementById('chatLog');
             const chatToggle = document.getElementById('toggleChat');
             const chatNotification = document.getElementById('chatNotification');
 
-            chatToggle.addEventListener('click', () => {
-                chatVisible = !chatVisible;
-                if (chatVisible) {
-                    chatLog.style.display = 'block';
-                    chatToggle.textContent = '⬆️';
-                    chatNotification.style.display = 'none';
-                } else {
-                    chatLog.style.display = 'none';
-                    chatToggle.textContent = '💬';
-                }
-            });
+            if (chatToggle && chatLog) {
+                let chatVisible = true;
 
-            // Chat notification system
+                chatToggle.addEventListener('click', () => {
+                    chatVisible = !chatVisible;
+                    if (chatVisible) {
+                        chatLog.style.display = 'block';
+                        chatToggle.textContent = '⬆️';
+                        if (chatNotification) chatNotification.style.display = 'none';
+                    } else {
+                        chatLog.style.display = 'none';
+                        chatToggle.textContent = '💬';
+                    }
+                });
+            }
+
+            // Chat notification system - intercept addChatMessage
             const originalAddMessage = window.addChatMessage;
-            if (originalAddMessage) {
+            if (originalAddMessage && chatNotification && chatLog) {
                 window.addChatMessage = function(type, message) {
                     originalAddMessage(type, message);
-                    if (!chatVisible) {
+                    if (chatLog.style.display === 'none') {
                         chatNotification.style.display = 'block';
                     }
                 };
@@ -154,16 +235,23 @@
 
         // Mobile menu functions
         window.closeMobileMenu = function() {
-            document.getElementById('mobileMenu').style.display = 'none';
+            const menu = document.getElementById('mobileMenu');
+            if (menu) menu.style.display = 'none';
         };
 
         window.showCharacterStats = function() {
             // For now, just show an alert - could be expanded to show a stats modal
+            const level = document.getElementById('level')?.textContent || '1';
+            const hp = document.getElementById('hp')?.textContent || '100';
+            const hpMax = document.getElementById('hpMax')?.textContent || '100';
+            const gold = document.getElementById('gold')?.textContent || '0';
+            const exp = document.getElementById('exp')?.textContent || '0/100';
+
             alert('Estadísticas del personaje:\n\n' +
-                  `Nivel: ${document.getElementById('level').textContent}\n` +
-                  `HP: ${document.getElementById('hp').textContent}/${document.getElementById('hpMax').textContent}\n` +
-                  `Oro: ${document.getElementById('gold').textContent}\n` +
-                  `EXP: ${document.getElementById('exp').textContent}`);
+                  `Nivel: ${level}\n` +
+                  `HP: ${hp}/${hpMax}\n` +
+                  `Oro: ${gold}\n` +
+                  `EXP: ${exp}`);
         };
     </script>
 </body>
