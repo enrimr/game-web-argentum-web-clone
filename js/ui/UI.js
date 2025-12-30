@@ -69,13 +69,31 @@ function updatePlayerStats() {
  * Update inventory UI (AO style) - Show total quantity per item type
  */
 function updateInventory() {
-    for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
-        const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
+    // Update desktop sidebar inventory
+    updateInventorySection('#inventory');
+
+    // Update mobile bottom inventory (if exists)
+    updateInventorySection('.inventory-bottom .inventory');
+}
+
+/**
+ * Update a specific inventory section
+ * @param {string} selector - CSS selector for the inventory container
+ */
+function updateInventorySection(selector) {
+    const inventoryContainer = document.querySelector(selector);
+    if (!inventoryContainer) return;
+
+    const slotElements = inventoryContainer.querySelectorAll('.item-slot');
+
+    for (let i = 0; i < Math.min(MAX_INVENTORY_SLOTS, slotElements.length); i++) {
+        const slotEl = slotElements[i];
         if (!slotEl) continue;
 
         const item = gameState.player.inventory[i];
 
-        // Remove previous classes
+        // Clear previous content and classes
+        slotEl.textContent = '';
         slotEl.classList.remove('empty', 'equipped');
 
         if (item) {
@@ -152,23 +170,9 @@ export function initUI() {
     contextMenu.className = 'context-menu';
     document.body.appendChild(contextMenu);
 
-    // Add click listeners to inventory slots
-    for (let i = 0; i < MAX_INVENTORY_SLOTS; i++) {
-        const slotEl = document.querySelector(`.item-slot:nth-child(${i + 1})`);
-        if (slotEl) {
-            // Left click to equip/use
-            slotEl.addEventListener('click', () => toggleEquipItem(i));
-            
-            // Right click to open context menu
-            slotEl.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const item = gameState.player.inventory[i];
-                if (!item) return; // No menu for empty slots
-                
-                showContextMenu(e, i, item);
-            });
-        }
-    }
+    // Add click listeners to inventory slots for both desktop and mobile
+    initInventoryListeners('#inventory'); // Desktop sidebar
+    initInventoryListeners('.inventory-bottom .inventory'); // Mobile bottom
 
     // Close context menu when clicking elsewhere
     document.addEventListener('click', (e) => {
@@ -176,6 +180,50 @@ export function initUI() {
             hideContextMenu();
         }
     });
+}
+
+/**
+ * Initialize event listeners for a specific inventory section
+ * @param {string} selector - CSS selector for the inventory container
+ */
+function initInventoryListeners(selector) {
+    const inventoryContainer = document.querySelector(selector);
+    if (!inventoryContainer) return;
+
+    const slotElements = inventoryContainer.querySelectorAll('.item-slot');
+
+    for (let i = 0; i < Math.min(MAX_INVENTORY_SLOTS, slotElements.length); i++) {
+        const slotEl = slotElements[i];
+        if (slotEl) {
+            // Left click to equip/use
+            slotEl.addEventListener('click', () => toggleEquipItem(i));
+
+            // Right click to open context menu (desktop only)
+            slotEl.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const item = gameState.player.inventory[i];
+                if (!item) return; // No menu for empty slots
+
+                showContextMenu(e, i, item);
+            });
+
+            // Touch events for mobile (long press for context menu)
+            let touchTimer;
+            slotEl.addEventListener('touchstart', (e) => {
+                touchTimer = setTimeout(() => {
+                    const item = gameState.player.inventory[i];
+                    if (item) {
+                        // Show mobile context menu or just use item
+                        toggleEquipItem(i);
+                    }
+                }, 500); // Long press for 500ms
+            });
+
+            slotEl.addEventListener('touchend', () => {
+                clearTimeout(touchTimer);
+            });
+        }
+    }
 }
 
 /**
