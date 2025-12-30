@@ -29,6 +29,39 @@
             <span class="stat-level">⭐ <span id="level">1</span></span>
         </div>
     </div>
+
+    <!-- Mobile floating HUD -->
+    <button id="hudToggle" class="mobile-hud-toggle">ℹ️</button>
+    <div id="mobileHUD" class="mobile-hud">
+        <div class="hud-item">
+            <span class="hud-label">❤️ HP:</span>
+            <span class="hud-value"><span id="hudHp">100</span>/<span id="hudHpMax">100</span></span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">💧 Mana:</span>
+            <span class="hud-value"><span id="hudMana">50</span>/<span id="hudManaMax">50</span></span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">⭐ Nivel:</span>
+            <span class="hud-value"><span id="hudLevel">1</span></span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">💰 Oro:</span>
+            <span class="hud-value"><span id="hudGold">0</span></span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">🗺️ Mapa:</span>
+            <span class="hud-value"><span id="hudMap">Campo</span></span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">📍 Pos:</span>
+            <span class="hud-value"><span id="hudPos">5,5</span></span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">📊 EXP:</span>
+            <span class="hud-value"><span id="hudExp">0/100</span></span>
+        </div>
+    </div>
         
         <!-- Experience bar -->
         <div class="exp-container">
@@ -197,6 +230,29 @@
             if (menuButton) {
                 menuButton.addEventListener('click', () => {
                     document.getElementById('mobileMenu').style.display = 'flex';
+                });
+            }
+
+            // Mobile HUD toggle
+            const hudToggle = document.getElementById('hudToggle');
+            const mobileHUD = document.getElementById('mobileHUD');
+
+            if (hudToggle && mobileHUD) {
+                let hudVisible = false;
+
+                hudToggle.addEventListener('click', () => {
+                    hudVisible = !hudVisible;
+                    if (hudVisible) {
+                        mobileHUD.style.display = 'block';
+                        hudToggle.textContent = '❌';
+                        hudToggle.style.background = 'rgba(244, 67, 54, 0.8)';
+                        hudToggle.style.borderColor = '#f44336';
+                    } else {
+                        mobileHUD.style.display = 'none';
+                        hudToggle.textContent = 'ℹ️';
+                        hudToggle.style.background = 'rgba(255, 215, 0, 0.8)';
+                        hudToggle.style.borderColor = '#ffd700';
+                    }
                 });
             }
 

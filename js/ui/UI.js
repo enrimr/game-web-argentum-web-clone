@@ -25,6 +25,7 @@ export function updateUI() {
  * Update player stats display
  */
 function updatePlayerStats() {
+    // Update desktop stats
     document.getElementById('hp').textContent = gameState.player.hp;
     document.getElementById('hpMax').textContent = gameState.player.maxHp;
     document.getElementById('mana').textContent = gameState.player.mana;
@@ -63,6 +64,46 @@ function updatePlayerStats() {
     if (chestsOpenedEl) {
         chestsOpenedEl.textContent = gameState.stats.chestsOpened;
     }
+
+    // Update mobile HUD
+    updateMobileHUD();
+}
+
+/**
+ * Update mobile floating HUD
+ */
+function updateMobileHUD() {
+    // Update mobile HUD values
+    const hudHp = document.getElementById('hudHp');
+    const hudHpMax = document.getElementById('hudHpMax');
+    const hudMana = document.getElementById('hudMana');
+    const hudManaMax = document.getElementById('hudManaMax');
+    const hudLevel = document.getElementById('hudLevel');
+    const hudGold = document.getElementById('hudGold');
+    const hudMap = document.getElementById('hudMap');
+    const hudPos = document.getElementById('hudPos');
+    const hudExp = document.getElementById('hudExp');
+
+    if (hudHp) hudHp.textContent = gameState.player.hp;
+    if (hudHpMax) hudHpMax.textContent = gameState.player.maxHp;
+    if (hudMana) hudMana.textContent = gameState.player.mana;
+    if (hudManaMax) hudManaMax.textContent = gameState.player.maxMana;
+    if (hudLevel) hudLevel.textContent = gameState.player.level;
+    if (hudGold) hudGold.textContent = gameState.player.gold;
+
+    // Update map name
+    const mapNames = {
+        'field': 'Campo',
+        'city': 'Ciudad',
+        'dungeon': 'Mazmorra'
+    };
+    if (hudMap) hudMap.textContent = mapNames[gameState.currentMap] || 'Campo';
+
+    // Update position
+    if (hudPos) hudPos.textContent = `${gameState.player.x},${gameState.player.y}`;
+
+    // Update experience
+    if (hudExp) hudExp.textContent = `${gameState.player.exp}/${gameState.player.expToNextLevel}`;
 }
 
 /**
