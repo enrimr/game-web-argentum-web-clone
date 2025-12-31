@@ -869,30 +869,42 @@ body {
 
     /* Alternative: Floating HUD overlay */
     .mobile-hud {
-        position: absolute;
+        position: fixed;
         top: 10px;
-        right: 10px;
+        right: 50px; /* Desplazado a la izquierda para no tapar el botón */
         background: rgba(0, 0, 0, 0.8);
         border: 2px solid #ffd700;
         border-radius: 8px;
         padding: 8px;
-        min-width: 120px;
+        min-width: 280px; /* Más ancho para dos filas */
         z-index: 100;
         display: none; /* Hidden by default, toggle with button */
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* 4 columnas para primera fila */
+        grid-template-rows: auto auto; /* 2 filas */
+        gap: 6px;
     }
 
     .mobile-hud .hud-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 4px;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: bold;
+        padding: 2px 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        min-height: 20px;
     }
 
-    .mobile-hud .hud-item:last-child {
-        margin-bottom: 0;
-    }
+    /* Distribución específica de elementos en el grid */
+    .mobile-hud .hud-item:nth-child(1) { grid-column: 1; grid-row: 1; } /* HP */
+    .mobile-hud .hud-item:nth-child(2) { grid-column: 2; grid-row: 1; } /* Mana */
+    .mobile-hud .hud-item:nth-child(3) { grid-column: 3; grid-row: 1; } /* Nivel */
+    .mobile-hud .hud-item:nth-child(4) { grid-column: 4; grid-row: 1; } /* Oro */
+    .mobile-hud .hud-item:nth-child(5) { grid-column: 1; grid-row: 2; } /* Mapa */
+    .mobile-hud .hud-item:nth-child(6) { grid-column: 2; grid-row: 2; } /* Posición */
+    .mobile-hud .hud-item:nth-child(7) { grid-column: 3 / span 2; grid-row: 2; } /* EXP ocupa 2 columnas */
 
     .mobile-hud .hud-label {
         color: #ffd700;
@@ -903,7 +915,7 @@ body {
     }
 
     .mobile-hud-toggle {
-        position: absolute;
+        position: fixed;
         top: 10px;
         right: 10px;
         background: rgba(255, 215, 0, 0.8);
@@ -920,13 +932,6 @@ body {
         align-items: center;
         justify-content: center;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Hide mobile HUD toggle on desktop */
-    @media (min-width: 769px) {
-        .mobile-hud-toggle {
-            display: none !important;
-        }
     }
 
     .stat-hp { color: #ef4444; }
@@ -1136,6 +1141,12 @@ body {
     }
 
     .mobile-menu {
+        display: none !important;
+    }
+
+    /* Hide mobile HUD toggle and HUD on desktop */
+    .mobile-hud-toggle,
+    .mobile-hud {
         display: none !important;
     }
 

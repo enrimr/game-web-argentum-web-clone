@@ -236,22 +236,19 @@
             // Mobile HUD toggle
             const hudToggle = document.getElementById('hudToggle');
             const mobileHUD = document.getElementById('mobileHUD');
-            const header = document.querySelector('.header');
 
-            if (hudToggle && mobileHUD && header) {
+            if (hudToggle && mobileHUD) {
                 let hudVisible = false;
 
                 hudToggle.addEventListener('click', () => {
                     hudVisible = !hudVisible;
                     if (hudVisible) {
                         mobileHUD.style.display = 'block';
-                        header.style.display = 'block';
                         hudToggle.textContent = '❌';
                         hudToggle.style.background = 'rgba(244, 67, 54, 0.8)';
                         hudToggle.style.borderColor = '#f44336';
                     } else {
                         mobileHUD.style.display = 'none';
-                        header.style.display = 'none';
                         hudToggle.textContent = 'ℹ️';
                         hudToggle.style.background = 'rgba(255, 215, 0, 0.8)';
                         hudToggle.style.borderColor = '#ffd700';
