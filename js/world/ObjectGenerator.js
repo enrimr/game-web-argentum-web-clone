@@ -215,6 +215,59 @@ export function generateObjects(mapType) {
 export function generateEnemies(mapType) {
     const enemies = [];
 
+    // First check if it's a static map with defined enemies
+    const staticMap = getStaticMap(mapType);
+    if (staticMap && staticMap.enemies && staticMap.enemies.enabled) {
+        // Use static map enemy definitions
+        console.log(`Generando enemigos para mapa estático: ${mapType}`);
+        
+        for (const enemyDef of staticMap.enemies.types) {
+            const enemyStats = ENEMY_STATS[enemyDef.type];
+            if (!enemyStats) {
+                console.error(`Enemy type ${enemyDef.type} not found in ENEMY_STATS`);
+                continue;
+            }
+
+            // Generate specified count of this enemy type
+            for (let i = 0; i < enemyDef.count; i++) {
+                let x, y;
+                let attempts = 0;
+                const maxAttempts = 50;
+
+                // Try to find a valid spawn position
+                do {
+                    x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                    y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+                    attempts++;
+                } while (!isWalkable(gameState.map, x, y) && attempts < maxAttempts);
+
+                if (attempts >= maxAttempts) {
+                    console.warn(`Could not find spawn position for ${enemyDef.type}`);
+                    continue;
+                }
+
+                enemies.push({
+                    type: enemyDef.type,
+                    x: x,
+                    y: y,
+                    hp: enemyStats.hp,
+                    maxHp: enemyStats.hp,
+                    lastMoveTime: 0,
+                    moveDelay: enemyStats.moveDelay,
+                    lastAttackTime: 0,
+                    attackDelay: enemyStats.attackDelay,
+                    damage: enemyStats.damage,
+                    goldDrop: enemyStats.goldDrop,
+                    expReward: enemyStats.expReward
+                });
+            }
+        }
+
+        console.log(`✅ Generados ${enemies.length} enemigos para ${mapType}`);
+        return enemies;
+    }
+
+    // Fallback to procedural enemy generation
     if (mapType === 'field') {
         // Field - mix of goblins and skeletons
         const enemyTypes = ['goblin', 'skeleton'];
