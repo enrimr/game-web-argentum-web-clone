@@ -85,6 +85,12 @@ export async function init() {
         console.log(`  NPC ${index + 1}: ${npc.name} en (${npc.x}, ${npc.y}) - Tipo: ${npc.npcType}`);
     });
 
+    // Debug: log objects (portals) generated
+    console.log(`🏠 Objetos generados: ${gameState.objects.length}`);
+    gameState.objects.forEach((obj, index) => {
+        console.log(`  Objeto ${index + 1}: ${obj.type} en (${obj.x}, ${obj.y})`);
+    });
+
     // Añadir NPC de prueba cerca del jugador para testing de colisión
     console.log(`🎭 Creando NPC de prueba cerca del jugador (${gameState.player.x}, ${gameState.player.y})`);
     const { NPC } = await import('../entities/NPC.js');
