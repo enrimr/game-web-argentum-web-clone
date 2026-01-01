@@ -391,6 +391,12 @@ export function generateNewbieCityWithBuildings() {
         const doorX1 = building.x + Math.floor(building.w / 2) - 1; // Puerta izquierda
         const doorX2 = building.x + Math.floor(building.w / 2); // Puerta derecha
         const shadowY = facadeY + 1; // Sombra frente a puerta
+        
+        // Debug log para verificar la creación de fachadas
+        console.log(`🏠 Creando fachada para edificio en (${building.x}, ${building.y})`);
+        console.log(`  - Fila de ventanas en Y=${windowY}`);
+        console.log(`  - Fila de puertas en Y=${facadeY}, puertas en X=${doorX1},${doorX2}`);
+        console.log(`  - Sombras de entrada en Y=${shadowY}, X=${doorX1},${doorX2}`);
 
         // Fila superior: VENTANAS
         for (let x = building.x; x < building.x + building.w; x++) {
