@@ -1298,6 +1298,79 @@ export function generateAllSprites(TILE_SIZE) {
             ctx.fillRect(w/4-7, h/2-3, 5, 3);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(w/2+4, h/2-2, 4, 4);
+        }),
+
+        // Interior building tiles
+        door: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#a16207';
+            ctx.fillRect(2, 2, w-4, h-4);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(w/2-2, h/2-2, 4, 4);
+            ctx.strokeStyle = '#78350f';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, w, h);
+        }),
+
+        wallInterior: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#a16207';
+            ctx.fillRect(2, 2, w-4, h-4);
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(4, 4, 4, 4);
+            ctx.fillRect(w-8, 4, 4, 4);
+            ctx.fillRect(4, h-8, 4, 4);
+            ctx.fillRect(w-8, h-8, 4, 4);
+        }),
+
+        floorInterior: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#a16207';
+            ctx.fillRect(2, 2, w-4, h-4);
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(4, 4, 4, 4);
+            ctx.fillRect(w-8, 4, 4, 4);
+            ctx.fillRect(4, h-8, 4, 4);
+            ctx.fillRect(w-8, h-8, 4, 4);
+        }),
+
+        roof: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Tejas rojas estilo español
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(0, 0, w, h);
+            // Líneas de separación de tejas
+            ctx.fillStyle = '#991b1b';
+            for (let i = 0; i < h; i += 4) {
+                ctx.fillRect(0, i, w, 1);
+            }
+            // Sombra de tejas
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillRect(2, 2, w-4, h-4);
+        }),
+
+        window: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#a16207';
+            ctx.fillRect(2, 2, w-4, h-4);
+            // Marco de ventana
+            ctx.strokeStyle = '#78350f';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(4, 4, w-8, h-8);
+            // Cristal
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillRect(6, 6, w-12, h-12);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(w/2, 6);
+            ctx.lineTo(w/2, h-6);
+            ctx.moveTo(6, h/2);
+            ctx.lineTo(w-6, h/2);
+            ctx.stroke();
         })
     };
 }
