@@ -5,13 +5,14 @@
 
 import { TILES } from './TileTypes.js';
 import { CONFIG } from '../config.js';
-import { 
+import {
     generateNewbieCityLayout,
     generateNewbieFieldLayout,
     generateDarkForestLayout,
     generateDungeonLevel1Layout,
     generateTreasureIslandLayout,
-    generateMountainPassLayout
+    generateMountainPassLayout,
+    generateNewbieCityWithBuildings
 } from './StaticMapLayouts.js';
 
 const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
@@ -27,7 +28,7 @@ export const STATIC_WORLD_MAPS = {
         type: 'city',
         safeZone: true,
         worldPosition: { x: 200, y: 150 },
-        layout: generateNewbieCityLayout,
+        layout: generateNewbieCityWithBuildings,
         npcs: [
             { type: 'banker_city', x: 25, y: 10, dialogue: 'welcome_king' },
             { type: 'blacksmith_ullathorpe', x: 15, y: 15, dialogue: 'shop_weapons' },
