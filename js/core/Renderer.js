@@ -405,6 +405,7 @@ function getTileSprite(tileType) {
         case TILES.FLOOR_INTERIOR: return sprites.floorInterior;
         case TILES.ROOF: return sprites.roof;
         case TILES.WINDOW: return sprites.window;
+        case TILES.DOOR_SHADOW: return sprites.doorShadow;
         default: return sprites.grass;
     }
 }

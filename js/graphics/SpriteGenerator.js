@@ -1401,6 +1401,18 @@ export function generateAllSprites(TILE_SIZE) {
             ctx.moveTo(6, h/2);
             ctx.lineTo(w-6, h/2);
             ctx.stroke();
+        }),
+
+        doorShadow: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Base de grass
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, w, h);
+            // Sombra oscura semi-transparente frente a la puerta
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(0, 0, w, h);
+            // Indicador visual sutil (línea más oscura abajo)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(0, h-4, w, 4);
         })
     };
 }

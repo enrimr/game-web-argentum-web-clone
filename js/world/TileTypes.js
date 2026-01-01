@@ -14,7 +14,8 @@ export const TILES = {
     WALL_INTERIOR: 10, // Interior wall - not walkable
     FLOOR_INTERIOR: 11,// Interior floor - walkable
     ROOF: 12,          // Roof tile - visible only from outside
-    WINDOW: 13         // Window - not walkable, decorative
+    WINDOW: 13,        // Window - not walkable, decorative
+    DOOR_SHADOW: 14    // Shadow/entrance marker in front of door - walkable
 };
 
 /**
@@ -27,6 +28,7 @@ export function isTileWalkable(tile) {
            tile === TILES.FLOOR || 
            tile === TILES.PATH || 
            tile === TILES.DOOR ||
+           tile === TILES.DOOR_SHADOW ||
            tile === TILES.FLOOR_INTERIOR;
 }
 
