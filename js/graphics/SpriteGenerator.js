@@ -446,6 +446,36 @@ export function generateAllSprites(TILE_SIZE) {
             ctx.fillRect(w/4-3, h/2+3, 2, 2);
         }),
 
+        npc_guard: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Armadura plateada
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Cara (piel)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            // Casco (gris oscuro)
+            ctx.fillStyle = '#4b5563';
+            ctx.fillRect(w/2-6, h/4-6, 12, 4);
+            // Espada (plateada)
+            ctx.fillStyle = '#d1d5db';
+            ctx.fillRect(w/4-8, h/2, 2, h/3);
+            // Empuñadura dorada
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(w/4-9, h/2-2, 4, 2);
+            // Escudo (rojo con cruz blanca)
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w/4+w/2+2, h/2, 6, 8);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(w/4+w/2+3, h/2+3, 4, 2);
+            ctx.fillRect(w/4+w/2+4, h/2+2, 2, 4);
+        }),
+
         // Object sprites
         chest: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
             ctx.fillStyle = '#92400e';
