@@ -29,12 +29,12 @@ export const STATIC_WORLD_MAPS = {
         worldPosition: { x: 200, y: 150 },
         layout: generateNewbieCityLayout,
         npcs: [
-            { type: 'king', x: 25, y: 10, dialogue: 'welcome_king' },
-            { type: 'merchant', x: 15, y: 15, dialogue: 'shop_weapons' },
-            { type: 'merchant', x: 35, y: 15, dialogue: 'shop_armor' },
-            { type: 'healer', x: 25, y: 25, dialogue: 'healing' },
-            { type: 'trainer', x: 10, y: 30, dialogue: 'training' },
-            { type: 'guard', x: 25, y: 5, dialogue: 'guard_north' }
+            { type: 'banker_city', x: 25, y: 10, dialogue: 'welcome_king' },
+            { type: 'blacksmith_ullathorpe', x: 15, y: 15, dialogue: 'shop_weapons' },
+            { type: 'merchant_general', x: 35, y: 15, dialogue: 'shop_armor' },
+            { type: 'alchemist_market', x: 25, y: 25, dialogue: 'healing' },
+            { type: 'trainer_skills', x: 10, y: 30, dialogue: 'training' },
+            { type: 'guard_city', x: 25, y: 5, dialogue: 'guard_north' }
         ],
         enemies: { enabled: false },
         objects: {
@@ -57,8 +57,8 @@ export const STATIC_WORLD_MAPS = {
         worldPosition: { x: 200, y: 220 },
         layout: generateNewbieFieldLayout,
         npcs: [
-            { type: 'farmer', x: 10, y: 10, dialogue: 'farmer_tips' },
-            { type: 'merchant', x: 40, y: 30, dialogue: 'traveling_merchant' }
+            { type: 'trainer_skills', x: 10, y: 10, dialogue: 'farmer_tips' },
+            { type: 'merchant_general', x: 40, y: 30, dialogue: 'traveling_merchant' }
         ],
         enemies: {
             enabled: true,
@@ -89,9 +89,7 @@ export const STATIC_WORLD_MAPS = {
         safeZone: false,
         worldPosition: { x: 300, y: 220 },
         layout: generateDarkForestLayout,
-        npcs: [
-            { type: 'hermit', x: 25, y: 25, dialogue: 'hermit_wisdom' }
-        ],
+        npcs: [], // No NPCs for now
         enemies: {
             enabled: true,
             types: [
@@ -147,9 +145,7 @@ export const STATIC_WORLD_MAPS = {
         safeZone: false,
         worldPosition: { x: 100, y: 100 },
         layout: generateTreasureIslandLayout,
-        npcs: [
-            { type: 'pirate', x: 25, y: 25, dialogue: 'pirate_treasure' }
-        ],
+        npcs: [], // No NPCs for now
         enemies: {
             enabled: true,
             types: [
@@ -174,9 +170,7 @@ export const STATIC_WORLD_MAPS = {
         safeZone: false,
         worldPosition: { x: 350, y: 180 },
         layout: generateMountainPassLayout,
-        npcs: [
-            { type: 'miner', x: 15, y: 20, dialogue: 'miner_ore' }
-        ],
+        npcs: [], // No NPCs for now
         enemies: {
             enabled: true,
             types: [
