@@ -6,6 +6,7 @@
 
 import { CONFIG } from '../config.js';
 import { TILES, isTileWalkable } from './TileTypes.js';
+import { generateNewbieCityWithBuildings } from './StaticMapLayouts.js';
 
 const { MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } = CONFIG;
 
@@ -16,7 +17,21 @@ const { MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } = CONFIG;
  * @returns {Array} 2D array representing the map
  */
 export function generateMap(mapType) {
-    // First, try to load a static map
+    // Special case for newbie_city to use our enhanced version with building facades
+    if (mapType === 'newbie_city') {
+        console.log("🏙️ Generando mapa de Newbie City con edificios mejorados");
+        
+        try {
+            // Usamos directamente la función importada al inicio del archivo
+            return generateNewbieCityWithBuildings();
+        } catch (error) {
+            console.error("Error al generar mapa con edificios mejorados:", error);
+            console.log("⚠️ Usando versión básica como fallback");
+            return generateNewbieCityLayout();
+        }
+    }
+    
+    // For other maps, try to load a static map
     const staticMap = loadStaticMap(mapType);
     if (staticMap && Array.isArray(staticMap) && staticMap.length > 0) {
         return staticMap;
