@@ -182,6 +182,9 @@ export function changeMap(targetMap, targetX, targetY) {
     gameState.player.x = targetX;
     gameState.player.y = targetY;
 
+    // Clear dead enemies from other maps to prevent respawns in wrong maps
+    gameState.deadEnemies = gameState.deadEnemies.filter(deadEnemy => deadEnemy.map === targetMap);
+
     // Regenerate map content
     gameState.map = generateMap(targetMap);
     gameState.objects = generateObjects(targetMap);
