@@ -1,6 +1,7 @@
 /**
  * MapGenerator.js
  * Generación de mapas para diferentes áreas del juego
+ * Compatible con mapas estáticos y generación procedimental
  */
 
 import { CONFIG } from '../config.js';
@@ -10,10 +11,18 @@ const { MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } = CONFIG;
 
 /**
  * Generate map based on current map type
+ * First checks for static maps, then falls back to procedural generation
  * @param {string} mapType - Type of map to generate
  * @returns {Array} 2D array representing the map
  */
 export function generateMap(mapType) {
+    // First, try to load a static map
+    const staticMap = loadStaticMap(mapType);
+    if (staticMap) {
+        return staticMap;
+    }
+
+    // If no static map is found, use procedural generation
     switch (mapType) {
         case 'field':
             return generateFieldMap();
@@ -36,6 +45,72 @@ export function generateMap(mapType) {
         default:
             return generateFieldMap();
     }
+}
+
+/**
+ * Load a static map from JSON file if it exists
+ * @param {string} mapType - Map type to load
+ * @returns {Array|null} Static map layout or null if not found
+ */
+function loadStaticMap(mapType) {
+    try {
+        // Map of mapType to static map file names
+        const staticMapFiles = {
+            'newbie_city': 'newbie_city.json',
+            'newbie_field': 'newbie_field.json',
+            'dark_forest': 'dark_forest.json',
+            // Add more mappings as static maps are created
+        };
+
+        if (staticMapFiles[mapType]) {
+            // In a real implementation, this would be an async fetch
+            // For now, we'll use a synchronous approach with dynamic imports
+            // This is a placeholder - in production, you'd load via fetch or require
+
+            // For development, we'll use a switch statement to return the static layouts
+            switch (mapType) {
+                case 'newbie_city':
+                    return getNewbieCityLayout();
+                case 'newbie_field':
+                    return getNewbieFieldLayout();
+                case 'dark_forest':
+                    return getDarkForestLayout();
+                default:
+                    return null;
+            }
+        }
+    } catch (error) {
+        console.warn(`Failed to load static map for ${mapType}:`, error);
+    }
+    return null;
+}
+
+/**
+ * Get newbie city static layout
+ */
+function getNewbieCityLayout() {
+    const map = [];
+    // This would normally be loaded from newbie_city.json
+    // For now, we'll call the existing function
+    return generateNewbieCityLayout();
+}
+
+/**
+ * Get newbie field static layout
+ */
+function getNewbieFieldLayout() {
+    const map = [];
+    // This would normally be loaded from newbie_field.json
+    return generateNewbieFieldLayout();
+}
+
+/**
+ * Get dark forest static layout
+ */
+function getDarkForestLayout() {
+    const map = [];
+    // This would normally be loaded from dark_forest.json
+    return generateDarkForestLayout();
 }
 
 // Generate field map (outdoor area) - CORRECT ORDER: terrain -> obstacles
@@ -484,4 +559,140 @@ export function isWalkable(map, x, y) {
 
     // Walkable tiles: grass, floor, and paths
     return tile === TILES.GRASS || tile === TILES.FLOOR || tile === TILES.PATH;
+}
+
+// ===== STATIC MAP LAYOUT FUNCTIONS =====
+
+/**
+ * Generate newbie city layout (static)
+ */
+function generateNewbieCityLayout() {
+    const map = [];
+
+    // Create base with walls
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.GRASS);
+            }
+        }
+        map.push(row);
+    }
+
+    // Streets in cross pattern
+    for (let x = 1; x < MAP_WIDTH - 1; x++) {
+        map[20][x] = TILES.PATH;
+    }
+    for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+        map[y][25] = TILES.PATH;
+    }
+
+    // Plaza central
+    for (let y = 18; y < 23; y++) {
+        for (let x = 23; x < 28; x++) {
+            map[y][x] = TILES.PATH;
+        }
+    }
+
+    // Buildings
+    const buildings = [
+        { x: 5, y: 5, w: 8, h: 6 },
+        { x: 37, y: 5, w: 8, h: 6 },
+        { x: 5, y: 28, w: 8, h: 6 },
+        { x: 37, y: 28, w: 8, h: 6 },
+        { x: 15, y: 10, w: 6, h: 5 },
+        { x: 31, y: 10, w: 6, h: 5 }
+    ];
+
+    for (const building of buildings) {
+        for (let y = building.y; y < building.y + building.h; y++) {
+            for (let x = building.x; x < building.x + building.w; x++) {
+                if (x > 0 && x < MAP_WIDTH - 1 && y > 0 && y < MAP_HEIGHT - 1) {
+                    map[y][x] = TILES.BUILDING;
+                }
+            }
+        }
+    }
+
+    return map;
+}
+
+/**
+ * Generate newbie field layout (static)
+ */
+function generateNewbieFieldLayout() {
+    const map = [];
+
+    // Base with walls
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.GRASS);
+            }
+        }
+        map.push(row);
+    }
+
+    // Some obstacles
+    for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (let x = 1; x < MAP_WIDTH - 1; x++) {
+            const rand = Math.random();
+            if (rand < 0.05) {
+                map[y][x] = TILES.TREE;
+            } else if (rand < 0.07) {
+                map[y][x] = TILES.STONE;
+            }
+        }
+    }
+
+    // Path
+    for (let x = 10; x < MAP_WIDTH - 10; x++) {
+        if (x < MAP_WIDTH && 15 < MAP_HEIGHT) {
+            map[15][x] = TILES.PATH;
+        }
+    }
+
+    return map;
+}
+
+/**
+ * Generate dark forest layout (static)
+ */
+function generateDarkForestLayout() {
+    const map = [];
+
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                const rand = Math.random();
+                if (rand < 0.35) {
+                    row.push(TILES.TREE);
+                } else if (rand < 0.38) {
+                    row.push(TILES.STONE);
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
+        }
+        map.push(row);
+    }
+
+    // Central path
+    for (let x = 5; x < MAP_WIDTH - 5; x++) {
+        if (x < MAP_WIDTH && 20 < MAP_HEIGHT) {
+            map[20][x] = TILES.PATH;
+            if (21 < MAP_HEIGHT) map[21][x] = TILES.PATH;
+        }
+    }
+
+    return map;
 }

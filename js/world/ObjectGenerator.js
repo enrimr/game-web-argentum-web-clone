@@ -6,6 +6,7 @@
 import { CONFIG } from '../config.js';
 import { gameState } from '../state.js';
 import { MAP_DEFINITIONS } from './MapDefinitions.js';
+import { STATIC_WORLD_MAPS, getStaticMap } from './StaticWorldMaps.js';
 import { ENEMY_STATS } from '../entities/EnemyTypes.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { TILES } from './TileTypes.js';
@@ -113,9 +114,25 @@ export function generateObjects(mapType) {
     }
 
     // Add portals for current map - PLACE IN SAFE WALKABLE POSITIONS
-    const mapDef = MAP_DEFINITIONS[mapType];
-    if (mapDef && mapDef.portals) {
-        for (const portal of mapDef.portals) {
+    // First check static maps, then fallback to procedural definitions
+    let portalDefinitions = null;
+
+    // Check if it's a static map
+    const staticMap = getStaticMap(mapType);
+    if (staticMap && staticMap.portals) {
+        portalDefinitions = staticMap.portals;
+    }
+    // Fallback to procedural map definitions
+    else {
+        const mapDef = MAP_DEFINITIONS[mapType];
+        if (mapDef && mapDef.portals) {
+            portalDefinitions = mapDef.portals;
+        }
+    }
+
+    // Create portals from definitions
+    if (portalDefinitions) {
+        for (const portal of portalDefinitions) {
             // Find safe position for portal (starting from preferred position)
             const safePos = findSafeWalkablePosition(portal.x, portal.y);
 
@@ -198,6 +215,59 @@ export function generateObjects(mapType) {
 export function generateEnemies(mapType) {
     const enemies = [];
 
+    // First check if it's a static map with defined enemies
+    const staticMap = getStaticMap(mapType);
+    if (staticMap && staticMap.enemies && staticMap.enemies.enabled) {
+        // Use static map enemy definitions
+        console.log(`Generando enemigos para mapa estático: ${mapType}`);
+        
+        for (const enemyDef of staticMap.enemies.types) {
+            const enemyStats = ENEMY_STATS[enemyDef.type];
+            if (!enemyStats) {
+                console.error(`Enemy type ${enemyDef.type} not found in ENEMY_STATS`);
+                continue;
+            }
+
+            // Generate specified count of this enemy type
+            for (let i = 0; i < enemyDef.count; i++) {
+                let x, y;
+                let attempts = 0;
+                const maxAttempts = 50;
+
+                // Try to find a valid spawn position
+                do {
+                    x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                    y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+                    attempts++;
+                } while (!isWalkable(gameState.map, x, y) && attempts < maxAttempts);
+
+                if (attempts >= maxAttempts) {
+                    console.warn(`Could not find spawn position for ${enemyDef.type}`);
+                    continue;
+                }
+
+                enemies.push({
+                    type: enemyDef.type,
+                    x: x,
+                    y: y,
+                    hp: enemyStats.hp,
+                    maxHp: enemyStats.hp,
+                    lastMoveTime: 0,
+                    moveDelay: enemyStats.moveDelay,
+                    lastAttackTime: 0,
+                    attackDelay: enemyStats.attackDelay,
+                    damage: enemyStats.damage,
+                    goldDrop: enemyStats.goldDrop,
+                    expReward: enemyStats.expReward
+                });
+            }
+        }
+
+        console.log(`✅ Generados ${enemies.length} enemigos para ${mapType}`);
+        return enemies;
+    }
+
+    // Fallback to procedural enemy generation
     if (mapType === 'field') {
         // Field - mix of goblins and skeletons
         const enemyTypes = ['goblin', 'skeleton'];
@@ -433,80 +503,16 @@ export function generateEnemies(mapType) {
 export function generateNPCs(mapType) {
     const npcs = [];
 
-    if (mapType === 'city') {
-        // Ciudad: Colocar varios NPCs usando la clase NPC
-        const cityNPCs = [
-            { type: 'merchant_general', x: 25, y: 15 },
-            { type: 'blacksmith_ullathorpe', x: 18, y: 22 },
-            { type: 'guard_city', x: 32, y: 18 },
-            { type: 'banker_city', x: 20, y: 10 }
-        ];
-
-        for (const npcSpawn of cityNPCs) {
-            // Buscar posición walkable cercana
+    // First check if it's a static map with defined NPCs
+    const staticMap = getStaticMap(mapType);
+    if (staticMap && staticMap.npcs) {
+        // Use static map NPC definitions
+        for (const npcSpawn of staticMap.npcs) {
+            // Find walkable position near preferred location
             let x = npcSpawn.x;
             let y = npcSpawn.y;
 
-            // Ajustar si no es walkable
-            for (let dy = -2; dy <= 2; dy++) {
-                for (let dx = -2; dx <= 2; dx++) {
-                    const testX = npcSpawn.x + dx;
-                    const testY = npcSpawn.y + dy;
-                    if (testX > 0 && testX < MAP_WIDTH - 1 &&
-                        testY > 0 && testY < MAP_HEIGHT - 1 &&
-                        isWalkable(gameState.map, testX, testY)) {
-                        x = testX;
-                        y = testY;
-                        break;
-                    }
-                }
-            }
-
-            // Crear instancia de NPC usando la clase NPC
-            const npc = new NPC(npcSpawn.type, x, y);
-            npcs.push(npc);
-        }
-    } else if (mapType === 'market') {
-        // Mercado: Mercader y Alquimista
-        const marketNPCs = [
-            { type: 'merchant_general', x: 15, y: 12 },
-            { type: 'alchemist_market', x: 25, y: 18 }
-        ];
-
-        for (const npcSpawn of marketNPCs) {
-            let x = npcSpawn.x;
-            let y = npcSpawn.y;
-
-            // Buscar posición walkable cercana
-            for (let dy = -2; dy <= 2; dy++) {
-                for (let dx = -2; dx <= 2; dx++) {
-                    const testX = npcSpawn.x + dx;
-                    const testY = npcSpawn.y + dy;
-                    if (testX > 0 && testX < MAP_WIDTH - 1 &&
-                        testY > 0 && testY < MAP_HEIGHT - 1 &&
-                        isWalkable(gameState.map, testX, testY)) {
-                        x = testX;
-                        y = testY;
-                        break;
-                    }
-                }
-            }
-
-            const npc = new NPC(npcSpawn.type, x, y);
-            npcs.push(npc);
-        }
-    } else if (mapType === 'field') {
-        // Campo: Entrenador y un mercader
-        const fieldNPCs = [
-            { type: 'trainer_skills', x: 30, y: 25 },
-            { type: 'merchant_general', x: 15, y: 10 }
-        ];
-
-        for (const npcSpawn of fieldNPCs) {
-            let x = npcSpawn.x;
-            let y = npcSpawn.y;
-
-            // Buscar posición walkable cercana
+            // Search for walkable position
             for (let dy = -3; dy <= 3; dy++) {
                 for (let dx = -3; dx <= 3; dx++) {
                     const testX = npcSpawn.x + dx;
@@ -519,10 +525,106 @@ export function generateNPCs(mapType) {
                         break;
                     }
                 }
+                if (x !== npcSpawn.x || y !== npcSpawn.y) break;
             }
 
+            // Create NPC instance
             const npc = new NPC(npcSpawn.type, x, y);
             npcs.push(npc);
+        }
+    } else {
+        // Fallback to procedural NPC generation
+        if (mapType === 'city') {
+            // Ciudad: Colocar varios NPCs usando la clase NPC
+            const cityNPCs = [
+                { type: 'merchant_general', x: 25, y: 15 },
+                { type: 'blacksmith_ullathorpe', x: 18, y: 22 },
+                { type: 'guard_city', x: 32, y: 18 },
+                { type: 'banker_city', x: 20, y: 10 }
+            ];
+
+            for (const npcSpawn of cityNPCs) {
+                // Buscar posición walkable cercana
+                let x = npcSpawn.x;
+                let y = npcSpawn.y;
+
+                // Ajustar si no es walkable
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const testX = npcSpawn.x + dx;
+                        const testY = npcSpawn.y + dy;
+                        if (testX > 0 && testX < MAP_WIDTH - 1 &&
+                            testY > 0 && testY < MAP_HEIGHT - 1 &&
+                            isWalkable(gameState.map, testX, testY)) {
+                            x = testX;
+                            y = testY;
+                            break;
+                        }
+                    }
+                }
+
+                // Crear instancia de NPC usando la clase NPC
+                const npc = new NPC(npcSpawn.type, x, y);
+                npcs.push(npc);
+            }
+        } else if (mapType === 'market') {
+            // Mercado: Mercader y Alquimista
+            const marketNPCs = [
+                { type: 'merchant_general', x: 15, y: 12 },
+                { type: 'alchemist_market', x: 25, y: 18 }
+            ];
+
+            for (const npcSpawn of marketNPCs) {
+                let x = npcSpawn.x;
+                let y = npcSpawn.y;
+
+                // Buscar posición walkable cercana
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const testX = npcSpawn.x + dx;
+                        const testY = npcSpawn.y + dy;
+                        if (testX > 0 && testX < MAP_WIDTH - 1 &&
+                            testY > 0 && testY < MAP_HEIGHT - 1 &&
+                            isWalkable(gameState.map, testX, testY)) {
+                            x = testX;
+                            y = testY;
+                            break;
+                        }
+                    }
+                }
+
+                const npc = new NPC(npcSpawn.type, x, y);
+                npcs.push(npc);
+            }
+        } else if (mapType === 'field') {
+            // Campo: Entrenador y un mercader
+            const fieldNPCs = [
+                { type: 'trainer_skills', x: 30, y: 25 },
+                { type: 'merchant_general', x: 15, y: 10 }
+            ];
+
+            for (const npcSpawn of fieldNPCs) {
+                let x = npcSpawn.x;
+                let y = npcSpawn.y;
+
+                // Buscar posición walkable cercana
+                for (let dy = -3; dy <= 3; dy++) {
+                    for (let dx = -3; dx <= 3; dx++) {
+                        const testX = npcSpawn.x + dx;
+                        const testY = npcSpawn.y + dy;
+                        if (testX > 0 && testX < MAP_WIDTH - 1 &&
+                            testY > 0 && testY < MAP_HEIGHT - 1 &&
+                            isWalkable(gameState.map, testX, testY)) {
+                            x = testX;
+                            y = testY;
+                            break;
+                        }
+                    }
+                }
+
+                const npc = new NPC(npcSpawn.type, x, y);
+                npcs.push(npc);
+            }
         }
     }
 

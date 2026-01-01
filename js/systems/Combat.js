@@ -10,6 +10,8 @@ import { ITEM_TYPES } from './ItemTypes.js';
 import { CONFIG } from '../config.js';
 import { addChatMessage, updateUI } from '../ui/UI.js';
 import { setPlayerAnimationState } from '../core/Renderer.js';
+import { getStaticMap } from '../world/StaticWorldMaps.js';
+import { isWalkable } from '../world/MapGenerator.js';
 
 /**
  * Handle player attack interaction
@@ -61,6 +63,14 @@ export function handleEnemyDeath(enemy) {
 
     addChatMessage('system', `¡Has derrotado al ${enemy.type}! +${goldDrop} oro, +${expGain} EXP`);
     addExp(expGain);
+
+    // Add enemy to dead enemies list for respawn
+    gameState.deadEnemies.push({
+        type: enemy.type,
+        map: gameState.currentMap,
+        deathTime: Date.now(),
+        originalEnemy: enemy // Keep reference for respawn time calculation
+    });
 
     // Remove enemy from game
     gameState.enemies = gameState.enemies.filter(e => e !== enemy);
@@ -252,4 +262,184 @@ export function addExp(amount) {
  */
 export function isPlayerAlive() {
     return gameState.player.hp > 0;
+}
+
+// ===== ENEMY RESPAWN SYSTEM =====
+
+/**
+ * Check for enemy respawns and spawn them if ready
+ * Call this periodically (e.g., every few seconds)
+ */
+export function checkEnemyRespawns() {
+    const now = Date.now();
+
+    for (let i = gameState.deadEnemies.length - 1; i >= 0; i--) {
+        const deadEnemy = gameState.deadEnemies[i];
+
+        // Only respawn enemies from current map
+        if (deadEnemy.map !== gameState.currentMap) continue;
+
+        // Check if enough time has passed for respawn
+        const respawnTime = getRespawnTimeForMap(gameState.currentMap);
+        if (now - deadEnemy.deathTime >= respawnTime) {
+            // Try to spawn the enemy
+            if (spawnEnemy(deadEnemy.type)) {
+                // Remove from dead enemies list
+                gameState.deadEnemies.splice(i, 1);
+                console.log(`🔄 ${deadEnemy.type} ha respawneado`);
+            }
+        }
+    }
+}
+
+/**
+ * Get respawn time for a specific map
+ * @param {string} mapId - Map identifier
+ * @returns {number} Respawn time in milliseconds
+ */
+function getRespawnTimeForMap(mapId) {
+    // Check static maps first
+    const staticMap = getStaticMap(mapId);
+    if (staticMap && staticMap.enemies && staticMap.enemies.respawnTime) {
+        return staticMap.enemies.respawnTime;
+    }
+
+    // Default respawn time (30 seconds)
+    return 30000;
+}
+
+/**
+ * Spawn an enemy of the specified type in a valid location
+ * @param {string} enemyType - Type of enemy to spawn
+ * @returns {boolean} True if enemy was spawned successfully
+ */
+function spawnEnemy(enemyType) {
+    const enemyStats = ENEMY_STATS[enemyType];
+    if (!enemyStats) {
+        console.error(`Unknown enemy type: ${enemyType}`);
+        return false;
+    }
+
+    // Get valid spawn areas for current map
+    const spawnAreas = getSpawnAreasForCurrentMap();
+
+    // Try to find a valid spawn position
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    while (attempts < maxAttempts) {
+        // Generate random position within spawn areas
+        let x, y;
+
+        if (spawnAreas.length > 0) {
+            // Use specific spawn areas
+            const area = spawnAreas[Math.floor(Math.random() * spawnAreas.length)];
+            x = area.x + Math.floor(Math.random() * area.width);
+            y = area.y + Math.floor(Math.random() * area.height);
+        } else {
+            // Use entire map (fallback)
+            x = Math.floor(Math.random() * CONFIG.MAP_WIDTH);
+            y = Math.floor(Math.random() * CONFIG.MAP_HEIGHT);
+        }
+
+        // Check if position is valid
+        if (isValidSpawnPosition(x, y)) {
+            // Create enemy
+            const enemy = {
+                type: enemyType,
+                x: x,
+                y: y,
+                hp: enemyStats.hp,
+                maxHp: enemyStats.hp,
+                lastMoveTime: 0,
+                moveDelay: enemyStats.moveDelay,
+                lastAttackTime: 0,
+                attackDelay: enemyStats.attackDelay,
+                damage: enemyStats.damage,
+                goldDrop: enemyStats.goldDrop,
+                expReward: enemyStats.expReward
+            };
+
+            gameState.enemies.push(enemy);
+            return true;
+        }
+
+        attempts++;
+    }
+
+    console.warn(`Could not find valid spawn position for ${enemyType}`);
+    return false;
+}
+
+/**
+ * Get spawn areas for the current map
+ * @returns {Array} Array of spawn area objects {x, y, width, height}
+ */
+function getSpawnAreasForCurrentMap() {
+    const mapId = gameState.currentMap;
+    const staticMap = getStaticMap(mapId);
+
+    if (staticMap && staticMap.enemies && staticMap.enemies.spawnAreas) {
+        const spawnAreaType = staticMap.enemies.spawnAreas;
+
+        // For now, return the entire walkable area
+        // In a more advanced system, this could define specific zones
+        if (spawnAreaType === 'field' || spawnAreaType === 'forest') {
+            return [{
+                x: 1,
+                y: 1,
+                width: CONFIG.MAP_WIDTH - 2,
+                height: CONFIG.MAP_HEIGHT - 2
+            }];
+        }
+    }
+
+    // Default: entire map
+    return [{
+        x: 1,
+        y: 1,
+        width: CONFIG.MAP_WIDTH - 2,
+        height: CONFIG.MAP_HEIGHT - 2
+    }];
+}
+
+/**
+ * Check if a position is valid for enemy spawning
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ * @returns {boolean} True if position is valid for spawning
+ */
+function isValidSpawnPosition(x, y) {
+    // Check bounds
+    if (x < 1 || x >= CONFIG.MAP_WIDTH - 1 || y < 1 || y >= CONFIG.MAP_HEIGHT - 1) {
+        return false;
+    }
+
+    // Check if walkable
+    if (!isWalkable(gameState.map, x, y)) {
+        return false;
+    }
+
+    // Check if position is occupied by player
+    if (gameState.player.x === x && gameState.player.y === y) {
+        return false;
+    }
+
+    // Check if position is occupied by another enemy
+    const occupiedByEnemy = gameState.enemies.some(enemy => enemy.x === x && enemy.y === y);
+    if (occupiedByEnemy) return false;
+
+    // Check if position is occupied by NPC
+    const occupiedByNPC = gameState.npcs.some(npc => npc.x === x && npc.y === y);
+    if (occupiedByNPC) return false;
+
+    // Check if position is occupied by object/portal
+    const occupiedByObject = gameState.objects.some(obj => obj.x === x && obj.y === y);
+    if (occupiedByObject) return false;
+
+    // Minimum distance from player (don't spawn too close)
+    const distanceFromPlayer = Math.abs(gameState.player.x - x) + Math.abs(gameState.player.y - y);
+    if (distanceFromPlayer < 5) return false;
+
+    return true;
 }
