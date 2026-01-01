@@ -18,7 +18,7 @@ const { MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } = CONFIG;
 export function generateMap(mapType) {
     // First, try to load a static map
     const staticMap = loadStaticMap(mapType);
-    if (staticMap) {
+    if (staticMap && Array.isArray(staticMap) && staticMap.length > 0) {
         return staticMap;
     }
 
