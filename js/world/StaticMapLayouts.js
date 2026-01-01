@@ -394,9 +394,18 @@ export function generateNewbieCityWithBuildings() {
         
         // Debug log para verificar la creación de fachadas
         console.log(`🏠 Creando fachada para edificio en (${building.x}, ${building.y})`);
-        console.log(`  - Fila de ventanas en Y=${windowY}`);
-        console.log(`  - Fila de puertas en Y=${facadeY}, puertas en X=${doorX1},${doorX2}`);
-        console.log(`  - Sombras de entrada en Y=${shadowY}, X=${doorX1},${doorX2}`);
+        console.log(`  - Fila de ventanas en Y=${windowY} [TILE=${TILES.WINDOW}]`);
+        console.log(`  - Fila de puertas en Y=${facadeY}, puertas en X=${doorX1},${doorX2} [TILE=${TILES.DOOR}]`);
+        console.log(`  - Sombras de entrada en Y=${shadowY}, X=${doorX1},${doorX2} [TILE=${TILES.DOOR_SHADOW}]`);
+        
+        // Muestra información detallada en la consola para verificación
+        console.log(`  * ESTRUCTURA DETALLADA EDIFICIO:
+           - Techo (ROOF): ${TILES.ROOF}
+           - Ventanas (WINDOW): ${TILES.WINDOW}
+           - Puertas (DOOR): ${TILES.DOOR}
+           - Paredes (BUILDING): ${TILES.BUILDING}
+           - Sombras (DOOR_SHADOW): ${TILES.DOOR_SHADOW}
+           - Interior (FLOOR_INTERIOR): ${TILES.FLOOR_INTERIOR}`);
 
         // Fila superior: VENTANAS
         for (let x = building.x; x < building.x + building.w; x++) {
