@@ -7,7 +7,7 @@ import { CONFIG } from './config.js';
 import { MAP_DEFINITIONS } from './world/MapDefinitions.js';
 
 export const gameState = {
-    currentMap: 'field', // Current map type
+    currentMap: 'newbie_city', // Current map type (using static map system)
     player: {
         x: 5,
         y: 5,
@@ -48,7 +48,7 @@ export const gameState = {
  * Reinicia el estado del juego
  */
 export function resetGameState() {
-    gameState.currentMap = 'field';
+    gameState.currentMap = 'newbie_city';
     gameState.player = {
         x: CONFIG.PLAYER.STARTING_X,
         y: CONFIG.PLAYER.STARTING_Y,
