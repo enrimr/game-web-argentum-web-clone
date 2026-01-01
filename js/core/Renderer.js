@@ -6,8 +6,9 @@
 import { gameState } from '../state.js';
 import { CONFIG } from '../config.js';
 import { generateAllSprites } from '../graphics/SpriteGenerator.js';
-import { TILES } from '../world/TileTypes.js';
+import { TILES, isRoof } from '../world/TileTypes.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
+import { shouldRenderRoof } from '../systems/BuildingSystem.js';
 
 const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
@@ -380,6 +381,12 @@ function getTileSprite(tileType) {
         case TILES.FLOOR: return sprites.floor;
         case TILES.DUNGEON_WALL: return sprites.dungeonWall;
         case TILES.PATH: return sprites.path;
+        // Interior building tiles
+        case TILES.DOOR: return sprites.door;
+        case TILES.WALL_INTERIOR: return sprites.wallInterior;
+        case TILES.FLOOR_INTERIOR: return sprites.floorInterior;
+        case TILES.ROOF: return sprites.roof;
+        case TILES.WINDOW: return sprites.window;
         default: return sprites.grass;
     }
 }
