@@ -76,7 +76,8 @@ export function renderMinimap() {
             }
             
             for (let x = 0; x < MAP_WIDTH && x < gameState.map[y].length; x++) {
-                const tile = gameState.map[y][x];
+                // Validación adicional para prevenir acceso a elementos undefined
+                const tile = (gameState.map[y] && gameState.map[y][x] !== undefined) ? gameState.map[y][x] : 0;
                 let color = '#2d5016'; // Default grass
 
                 if (tile === TILES.WALL) color = '#4b5563';
@@ -87,6 +88,13 @@ export function renderMinimap() {
                 else if (tile === TILES.FLOOR) color = '#374151';
                 else if (tile === TILES.DUNGEON_WALL) color = '#1f2937';
                 else if (tile === TILES.PATH) color = '#a16207';
+                // Añadir soporte para nuevos tipos de tiles
+                else if (tile === TILES.DOOR) color = '#a16207'; // Color similar al path para las puertas
+                else if (tile === TILES.WALL_INTERIOR) color = '#92400e'; // Color similar a BUILDING
+                else if (tile === TILES.FLOOR_INTERIOR) color = '#a16207'; // Color similar al path para suelos interiores
+                else if (tile === TILES.ROOF) color = '#dc2626'; // Rojo para techos
+                else if (tile === TILES.WINDOW) color = '#60a5fa'; // Azul claro para ventanas
+                else if (tile === TILES.DOOR_SHADOW) color = '#2d5016'; // Verde oscuro como el grass para sombras
 
                 minimapCtx.fillStyle = color;
                 minimapCtx.fillRect(x * scaleX, y * scaleY, scaleX, scaleY);

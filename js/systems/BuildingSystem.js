@@ -122,16 +122,24 @@ export function checkBuildingExit(x, y) {
  */
 export function shouldRenderRoof(x, y) {
     // If player is not in a building, show all roofs
-    if (!gameState.playerInBuilding) return true;
+    if (!gameState.playerInBuilding) {
+        // Log para debugging
+        // console.log(`Roof at (${x},${y}) visible: player not in building`);
+        return true;
+    }
 
     // If player is in a building, hide roofs within building bounds
     const building = gameState.currentBuilding;
     if (building &&
         x >= building.x && x < building.x + building.width &&
         y >= building.y && y < building.y + building.height) {
+        // Log para debugging
+        // console.log(`Roof at (${x},${y}) hidden: inside current building`);
         return false; // Hide roof when inside building
     }
 
+    // Log para debugging
+    // console.log(`Roof at (${x},${y}) visible: outside current building`);
     return true; // Show roof when outside
 }
 
