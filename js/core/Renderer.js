@@ -8,7 +8,7 @@ import { CONFIG } from '../config.js';
 import { generateAllSprites } from '../graphics/SpriteGenerator.js';
 import { TILES, isRoof } from '../world/TileTypes.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
-import { shouldRenderRoof } from '../systems/BuildingSystem.js';
+import { shouldRenderRoof, isInsideCurrentBuilding } from '../systems/BuildingSystem.js';
 
 const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
@@ -141,7 +141,29 @@ function renderMap(camera) {
                     if (isRoof(tile) && !shouldRenderRoof(worldX, worldY)) {
                         continue; // Skip rendering roof when player is inside
                     }
+                    
+                    // Si el jugador está dentro de un edificio, solo dibujar el interior
+                    // de ese edificio y ocultar todo lo demás del exterior
+                    if (gameState.playerInBuilding) {
+                        const isInsideBuilding = isInsideCurrentBuilding(worldX, worldY);
+                        
+                        // Si es el exterior y no estamos dentro de este edificio, oscurecer
+                        if (!isInsideBuilding) {
+                            // Solo mostrar paredes y bordes del mapa cuando estamos dentro de un edificio
+                            if (tile === TILES.WALL || worldX === 0 || worldX === MAP_WIDTH - 1 || 
+                                worldY === 0 || worldY === MAP_HEIGHT - 1) {
+                                ctx.globalAlpha = 0.4; // Paredes visibles pero oscuras
+                                ctx.drawImage(sprite, screenPos.x, screenPos.y);
+                                ctx.globalAlpha = 1.0; // Restaurar transparencia
+                                continue;
+                            } else {
+                                // Ocultar resto del exterior
+                                continue;
+                            }
+                        }
+                    }
 
+                    // Dibujar normalmente si no hay restricciones
                     ctx.drawImage(sprite, screenPos.x, screenPos.y);
                 }
             }
@@ -178,6 +200,11 @@ function renderDebugCoordinates(screenX, screenY, worldX, worldY) {
  */
 function renderObjects(camera) {
     for (const obj of gameState.objects) {
+        // Si estamos dentro de un edificio, solo mostrar objetos dentro del mismo
+        if (gameState.playerInBuilding && !isInsideCurrentBuilding(obj.x, obj.y)) {
+            continue;
+        }
+        
         if (isInViewport(obj.x, obj.y, camera)) {
             const screenPos = worldToScreen(obj.x, obj.y);
 
@@ -213,6 +240,11 @@ function renderObjects(camera) {
  */
 function renderEnemies(camera) {
     for (const enemy of gameState.enemies) {
+        // Si estamos dentro de un edificio, solo mostrar enemigos dentro del mismo
+        if (gameState.playerInBuilding && !isInsideCurrentBuilding(enemy.x, enemy.y)) {
+            continue;
+        }
+        
         if (isInViewport(enemy.x, enemy.y, camera)) {
             const screenPos = worldToScreen(enemy.x, enemy.y);
 
@@ -233,6 +265,11 @@ function renderEnemies(camera) {
  */
 function renderNPCs(camera) {
     for (const npc of gameState.npcs) {
+        // Si estamos dentro de un edificio, solo mostrar NPCs dentro del mismo
+        if (gameState.playerInBuilding && !isInsideCurrentBuilding(npc.x, npc.y)) {
+            continue;
+        }
+        
         if (isInViewport(npc.x, npc.y, camera)) {
             const screenPos = worldToScreen(npc.x, npc.y);
             const npcSprite = sprites[npc.sprite];
@@ -255,6 +292,11 @@ function renderNPCs(camera) {
  */
 function renderProjectiles(camera) {
     for (const projectile of gameState.projectiles) {
+        // Si estamos dentro de un edificio, solo mostrar proyectiles dentro del mismo
+        if (gameState.playerInBuilding && !isInsideCurrentBuilding(projectile.x, projectile.y)) {
+            continue;
+        }
+        
         if (isInViewport(projectile.x, projectile.y, camera)) {
             const screenPos = worldToScreen(projectile.x, projectile.y);
             ctx.drawImage(sprites.arrowProjectile, screenPos.x, screenPos.y);

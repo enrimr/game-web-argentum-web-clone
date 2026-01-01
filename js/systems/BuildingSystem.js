@@ -121,26 +121,30 @@ export function checkBuildingExit(x, y) {
  * @returns {boolean} True if roof should be visible
  */
 export function shouldRenderRoof(x, y) {
-    // If player is not in a building, show all roofs
+    // If player is not in any building, show all roofs
     if (!gameState.playerInBuilding) {
-        // Log para debugging
-        // console.log(`Roof at (${x},${y}) visible: player not in building`);
+        // Techos siempre visibles desde fuera
         return true;
     }
 
-    // If player is in a building, hide roofs within building bounds
+    // Si el jugador está dentro de un edificio...
     const building = gameState.currentBuilding;
-    if (building &&
-        x >= building.x && x < building.x + building.width &&
-        y >= building.y && y < building.y + building.height) {
-        // Log para debugging
-        // console.log(`Roof at (${x},${y}) hidden: inside current building`);
-        return false; // Hide roof when inside building
+    if (building) {
+        // Comprobar si la coordenada está dentro del edificio actual
+        const isInThisBuilding = 
+            x >= building.x && x < building.x + building.width &&
+            y >= building.y && y < building.y + building.height;
+            
+        if (isInThisBuilding) {
+            // Estamos dentro de este edificio, así que ocultamos su techo
+            return false;
+        } else {
+            // Estamos dentro de otro edificio, así que mostramos este techo
+            return true;
+        }
     }
 
-    // Log para debugging
-    // console.log(`Roof at (${x},${y}) visible: outside current building`);
-    return true; // Show roof when outside
+    return true; // Por defecto, mostrar todos los techos
 }
 
 /**

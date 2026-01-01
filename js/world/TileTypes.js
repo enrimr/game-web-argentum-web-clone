@@ -29,7 +29,8 @@ export function isTileWalkable(tile) {
            tile === TILES.PATH || 
            tile === TILES.DOOR ||
            tile === TILES.DOOR_SHADOW ||
-           tile === TILES.FLOOR_INTERIOR;
+           tile === TILES.FLOOR_INTERIOR ||
+           tile === TILES.WINDOW;      // Hacemos que las ventanas sean caminables
 }
 
 /**
