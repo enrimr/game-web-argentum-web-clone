@@ -117,6 +117,12 @@ function renderMap(camera) {
 
                 if (sprite) {
                     const screenPos = worldToScreen(worldX, worldY);
+
+                    // Handle roof occlusion when inside buildings
+                    if (isRoof(tile) && !shouldRenderRoof(worldX, worldY)) {
+                        continue; // Skip rendering roof when player is inside
+                    }
+
                     ctx.drawImage(sprite, screenPos.x, screenPos.y);
                 }
             }

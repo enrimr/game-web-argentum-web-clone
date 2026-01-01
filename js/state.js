@@ -42,7 +42,10 @@ export const gameState = {
     enemies: [],
     npcs: [], // NPCs del juego
     projectiles: [], // Flechas y otros proyectiles volando
-    deadEnemies: [] // Enemigos muertos esperando respawn (timestamp, enemyType, map)
+    deadEnemies: [], // Enemigos muertos esperando respawn (timestamp, enemyType, map)
+    playerInBuilding: false, // Si el jugador está dentro de un edificio
+    currentBuilding: null, // Información del edificio actual
+    buildingLayer: 0 // Capa del edificio (0=exterior, 1=interior)
 };
 
 /**

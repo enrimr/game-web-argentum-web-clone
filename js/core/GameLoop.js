@@ -8,6 +8,7 @@ import { CONFIG } from '../config.js';
 import { isKeyPressed, clearKey } from './Input.js';
 import { isWalkable } from '../world/MapGenerator.js';
 import { playerAttack, enemyAttack, shootArrow, updateProjectiles, isPlayerAlive, checkEnemyRespawns } from '../systems/Combat.js';
+import { checkDoorEntry, checkBuildingExit } from '../systems/BuildingSystem.js';
 import { toggleEquipItem, addItemToInventory } from '../systems/Inventory.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { changeMap } from './Game.js';

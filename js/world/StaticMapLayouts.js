@@ -257,7 +257,7 @@ export function generateTreasureIslandLayout() {
  */
 export function generateMountainPassLayout() {
     const map = [];
-    
+
     // Base de hierba
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
@@ -270,7 +270,7 @@ export function generateMountainPassLayout() {
         }
         map.push(row);
     }
-    
+
     // Añadir montañas (muros) a los lados
     for (let y = 1; y < MAP_HEIGHT - 1; y++) {
         for (let x = 1; x < MAP_WIDTH - 1; x++) {
@@ -284,7 +284,7 @@ export function generateMountainPassLayout() {
             }
         }
     }
-    
+
     // Crear camino central despejado
     for (let y = 5; y < MAP_HEIGHT - 5; y++) {
         for (let x = 20; x < 30; x++) {
@@ -293,6 +293,129 @@ export function generateMountainPassLayout() {
             }
         }
     }
-    
+
+    return map;
+}
+
+/**
+ * Genera el layout de la ciudad inicial con edificios navegables (puertas, techos, interiores)
+ */
+export function generateNewbieCityWithBuildings() {
+    const map = [];
+
+    // Crear base con paredes
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.GRASS);
+            }
+        }
+        map.push(row);
+    }
+
+    // Calles en cruz
+    for (let x = 1; x < MAP_WIDTH - 1; x++) {
+        map[20][x] = TILES.PATH;
+    }
+    for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+        map[y][25] = TILES.PATH;
+    }
+
+    // Plaza central
+    for (let y = 18; y < 23; y++) {
+        for (let x = 23; x < 28; x++) {
+            map[y][x] = TILES.PATH;
+        }
+    }
+
+    // Edificios con techos y puertas
+    const buildings = [
+        // Casa norte-izquierda
+        {
+            x: 5, y: 5, w: 8, h: 6,
+            doorX: 8, doorY: 10, // Puerta en fachada sur
+            hasInterior: true
+        },
+        // Casa norte-derecha
+        {
+            x: 37, y: 5, w: 8, h: 6,
+            doorX: 40, doorY: 10,
+            hasInterior: true
+        },
+        // Casa sur-izquierda
+        {
+            x: 5, y: 28, w: 8, h: 6,
+            doorX: 8, doorY: 33,
+            hasInterior: true
+        },
+        // Casa sur-derecha
+        {
+            x: 37, y: 28, w: 8, h: 6,
+            doorX: 40, doorY: 33,
+            hasInterior: true
+        },
+        // Casa central-izquierda
+        {
+            x: 15, y: 10, w: 6, h: 5,
+            doorX: 17, doorY: 14,
+            hasInterior: true
+        },
+        // Casa central-derecha
+        {
+            x: 31, y: 10, w: 6, h: 5,
+            doorX: 33, doorY: 14,
+            hasInterior: true
+        }
+    ];
+
+    // Crear edificios con techos
+    for (const building of buildings) {
+        // Exterior (paredes)
+        for (let y = building.y; y < building.y + building.h; y++) {
+            for (let x = building.x; x < building.x + building.w; x++) {
+                if (x > 0 && x < MAP_WIDTH - 1 && y > 0 && y < MAP_HEIGHT - 1) {
+                    map[y][x] = TILES.BUILDING;
+                }
+            }
+        }
+
+        // Puerta (walkable)
+        if (building.doorX >= 0 && building.doorX < MAP_WIDTH &&
+            building.doorY >= 0 && building.doorY < MAP_HEIGHT) {
+            map[building.doorY][building.doorX] = TILES.DOOR;
+        }
+
+        // Techos (arriba del edificio)
+        for (let y = building.y - 1; y >= building.y - 2 && y >= 0; y--) {
+            for (let x = building.x; x < building.x + building.w; x++) {
+                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                    map[y][x] = TILES.ROOF;
+                }
+            }
+        }
+
+        // Interior (si tiene)
+        if (building.hasInterior) {
+            for (let y = building.y + 1; y < building.y + building.h - 1; y++) {
+                for (let x = building.x + 1; x < building.x + building.w - 1; x++) {
+                    if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                        map[y][x] = TILES.FLOOR_INTERIOR;
+                    }
+                }
+            }
+
+            // Pared interior (divisor de habitaciones)
+            const centerX = building.x + Math.floor(building.w / 2);
+            const centerY = building.y + Math.floor(building.h / 2);
+
+            if (centerX >= 0 && centerX < MAP_WIDTH && centerY >= 0 && centerY < MAP_HEIGHT) {
+                map[centerY][centerX] = TILES.WALL_INTERIOR;
+            }
+        }
+    }
+
     return map;
 }
