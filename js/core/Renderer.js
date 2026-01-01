@@ -106,13 +106,31 @@ export function render() {
  * @param {Object} camera - Camera position {x, y}
  */
 function renderMap(camera) {
+    // Validate map exists
+    if (!gameState.map || !Array.isArray(gameState.map) || gameState.map.length === 0) {
+        console.error('Renderer: gameState.map is invalid');
+        return;
+    }
+
     for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
         for (let vx = 0; vx < VIEWPORT_WIDTH; vx++) {
             const worldX = camera.x + vx;
             const worldY = camera.y + vy;
 
-            // Check bounds
+            // Check bounds and validate row exists
             if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT) {
+                // Validate row exists
+                if (!gameState.map[worldY] || !Array.isArray(gameState.map[worldY])) {
+                    console.warn(`Renderer: fila ${worldY} del mapa es inválida`);
+                    continue;
+                }
+
+                // Validate column exists
+                if (worldX >= gameState.map[worldY].length) {
+                    console.warn(`Renderer: columna ${worldX} en fila ${worldY} no existe`);
+                    continue;
+                }
+
                 const tile = gameState.map[worldY][worldX];
                 const sprite = getTileSprite(tile);
 
