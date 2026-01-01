@@ -41,7 +41,8 @@ export const gameState = {
     objects: [],
     enemies: [],
     npcs: [], // NPCs del juego
-    projectiles: [] // Flechas y otros proyectiles volando
+    projectiles: [], // Flechas y otros proyectiles volando
+    deadEnemies: [] // Enemigos muertos esperando respawn (timestamp, enemyType, map)
 };
 
 /**
@@ -83,4 +84,5 @@ export function resetGameState() {
     gameState.enemies = [];
     gameState.npcs = [];
     gameState.projectiles = [];
+    gameState.deadEnemies = [];
 }

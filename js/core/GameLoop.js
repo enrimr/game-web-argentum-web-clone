@@ -7,7 +7,7 @@ import { gameState } from '../state.js';
 import { CONFIG } from '../config.js';
 import { isKeyPressed, clearKey } from './Input.js';
 import { isWalkable } from '../world/MapGenerator.js';
-import { playerAttack, enemyAttack, shootArrow, updateProjectiles, isPlayerAlive } from '../systems/Combat.js';
+import { playerAttack, enemyAttack, shootArrow, updateProjectiles, isPlayerAlive, checkEnemyRespawns } from '../systems/Combat.js';
 import { toggleEquipItem, addItemToInventory } from '../systems/Inventory.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { changeMap } from './Game.js';
@@ -40,6 +40,12 @@ export function gameLoop(timestamp) {
         updateProjectiles();
         updateEnemies(timestamp);
         enemyAttacks(timestamp);
+
+        // Check for enemy respawns (every 5 seconds)
+        if (timestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {
+            checkEnemyRespawns();
+            gameLoop.lastRespawnCheck = timestamp;
+        }
     }
 
     // Render will be called separately
