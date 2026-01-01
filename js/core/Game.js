@@ -18,6 +18,7 @@ import { initDialogue } from '../ui/Dialogue.js';
 import { initTrading } from '../ui/Trading.js';
 import { isPlayerAlive } from '../systems/Combat.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
+import { getStaticMap } from '../world/StaticWorldMaps.js';
 import { initMouseControls } from './MouseControls.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
@@ -142,9 +143,11 @@ function gameLoopWrapper(timestamp) {
  * @param {number} targetY - Target Y coordinate
  */
 export function changeMap(targetMap, targetX, targetY) {
-    // Validate target position is walkable
+    // Validate target map exists (check both static and procedural maps)
     const targetMapDef = MAP_DEFINITIONS[targetMap];
-    if (!targetMapDef) {
+    const staticMapDef = getStaticMap(targetMap);
+
+    if (!targetMapDef && !staticMapDef) {
         addChatMessage('system', '❌ ¡Error! Mapa destino no encontrado.');
         return;
     }
@@ -187,6 +190,7 @@ export function changeMap(targetMap, targetX, targetY) {
 
     // Show transition message
     const mapNames = {
+        // Procedural maps
         'field': '🏞️ Campo Principal',
         'city': '🏘️ Ciudad Imperial',
         'dungeon': '🏰 Mazmorra Antigua',
@@ -195,10 +199,18 @@ export function changeMap(targetMap, targetX, targetY) {
         'market': '🏪 Mercado Central',
         'deep_dungeon': '🕳️ Profundidades',
         'ruins': '🏛️ Ruinas Antiguas',
-        'throne_room': '👑 Sala del Trono'
+        'throne_room': '👑 Sala del Trono',
+        // Static maps
+        'newbie_city': '🏘️ Ciudad de Ullathorpe',
+        'newbie_field': '🏞️ Campos de Ullathorpe',
+        'dark_forest': '🌲 Bosque Oscuro'
     };
 
-    addChatMessage('system', `🌟 ¡Viajas a ${mapNames[targetMap] || targetMap}!`);
+    // Use static map name if available, otherwise fallback to procedural name
+    const staticMap = getStaticMap(targetMap);
+    const displayName = staticMap ? staticMap.name : (mapNames[targetMap] || targetMap);
+
+    addChatMessage('system', `🌟 ¡Viajas a ${displayName}!`);
     updateUI();
 }
 
