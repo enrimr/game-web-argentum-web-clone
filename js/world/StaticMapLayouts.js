@@ -298,7 +298,7 @@ export function generateMountainPassLayout() {
 }
 
 /**
- * Genera el layout de la ciudad inicial con edificios navegables (puertas, techos, interiores)
+ * Genera el layout de la ciudad inicial con edificios navegables (fachadas de 2 filas, puertas, sombras)
  */
 export function generateNewbieCityWithBuildings() {
     const map = [];
@@ -331,65 +331,25 @@ export function generateNewbieCityWithBuildings() {
         }
     }
 
-    // Edificios con techos y puertas
+    // Edificios con fachadas de 2 filas (ventanas arriba, puerta abajo)
     const buildings = [
-        // Casa norte-izquierda
-        {
-            x: 5, y: 5, w: 8, h: 6,
-            doorX: 8, doorY: 10, // Puerta en fachada sur
-            hasInterior: true
-        },
-        // Casa norte-derecha
-        {
-            x: 37, y: 5, w: 8, h: 6,
-            doorX: 40, doorY: 10,
-            hasInterior: true
-        },
-        // Casa sur-izquierda
-        {
-            x: 5, y: 28, w: 8, h: 6,
-            doorX: 8, doorY: 33,
-            hasInterior: true
-        },
-        // Casa sur-derecha
-        {
-            x: 37, y: 28, w: 8, h: 6,
-            doorX: 40, doorY: 33,
-            hasInterior: true
-        },
-        // Casa central-izquierda
-        {
-            x: 15, y: 10, w: 6, h: 5,
-            doorX: 17, doorY: 14,
-            hasInterior: true
-        },
-        // Casa central-derecha
-        {
-            x: 31, y: 10, w: 6, h: 5,
-            doorX: 33, doorY: 14,
-            hasInterior: true
-        }
+        // Casa norte-izquierda (fachada sur)
+        { x: 5, y: 5, w: 8, h: 6, facadeSide: 'south' },
+        // Casa norte-derecha (fachada sur)
+        { x: 37, y: 5, w: 8, h: 6, facadeSide: 'south' },
+        // Casa sur-izquierda (fachada sur)
+        { x: 5, y: 28, w: 8, h: 6, facadeSide: 'south' },
+        // Casa sur-derecha (fachada sur)
+        { x: 37, y: 28, w: 8, h: 6, facadeSide: 'south' },
+        // Casa central-izquierda (fachada sur)
+        { x: 15, y: 10, w: 6, h: 5, facadeSide: 'south' },
+        // Casa central-derecha (fachada sur)
+        { x: 31, y: 10, w: 6, h: 5, facadeSide: 'south' }
     ];
 
-    // Crear edificios con techos
     for (const building of buildings) {
-        // Exterior (paredes)
+        // 1. TECHOS (arriba de todo)
         for (let y = building.y; y < building.y + building.h; y++) {
-            for (let x = building.x; x < building.x + building.w; x++) {
-                if (x > 0 && x < MAP_WIDTH - 1 && y > 0 && y < MAP_HEIGHT - 1) {
-                    map[y][x] = TILES.BUILDING;
-                }
-            }
-        }
-
-        // Puerta (walkable)
-        if (building.doorX >= 0 && building.doorX < MAP_WIDTH &&
-            building.doorY >= 0 && building.doorY < MAP_HEIGHT) {
-            map[building.doorY][building.doorX] = TILES.DOOR;
-        }
-
-        // Techos (arriba del edificio)
-        for (let y = building.y - 1; y >= building.y - 2 && y >= 0; y--) {
             for (let x = building.x; x < building.x + building.w; x++) {
                 if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
                     map[y][x] = TILES.ROOF;
@@ -397,23 +357,65 @@ export function generateNewbieCityWithBuildings() {
             }
         }
 
-        // Interior (si tiene)
-        if (building.hasInterior) {
-            for (let y = building.y + 1; y < building.y + building.h - 1; y++) {
-                for (let x = building.x + 1; x < building.x + building.w - 1; x++) {
-                    if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                        map[y][x] = TILES.FLOOR_INTERIOR;
-                    }
+        // 2. INTERIOR (suelos)
+        for (let y = building.y + 1; y < building.y + building.h - 1; y++) {
+            for (let x = building.x + 1; x < building.x + building.w - 1; x++) {
+                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                    map[y][x] = TILES.FLOOR_INTERIOR;
                 }
             }
+        }
 
-            // Pared interior (divisor de habitaciones)
-            const centerX = building.x + Math.floor(building.w / 2);
-            const centerY = building.y + Math.floor(building.h / 2);
-
-            if (centerX >= 0 && centerX < MAP_WIDTH && centerY >= 0 && centerY < MAP_HEIGHT) {
-                map[centerY][centerX] = TILES.WALL_INTERIOR;
+        // 3. PAREDES EXTERIORES
+        // Paredes laterales y traseras siguen siendo BUILDING
+        for (let y = building.y; y < building.y + building.h; y++) {
+            // Pared izquierda
+            if (building.x >= 0 && building.x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                map[y][building.x] = TILES.BUILDING;
             }
+            // Pared derecha
+            if (building.x + building.w - 1 >= 0 && building.x + building.w - 1 < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                map[y][building.x + building.w - 1] = TILES.BUILDING;
+            }
+        }
+        // Pared superior
+        for (let x = building.x; x < building.x + building.w; x++) {
+            if (x >= 0 && x < MAP_WIDTH && building.y >= 0 && building.y < MAP_HEIGHT) {
+                map[building.y][x] = TILES.BUILDING;
+            }
+        }
+
+        // 4. FACHADA DE 2 FILAS (ventanas arriba, puerta abajo)
+        const facadeY = building.y + building.h - 1; // Fila inferior de fachada
+        const windowY = building.y + building.h - 2; // Fila superior de fachada (ventanas)
+        const doorX1 = building.x + Math.floor(building.w / 2) - 1; // Puerta izquierda
+        const doorX2 = building.x + Math.floor(building.w / 2); // Puerta derecha
+        const shadowY = facadeY + 1; // Sombra frente a puerta
+
+        // Fila superior: VENTANAS
+        for (let x = building.x; x < building.x + building.w; x++) {
+            if (x >= 0 && x < MAP_WIDTH && windowY >= 0 && windowY < MAP_HEIGHT) {
+                map[windowY][x] = TILES.WINDOW;
+            }
+        }
+
+        // Fila inferior: PAREDES + PUERTAS en el centro
+        for (let x = building.x; x < building.x + building.w; x++) {
+            if (x >= 0 && x < MAP_WIDTH && facadeY >= 0 && facadeY < MAP_HEIGHT) {
+                if (x === doorX1 || x === doorX2) {
+                    map[facadeY][x] = TILES.DOOR; // Puerta doble walkable
+                } else {
+                    map[facadeY][x] = TILES.BUILDING; // Paredes laterales
+                }
+            }
+        }
+
+        // SOMBRAS frente a las puertas
+        if (doorX1 >= 0 && doorX1 < MAP_WIDTH && shadowY >= 0 && shadowY < MAP_HEIGHT) {
+            map[shadowY][doorX1] = TILES.DOOR_SHADOW;
+        }
+        if (doorX2 >= 0 && doorX2 < MAP_WIDTH && shadowY >= 0 && shadowY < MAP_HEIGHT) {
+            map[shadowY][doorX2] = TILES.DOOR_SHADOW;
         }
     }
 
