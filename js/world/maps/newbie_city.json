@@ -127,14 +127,14 @@
     ]
   },
   "npcs": [
-    { "type": "king", "x": 25, "y": 10, "dialogue": "welcome_king" },
-    { "type": "merchant", "x": 15, "y": 15, "dialogue": "shop_weapons" },
-    { "type": "merchant", "x": 35, "y": 15, "dialogue": "shop_armor" },
-    { "type": "healer", "x": 25, "y": 25, "dialogue": "healing" },
-    { "type": "trainer", "x": 10, "y": 30, "dialogue": "training" },
-    { "type": "guard", "x": 25, "y": 5, "dialogue": "guard_north" },
-    { "type": "guard", "x": 5, "y": 20, "dialogue": "guard_west" },
-    { "type": "guard", "x": 45, "y": 20, "dialogue": "guard_east" }
+    { "type": "king", "x": 25, "y": 20, "dialogue": "welcome_king" },
+    { "type": "merchant", "x": 18, "y": 15, "dialogue": "shop_weapons" },
+    { "type": "merchant", "x": 32, "y": 15, "dialogue": "shop_armor" },
+    { "type": "healer", "x": 22, "y": 24, "dialogue": "healing" },
+    { "type": "trainer", "x": 28, "y": 24, "dialogue": "training" },
+    { "type": "guard", "x": 25, "y": 10, "dialogue": "guard_north" },
+    { "type": "guard", "x": 10, "y": 20, "dialogue": "guard_west" },
+    { "type": "guard", "x": 40, "y": 20, "dialogue": "guard_east" }
   ],
   "enemies": { "enabled": false },
   "objects": {

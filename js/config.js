@@ -12,14 +12,21 @@ export const CONFIG = {
     MAP_HEIGHT: 40,      // Mapa total alto (3x más grande)
     MAX_INVENTORY_SLOTS: 9, // Máximo de tipos diferentes de items
 
+    // Configuración de edificios
+    BUILDING: {
+        // Si es false, los techos se vuelven a mostrar cuando el jugador sale del edificio
+        // Si es true, los techos permanecen ocultos una vez visitado el edificio
+        PERSISTENT_ROOF_VISIBILITY: false,
+    },
+
     // Canvas
     CANVAS_WIDTH: 640,
     CANVAS_HEIGHT: 416,
 
     // Jugador
     PLAYER: {
-        STARTING_X: 10,
-        STARTING_Y: 7,
+        STARTING_X: 18,
+        STARTING_Y: 15,
         STARTING_HP: 100,
         STARTING_MANA: 50,
         MOVE_DELAY: 150, // milliseconds

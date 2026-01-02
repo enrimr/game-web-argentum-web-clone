@@ -20,6 +20,7 @@ import { isPlayerAlive } from '../systems/Combat.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 import { getStaticMap } from '../world/StaticWorldMaps.js';
 import { initMouseControls } from './MouseControls.js';
+import { initDebugPanel } from '../ui/DebugPanel.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
@@ -70,9 +71,29 @@ export async function init() {
 
     // Initialize world map
     initWorldMap();
+    
+    // Initialize debug panel
+    initDebugPanel();
 
     // Generate initial map first
-    gameState.map = generateMap(gameState.currentMap);
+    const mapResult = generateMap(gameState.currentMap);
+    
+    // Manejar tanto mapas simples como objetos con múltiples capas
+    if (mapResult.map) {
+        // Es un objeto con múltiples capas
+        gameState.map = mapResult.map;
+        gameState.roofLayer = mapResult.roofLayer || [];
+        gameState.doorLayer = mapResult.doorLayer || [];
+        gameState.windowLayer = mapResult.windowLayer || [];
+    } else {
+        // Es un mapa simple
+        gameState.map = mapResult;
+        
+        // Crear capas vacías
+        gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+    }
 
     // Generate content
     gameState.objects = generateObjects(gameState.currentMap);
@@ -192,7 +213,33 @@ export function changeMap(targetMap, targetX, targetY) {
     gameState.deadEnemies = gameState.deadEnemies.filter(deadEnemy => deadEnemy.map === targetMap);
 
     // Regenerate map content
-    gameState.map = generateMap(targetMap);
+    const mapResult = generateMap(targetMap);
+    
+    // Manejar tanto mapas simples como objetos con múltiples capas
+    if (mapResult.map) {
+        // Es un objeto con múltiples capas
+        gameState.map = mapResult.map;
+        gameState.roofLayer = mapResult.roofLayer || [];
+        gameState.doorLayer = mapResult.doorLayer || [];
+        gameState.windowLayer = mapResult.windowLayer || [];
+    } else {
+        // Es un mapa simple
+        gameState.map = mapResult;
+        
+        // Crear capas vacías si no existen
+        if (!gameState.roofLayer) {
+            gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        }
+        
+        if (!gameState.doorLayer) {
+            gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        }
+        
+        if (!gameState.windowLayer) {
+            gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        }
+    }
+    
     gameState.objects = generateObjects(targetMap);
     gameState.enemies = generateEnemies(targetMap);
     gameState.npcs = generateNPCs(targetMap);

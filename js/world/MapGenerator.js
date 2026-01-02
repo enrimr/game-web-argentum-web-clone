@@ -5,8 +5,9 @@
  */
 
 import { CONFIG } from '../config.js';
-import { TILES, isTileWalkable } from './TileTypes.js';
+import { TILES, isTileWalkable, isClosedDoor, isOpenDoor } from './TileTypes.js';
 import { generateNewbieCityWithBuildings } from './StaticMapLayouts.js';
+import { gameState } from '../state.js';
 
 const { MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } = CONFIG;
 
@@ -23,43 +24,67 @@ export function generateMap(mapType) {
         
         try {
             // Usamos directamente la función importada al inicio del archivo
-            return generateNewbieCityWithBuildings();
+            const mapData = generateNewbieCityWithBuildings();
+            
+            // Guardar la capa de techos por separado
+            if (mapData && Array.isArray(mapData)) {
+                extractRoofLayer(mapData);
+                return mapData;
+            } else {
+                return mapData;
+            }
         } catch (error) {
             console.error("Error al generar mapa con edificios mejorados:", error);
             console.log("⚠️ Usando versión básica como fallback");
-            return generateNewbieCityLayout();
+            const mapData = generateNewbieCityLayout();
+            extractRoofLayer(mapData);
+            return mapData;
         }
     }
     
     // For other maps, try to load a static map
-    const staticMap = loadStaticMap(mapType);
-    if (staticMap && Array.isArray(staticMap) && staticMap.length > 0) {
-        return staticMap;
+    const staticMapData = loadStaticMap(mapType);
+    if (staticMapData && Array.isArray(staticMapData) && staticMapData.length > 0) {
+        extractRoofLayer(staticMapData);
+        return staticMapData;
     }
 
     // If no static map is found, use procedural generation
+    let mapData;
     switch (mapType) {
         case 'field':
-            return generateFieldMap();
+            mapData = generateFieldMap();
+            break;
         case 'city':
-            return generateCityMap();
+            mapData = generateCityMap();
+            break;
         case 'dungeon':
-            return generateDungeonMap();
+            mapData = generateDungeonMap();
+            break;
         case 'forest':
-            return generateForestMap();
+            mapData = generateForestMap();
+            break;
         case 'castle':
-            return generateCastleMap();
+            mapData = generateCastleMap();
+            break;
         case 'market':
-            return generateMarketMap();
+            mapData = generateMarketMap();
+            break;
         case 'deep_dungeon':
-            return generateDeepDungeonMap();
+            mapData = generateDeepDungeonMap();
+            break;
         case 'ruins':
-            return generateRuinsMap();
+            mapData = generateRuinsMap();
+            break;
         case 'throne_room':
-            return generateThroneRoomMap();
+            mapData = generateThroneRoomMap();
+            break;
         default:
-            return generateFieldMap();
+            mapData = generateFieldMap();
     }
+    
+    extractRoofLayer(mapData);
+    return mapData;
 }
 
 /**
@@ -109,9 +134,9 @@ async function loadMapDataFromJSON(fileName) {
 
 /**
  * Combine map layers into a single 2D array for rendering
- * Layer priority: roofs (top) -> objects -> base (bottom)
+ * We'll now keep roofs in a separate layer while base and objects remain combined
  * @param {Object} mapData - Map data with layers
- * @returns {Array} Combined 2D map array
+ * @returns {Array} Combined 2D map array and separate roof layer
  */
 function combineMapLayers(mapData) {
     if (!mapData.layers) {
@@ -129,8 +154,14 @@ function combineMapLayers(mapData) {
     const height = baseLayer.length;
     const width = baseLayer[0].length;
 
-    // Create combined map
+    // Create combined map (without roofs)
     const combinedMap = [];
+    
+    // Save roof data to global state
+    gameState.roofLayer = [];
+    for (let y = 0; y < height; y++) {
+        gameState.roofLayer[y] = [];
+    }
 
     for (let y = 0; y < height; y++) {
         combinedMap[y] = [];
@@ -144,15 +175,20 @@ function combineMapLayers(mapData) {
                 tile = objectsLayer[y][x];
             }
 
-            // Override with roofs layer (only if roof exists)
+            // Save roof data in the separate roof layer (if any)
             if (roofsLayer[y] && roofsLayer[y][x] !== undefined && roofsLayer[y][x] !== 0) {
-                tile = roofsLayer[y][x];
+                gameState.roofLayer[y][x] = roofsLayer[y][x];
+            } else {
+                gameState.roofLayer[y][x] = 0; // No roof
             }
 
             combinedMap[y][x] = tile;
         }
     }
-
+    
+    // Detect and register buildings
+    identifyBuildingsFromMap(combinedMap);
+    
     return combinedMap;
 }
 
@@ -786,10 +822,220 @@ function connectRooms(map, point1, point2, bounds) {
 export function isWalkable(map, x, y) {
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
 
-    const tile = map[y][x];
+    // Primero comprobar si hay una puerta cerrada en la capa doorLayer
+    if (gameState.doorLayer && gameState.doorLayer[y] && gameState.doorLayer[y][x] !== undefined && 
+        gameState.doorLayer[y][x] !== 0) {
+        
+        const doorTile = gameState.doorLayer[y][x];
+        
+        // Si hay una puerta cerrada, no es caminable
+        if (isClosedDoor(doorTile)) {
+            return false;
+        }
+        
+        // Si hay una puerta abierta, es caminable
+        if (isOpenDoor(doorTile)) {
+            return true;
+        }
+    }
 
-    // Use the new tile walkability function
+    // Si no hay puerta en la capa de puertas, comprobamos la capa base
+    const tile = map[y][x];
     return isTileWalkable(tile);
+}
+
+/**
+ * Extract roof tiles to a separate layer in the game state
+ * @param {Array} mapData - 2D map array
+ */
+function extractRoofLayer(mapData) {
+    // Initialize roof layer
+    gameState.roofLayer = [];
+    gameState.buildings = [];
+    
+    const height = mapData.length;
+    const width = mapData[0].length;
+    
+    // Create empty roof layer
+    for (let y = 0; y < height; y++) {
+        gameState.roofLayer[y] = [];
+        for (let x = 0; x < width; x++) {
+            gameState.roofLayer[y][x] = 0; // Default: no roof
+        }
+    }
+
+    // Identify building structures
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            // Check for wall building tiles with potential roofs
+            if (mapData[y][x] === TILES.BUILDING) {
+                // Check if this is part of a larger building
+                const building = findBuildingStructure(mapData, x, y);
+                
+                if (building) {
+                    // Add building to the list if not already registered
+                    if (!isBuildingRegistered(building)) {
+                        gameState.buildings.push(building);
+                        
+                        // Create roof tiles over the building
+                        for (let by = building.y; by < building.y + building.height; by++) {
+                            for (let bx = building.x; bx < building.x + building.width; bx++) {
+                                // Only place roof tiles over interior or building walls
+                                if (mapData[by][bx] === TILES.BUILDING || 
+                                    mapData[by][bx] === TILES.FLOOR_INTERIOR) {
+                                    gameState.roofLayer[by][bx] = TILES.ROOF;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    console.log(`🏠 Identified and registered ${gameState.buildings.length} buildings with roofs`);
+}
+
+/**
+ * Check if a building structure is already registered
+ * @param {Object} building - Building structure object
+ * @returns {boolean} True if building is already registered
+ */
+function isBuildingRegistered(building) {
+    return gameState.buildings.some(b => 
+        b.x === building.x && 
+        b.y === building.y && 
+        b.width === building.width && 
+        b.height === building.height
+    );
+}
+
+/**
+ * Find a building structure starting from a building wall tile
+ * @param {Array} mapData - 2D map array
+ * @param {number} startX - Starting X coordinate
+ * @param {number} startY - Starting Y coordinate
+ * @returns {Object|null} Building bounds {x, y, width, height, doorX, doorY} or null
+ */
+function findBuildingStructure(mapData, startX, startY) {
+    // Find building boundaries
+    let minX = startX;
+    let maxX = startX;
+    let minY = startY;
+    let maxY = startY;
+
+    // Expand horizontally to find building edges
+    while (minX > 0 && mapData[startY][minX - 1] === TILES.BUILDING) minX--;
+    while (maxX < MAP_WIDTH - 1 && mapData[startY][maxX + 1] === TILES.BUILDING) maxX++;
+
+    // Expand vertically to find building edges
+    while (minY > 0 && mapData[minY - 1][startX] === TILES.BUILDING) minY--;
+    while (maxY < MAP_HEIGHT - 1 && mapData[maxY + 1][startX] === TILES.BUILDING) maxY++;
+
+    // Find door position
+    let doorX = null;
+    let doorY = null;
+    
+    // Check bottom edge for doors
+    for (let x = minX; x <= maxX; x++) {
+        if (maxY + 1 < MAP_HEIGHT && mapData[maxY + 1][x] === TILES.DOOR) {
+            doorX = x;
+            doorY = maxY + 1;
+            break;
+        }
+    }
+    
+    // Check other edges if door not found on bottom
+    if (doorX === null) {
+        // Check top edge
+        for (let x = minX; x <= maxX; x++) {
+            if (minY - 1 >= 0 && mapData[minY - 1][x] === TILES.DOOR) {
+                doorX = x;
+                doorY = minY - 1;
+                break;
+            }
+        }
+    }
+    
+    if (doorX === null) {
+        // Check left edge
+        for (let y = minY; y <= maxY; y++) {
+            if (minX - 1 >= 0 && mapData[y][minX - 1] === TILES.DOOR) {
+                doorX = minX - 1;
+                doorY = y;
+                break;
+            }
+        }
+    }
+    
+    if (doorX === null) {
+        // Check right edge
+        for (let y = minY; y <= maxY; y++) {
+            if (maxX + 1 < MAP_WIDTH && mapData[y][maxX + 1] === TILES.DOOR) {
+                doorX = maxX + 1;
+                doorY = y;
+                break;
+            }
+        }
+    }
+    
+    // Create and return building object
+    return {
+        x: minX,
+        y: minY,
+        width: maxX - minX + 1,
+        height: maxY - minY + 1,
+        doorX: doorX,
+        doorY: doorY
+    };
+}
+
+/**
+ * Identify and register all buildings in a map
+ * @param {Array} mapData - 2D map array
+ */
+function identifyBuildingsFromMap(mapData) {
+    // Clear current buildings
+    gameState.buildings = [];
+    
+    // Find all building structures and their doors
+    const height = mapData.length;
+    const width = height > 0 ? mapData[0].length : 0;
+    
+    const processedTiles = [];
+    for (let y = 0; y < height; y++) {
+        processedTiles[y] = [];
+        for (let x = 0; x < width; x++) {
+            processedTiles[y][x] = false;
+        }
+    }
+    
+    // Scan map for buildings
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            // If this is a building tile that hasn't been processed yet
+            if (mapData[y][x] === TILES.BUILDING && !processedTiles[y][x]) {
+                // Find building boundaries
+                const building = findBuildingStructure(mapData, x, y);
+                
+                if (building) {
+                    // Mark all tiles in this building as processed
+                    for (let by = building.y; by < building.y + building.height; by++) {
+                        for (let bx = building.x; bx < building.x + building.width; bx++) {
+                            if (by >= 0 && by < height && bx >= 0 && bx < width) {
+                                processedTiles[by][bx] = true;
+                            }
+                        }
+                    }
+                    
+                    // Add building to list
+                    gameState.buildings.push(building);
+                }
+            }
+        }
+    }
+    
+    console.log(`🏠 Identified ${gameState.buildings.length} buildings in map`);
 }
 
 // ===== STATIC MAP LAYOUT FUNCTIONS =====

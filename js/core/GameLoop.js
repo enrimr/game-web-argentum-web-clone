@@ -8,7 +8,7 @@ import { CONFIG } from '../config.js';
 import { isKeyPressed, clearKey } from './Input.js';
 import { isWalkable } from '../world/MapGenerator.js';
 import { playerAttack, enemyAttack, shootArrow, updateProjectiles, isPlayerAlive, checkEnemyRespawns } from '../systems/Combat.js';
-import { checkDoorEntry, checkBuildingExit } from '../systems/BuildingSystem.js';
+import { checkDoorEntry, checkBuildingExit, toggleDoor, getDoorInFrontOfPlayer } from '../systems/BuildingSystem.js';
 import { toggleEquipItem, addItemToInventory } from '../systems/Inventory.js';
 import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { changeMap } from './Game.js';
@@ -109,6 +109,10 @@ function handleMovement(timestamp) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
+            
+            // Check if player is entering or exiting a building through a door
+            checkDoorEntry(newX, newY);
+            checkBuildingExit(newX, newY);
         }
     }
 
@@ -116,6 +120,13 @@ function handleMovement(timestamp) {
     if (isKeyPressed(' ')) {
         handleInteractions();
         clearKey(' '); // Prevent repeated interactions
+    }
+
+    // Abrir/cerrar puertas con tecla E
+    if (isKeyPressed('e') || isKeyPressed('E')) {
+        handleDoorToggle();
+        clearKey('e');
+        clearKey('E'); // Prevent repeated interactions
     }
 
     // Ranged attack with X key
@@ -148,6 +159,24 @@ function isTargetInFacingDirection(targetX, targetY, playerFacing) {
             return targetX > px && targetY === py; // Directly right
         default:
             return false;
+    }
+}
+
+/**
+ * Manejar interacción para abrir/cerrar puertas
+ */
+function handleDoorToggle() {
+    const px = gameState.player.x;
+    const py = gameState.player.y;
+    const playerFacing = gameState.player.facing;
+    
+    // Comprobar si hay una puerta frente al jugador
+    const doorPos = getDoorInFrontOfPlayer(px, py, playerFacing);
+    if (doorPos) {
+        // Alternar estado de la puerta
+        toggleDoor(doorPos.x, doorPos.y);
+    } else {
+        addChatMessage('system', '❓ No hay ninguna puerta frente a ti para abrir o cerrar.');
     }
 }
 

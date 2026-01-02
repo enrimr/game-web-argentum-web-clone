@@ -302,18 +302,30 @@ export function generateMountainPassLayout() {
  */
 export function generateNewbieCityWithBuildings() {
     const map = [];
+    const roofLayer = []; // Capa para los techos
+    const doorLayer = []; // Capa para las puertas
+    const windowLayer = []; // Nueva capa para las ventanas
 
     // Crear base con paredes
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
+        const roofRow = [];
+        const doorRow = [];
+        const windowRow = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
             } else {
                 row.push(TILES.GRASS);
             }
+            roofRow.push(0); // 0 = no hay techo
+            doorRow.push(0);  // 0 = no hay puerta
+            windowRow.push(0); // 0 = no hay ventana
         }
         map.push(row);
+        roofLayer.push(roofRow);
+        doorLayer.push(doorRow);
+        windowLayer.push(windowRow);
     }
 
     // Calles en cruz
@@ -324,12 +336,15 @@ export function generateNewbieCityWithBuildings() {
         map[y][25] = TILES.PATH;
     }
 
-    // Plaza central
-    for (let y = 18; y < 23; y++) {
-        for (let x = 23; x < 28; x++) {
+    // Plaza central grande
+    for (let y = 15; y < 25; y++) {
+        for (let x = 20; x < 31; x++) {
             map[y][x] = TILES.PATH;
         }
     }
+    
+    // Detalles decorativos en la plaza (fuente o estatua en el centro)
+    map[20][25] = TILES.STONE; // Piedra central como estatua o fuente
 
     // Edificios con fachadas de 2 filas (ventanas arriba, puerta abajo)
     const buildings = [
@@ -348,11 +363,16 @@ export function generateNewbieCityWithBuildings() {
     ];
 
     for (const building of buildings) {
-        // 1. TECHOS (arriba de todo)
-        for (let y = building.y; y < building.y + building.h; y++) {
+        // 1. TECHOS (arriba de todo, pero no sobre fachada ni ventanas) - ahora en la capa de techos
+        // Determinar las filas de fachada y ventanas
+        const facadeY = building.y + building.h - 1; // Fila inferior de fachada
+        const windowY = building.y + building.h - 2; // Fila superior de fachada (ventanas)
+        
+        // Colocar techos solo en el interior, excluyendo fachada y ventanas
+        for (let y = building.y; y < building.y + building.h - 2; y++) {
             for (let x = building.x; x < building.x + building.w; x++) {
                 if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
-                    map[y][x] = TILES.ROOF;
+                    roofLayer[y][x] = TILES.ROOF;
                 }
             }
         }
@@ -386,8 +406,7 @@ export function generateNewbieCityWithBuildings() {
         }
 
         // 4. FACHADA DE 2 FILAS (ventanas arriba, puerta abajo)
-        const facadeY = building.y + building.h - 1; // Fila inferior de fachada
-        const windowY = building.y + building.h - 2; // Fila superior de fachada (ventanas)
+        // Variables facadeY y windowY ya declaradas arriba
         const doorX1 = building.x + Math.floor(building.w / 2) - 1; // Puerta izquierda
         const doorX2 = building.x + Math.floor(building.w / 2); // Puerta derecha
         const shadowY = facadeY + 1; // Sombra frente a puerta
@@ -403,24 +422,68 @@ export function generateNewbieCityWithBuildings() {
            - Techo (ROOF): ${TILES.ROOF}
            - Ventanas (WINDOW): ${TILES.WINDOW}
            - Puertas (DOOR): ${TILES.DOOR}
+           - Fachada (FACADE): ${TILES.FACADE}
            - Paredes (BUILDING): ${TILES.BUILDING}
            - Sombras (DOOR_SHADOW): ${TILES.DOOR_SHADOW}
            - Interior (FLOOR_INTERIOR): ${TILES.FLOOR_INTERIOR}`);
 
-        // Fila superior: VENTANAS
+        // Fila superior: VENTANAS (ahora en capa separada) con SUELO_INTERIOR en la capa base
         for (let x = building.x; x < building.x + building.w; x++) {
             if (x >= 0 && x < MAP_WIDTH && windowY >= 0 && windowY < MAP_HEIGHT) {
-                map[windowY][x] = TILES.WINDOW;
+                // Corregir las esquinas en la capa base - deben ser paredes (BUILDING), no suelo interior
+                if (x === building.x || x === building.x + building.w - 1) {
+                    map[windowY][x] = TILES.BUILDING;
+                } else {
+                    // El resto del interior es suelo
+                    map[windowY][x] = TILES.FLOOR_INTERIOR;
+                }
+                
+                // Si la ventana está justo encima de una puerta, hacerla caminable
+                if (x === doorX1 || x === doorX2) {
+                    windowLayer[windowY][x] = TILES.WINDOW_WALKABLE;
+                } else {
+                    windowLayer[windowY][x] = TILES.WINDOW;
+                }
             }
         }
 
-        // Fila inferior: PAREDES + PUERTAS en el centro
+        // Fila inferior: FACHADAS + PUERTAS en el centro (toda la fila es fachada)
         for (let x = building.x; x < building.x + building.w; x++) {
             if (x >= 0 && x < MAP_WIDTH && facadeY >= 0 && facadeY < MAP_HEIGHT) {
                 if (x === doorX1 || x === doorX2) {
-                    map[facadeY][x] = TILES.DOOR; // Puerta doble walkable
+                    // Colocar FLOOR_INTERIOR en la capa base bajo las puertas
+                    map[facadeY][x] = TILES.FLOOR_INTERIOR;
+                    
+                    // Aleatoriamente algunas puertas estarán cerradas por defecto
+                    const doorIsClosed = Math.random() > 0.5;
+                    
+                    if (doorIsClosed) {
+                        // Si la puerta está cerrada, determinar qué tipo según su posición
+                        if (doorX1 === x && doorX2 === x + 1) {
+                            // Primera puerta de un par doble - pomo a la derecha
+                            doorLayer[facadeY][x] = TILES.DOOR_CLOSED_LEFT;
+                        } else if (doorX2 === x && doorX1 === x - 1) {
+                            // Segunda puerta de un par doble - pomo a la izquierda
+                            doorLayer[facadeY][x] = TILES.DOOR_CLOSED_RIGHT;
+                        } else {
+                            // Puerta individual o caso no previsto - pomo a la derecha por defecto
+                            doorLayer[facadeY][x] = TILES.DOOR_CLOSED_LEFT;
+                        }
+                    } else {
+                        // Si está abierta, determinar dirección de apertura
+                        if (doorX1 === x && doorX2 === x + 1) {
+                            // Primera puerta de un par doble - abre hacia la izquierda
+                            doorLayer[facadeY][x] = TILES.DOOR_OPEN_LEFT;
+                        } else if (doorX2 === x && doorX1 === x - 1) {
+                            // Segunda puerta de un par doble - abre hacia la derecha
+                            doorLayer[facadeY][x] = TILES.DOOR_OPEN_RIGHT;
+                        } else {
+                            // Puerta individual o caso no previsto - abre hacia la izquierda por defecto
+                            doorLayer[facadeY][x] = TILES.DOOR_OPEN_LEFT;
+                        }
+                    }
                 } else {
-                    map[facadeY][x] = TILES.BUILDING; // Paredes laterales
+                    map[facadeY][x] = TILES.FACADE; // Fachada en lugar de paredes para mejor visualización
                 }
             }
         }
@@ -434,5 +497,10 @@ export function generateNewbieCityWithBuildings() {
         }
     }
 
-    return map;
+    return {
+        map: map,
+        roofLayer: roofLayer,
+        doorLayer: doorLayer,
+        windowLayer: windowLayer
+    };
 }

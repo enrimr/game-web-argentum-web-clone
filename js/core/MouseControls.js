@@ -7,6 +7,8 @@ import { gameState } from '../state.js';
 import { CONFIG } from '../config.js';
 import { isWalkable } from '../world/MapGenerator.js';
 import { addChatMessage } from '../ui/UI.js';
+import { isToggleableDoor } from '../world/TileTypes.js';
+import { toggleDoor } from '../systems/BuildingSystem.js';
 
 // Importar la función getCameraPosition del renderer para consistencia
 import { getCameraPosition } from './Renderer.js';
@@ -159,6 +161,31 @@ function handleCanvasClick(event) {
             }
         }
         
+        // Verificar si es una puerta y está adyacente al jugador
+        if (clickedEntity.type === 'door') {
+            const door = clickedEntity.entity;
+            const dist = Math.abs(door.x - gameState.player.x) + Math.abs(door.y - gameState.player.y);
+            
+            // Si está adyacente (distancia = 1)
+            if (dist <= 1) {
+                console.log(`🚪 Interactuando directamente con puerta adyacente`);
+                
+                // Actualizar la dirección del jugador para mirar hacia la puerta
+                updatePlayerFacingTowardsTarget(door.x, door.y);
+                
+                // Alternar estado de la puerta
+                toggleDoor(door.x, door.y);
+                
+                return; // Salir sin iniciar movimiento automático
+            } else {
+                // Si no está adyacente, establecer objetivo de movimiento
+                console.log(`🚶 Moviéndose hacia puerta para interactuar`);
+                setAutoMoveTarget(door.x, door.y, 'door', door);
+                addChatMessage('system', `🎯 Moviendo hacia puerta para abrir/cerrar`);
+                return;
+            }
+        }
+        
         // Verificar si es un objeto y está adyacente al jugador o en su posición
         if (clickedEntity.type === 'object') {
             const obj = clickedEntity.entity;
@@ -200,6 +227,14 @@ function handleCanvasClick(event) {
  * @returns {Object|null} Información de la entidad o null
  */
 function getEntityAtPosition(x, y) {
+    // Verificar si hay una puerta en esta posición
+    if (gameState.map && gameState.map[y] && gameState.map[y][x] !== undefined) {
+        const tile = gameState.map[y][x];
+        if (isToggleableDoor(tile)) {
+            return { type: 'door', entity: { x, y, tile } };
+        }
+    }
+
     // Verificar NPCs
     for (const npc of gameState.npcs) {
         if (npc.x === x && npc.y === y) {
@@ -254,6 +289,8 @@ function getTargetDescription(entityInfo) {
             return `NPC ${entityInfo.entity.name}`;
         case 'object':
             return `Objeto ${entityInfo.entity.type}`;
+        case 'door':
+            return 'Puerta';
         default:
             return 'Posición';
     }
@@ -455,6 +492,24 @@ function executeTargetAction() {
                 handleObjectInteraction(target.target);
             } else {
                 addChatMessage('system', '❌ Objeto ya no existe');
+            }
+            break;
+
+        case 'door':
+            // Interactuar con puerta - verificar que sigue existiendo
+            if (target.target && gameState.map && gameState.map[target.target.y] && 
+                isToggleableDoor(gameState.map[target.target.y][target.target.x])) {
+                const dist = Math.abs(target.target.x - gameState.player.x) + Math.abs(target.target.y - gameState.player.y);
+                if (dist === 1) {
+                    // Actualizar dirección del jugador
+                    updatePlayerFacingTowardsTarget(target.target.x, target.target.y);
+                    // Alternar puerta
+                    toggleDoor(target.target.x, target.target.y);
+                } else {
+                    addChatMessage('system', '❌ La puerta no está en rango');
+                }
+            } else {
+                addChatMessage('system', '❌ La puerta ya no existe');
             }
             break;
 
