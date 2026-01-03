@@ -22,6 +22,7 @@ const sprites = generateAllSprites(TILE_SIZE);
 // Debug visibility controls for each layer
 export const layerVisibility = {
     baseMap: true,
+    treeLayer: true, // Nueva capa de árboles
     doorLayer: true,
     windowLayer: true,
     roofLayer: true,
@@ -97,6 +98,9 @@ export function render() {
 
     // Draw base map (only visible tiles)
     renderMap(camera);
+    
+    // Draw tree layer over the map but under other entities
+    renderTreeLayer(camera);
     
     // Draw door layer over the map but under entities
     renderDoorLayer(camera);
@@ -223,6 +227,61 @@ function renderMap(camera) {
 
                     // Dibujar normalmente si no hay restricciones
                     ctx.drawImage(sprite, screenPos.x, screenPos.y);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Render the tree layer (between base map and entities)
+ * @param {Object} camera - Camera position {x, y}
+ */
+function renderTreeLayer(camera) {
+    // Skip rendering if layer is disabled in debug mode
+    if (!layerVisibility.treeLayer) return;
+    
+    // Validate tree layer exists
+    if (!gameState.treeLayer || !Array.isArray(gameState.treeLayer) || gameState.treeLayer.length === 0) {
+        return; // No tree layer to render
+    }
+
+    for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
+        for (let vx = 0; vx < VIEWPORT_WIDTH; vx++) {
+            const worldX = camera.x + vx;
+            const worldY = camera.y + vy;
+
+            // Check bounds and validate row exists
+            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT &&
+                gameState.treeLayer[worldY] && gameState.treeLayer[worldY][worldX] !== undefined) {
+                
+                const treeTile = gameState.treeLayer[worldY][worldX];
+                
+                // Skip empty tiles
+                if (treeTile === 0) {
+                    continue;
+                }
+                
+                // Get the sprite for this tree
+                const treeSprite = getTileSprite(treeTile);
+                if (treeSprite) {
+                    const screenPos = worldToScreen(worldX, worldY);
+                    
+                    // Si el jugador está dentro de un edificio, aplicar el mismo filtro que se aplica al mapa base
+                    if (gameState.playerInBuilding) {
+                        const isInsideBuilding = isInsideCurrentBuilding(worldX, worldY);
+                        
+                        // Si es el exterior (no estamos dentro de este edificio), aplicar un filtro
+                        if (!isInsideBuilding) {
+                            ctx.globalAlpha = 0.7;
+                            ctx.drawImage(treeSprite, screenPos.x, screenPos.y);
+                            ctx.globalAlpha = 1.0;
+                            continue;
+                        }
+                    }
+                    
+                    // Dibujar el árbol con transparencia
+                    ctx.drawImage(treeSprite, screenPos.x, screenPos.y);
                 }
             }
         }

@@ -916,18 +916,33 @@ export function isWalkable(map, x, y) {
  * @param {Array} mapData - 2D map array
  */
 function extractRoofLayer(mapData) {
-    // Initialize roof layer
+    // Initialize roof layer and tree layer
     gameState.roofLayer = [];
+    gameState.treeLayer = [];
     gameState.buildings = [];
     
     const height = mapData.length;
     const width = mapData[0].length;
     
-    // Create empty roof layer
+    // Create empty roof layer and tree layer
     for (let y = 0; y < height; y++) {
         gameState.roofLayer[y] = [];
+        gameState.treeLayer[y] = [];
         for (let x = 0; x < width; x++) {
             gameState.roofLayer[y][x] = 0; // Default: no roof
+            gameState.treeLayer[y][x] = 0; // Default: no tree
+        }
+    }
+
+    // Buscar árboles en el mapa y moverlos a la capa de árboles
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (mapData[y][x] === TILES.TREE) {
+                // Mover el árbol a la capa de árboles
+                gameState.treeLayer[y][x] = TILES.TREE;
+                // Dejar el suelo original (grass) en la capa base
+                mapData[y][x] = TILES.GRASS;
+            }
         }
     }
 

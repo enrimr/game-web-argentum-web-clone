@@ -44,17 +44,34 @@ export function generateAllSprites(TILE_SIZE) {
         }),
         
         tree: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
-            // Trunk
+            // Limpia el contexto para asegurar transparencia
+            ctx.clearRect(0, 0, w, h);
+            
+            // Tronco del árbol
             ctx.fillStyle = '#654321';
             ctx.fillRect(w/2-3, h/2, 6, h/2);
-            // Leaves
+            
+            // Hojas (varias capas para dar profundidad)
             ctx.fillStyle = '#228b22';
             ctx.beginPath();
             ctx.arc(w/2, h/3, 12, 0, Math.PI * 2);
             ctx.fill();
+            
             ctx.fillStyle = '#32cd32';
             ctx.beginPath();
             ctx.arc(w/2-3, h/3-2, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Algunos detalles de hojas para dar textura
+            ctx.fillStyle = '#3a6b1f';
+            ctx.beginPath();
+            ctx.arc(w/2+4, h/3+2, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Pequeño detalle de luz en las hojas
+            ctx.fillStyle = '#90ee90';
+            ctx.beginPath();
+            ctx.arc(w/2-2, h/3-4, 3, 0, Math.PI * 2);
             ctx.fill();
         }),
 

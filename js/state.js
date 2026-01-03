@@ -45,8 +45,9 @@ export const gameState = {
         chestsOpened: 0
     },
     map: [], // Capa base del mapa (terreno, muros, etc.)
+    treeLayer: [], // Nueva capa para árboles y elementos intermedios
     roofLayer: [], // Capa para los techos de los edificios
-    doorLayer: [], // Nueva capa para las puertas en capa superior
+    doorLayer: [], // Capa para las puertas en capa superior
     buildings: [], // Información de los edificios en el mapa
     objects: [],
     enemies: [],
@@ -96,6 +97,7 @@ export function resetGameState() {
         chestsOpened: 0
     };
     gameState.map = [];
+    gameState.treeLayer = [];
     gameState.roofLayer = [];
     gameState.doorLayer = [];
     gameState.buildings = [];
