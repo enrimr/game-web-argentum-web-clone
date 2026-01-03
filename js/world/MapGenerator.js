@@ -889,6 +889,14 @@ export function isWalkable(map, x, y) {
         return false;
     }
 
+    // Comprobar capa de árboles - si hay un árbol, no es caminable
+    if (gameState.treeLayer && 
+        gameState.treeLayer[y] && 
+        gameState.treeLayer[y][x] !== undefined && 
+        gameState.treeLayer[y][x] === TILES.TREE) {
+        return false;
+    }
+
     // Puerta check
     if (gameState.doorLayer && gameState.doorLayer[y] && gameState.doorLayer[y][x] !== undefined && 
         gameState.doorLayer[y][x] !== 0) {

@@ -305,6 +305,7 @@ function updateEnemies(timestamp) {
         }
 
         // Check if new position is valid and not occupied by another enemy or NPC
+        // La función isWalkable ya incluye la comprobación de árboles
         if (isWalkable(gameState.map, newX, newY)) {
             const occupiedByEnemy = gameState.enemies.some(e =>
                 e !== enemy && e.x === newX && e.y === newY
