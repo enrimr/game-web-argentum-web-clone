@@ -578,8 +578,31 @@ function renderPlayer(camera) {
  * @returns {Image} Player sprite for current animation frame
  */
 function getAnimatedPlayerSprite() {
-    const { facing, animation } = gameState.player;
+    const { facing, animation, isGhost } = gameState.player;
 
+    // Check if player is a ghost
+    if (isGhost) {
+        // For ghost, use directional ghost sprites
+        if (animation.state === 'walking') {
+            // For walking, use animated ghost frames if available
+            return sprites[`playerGhost${facing.charAt(0).toUpperCase() + facing.slice(1)}`] || sprites.playerGhost;
+        } else {
+            // For idle and other states, use directional ghost sprites
+            if (facing === 'up') {
+                return sprites.playerGhostUp || sprites.playerGhost;
+            } else if (facing === 'down') {
+                return sprites.playerGhostDown || sprites.playerGhost;
+            } else if (facing === 'left') {
+                return sprites.playerGhostLeft || sprites.playerGhost;
+            } else if (facing === 'right') {
+                return sprites.playerGhostRight || sprites.playerGhost;
+            } else {
+                return sprites.playerGhost;
+            }
+        }
+    }
+
+    // For non-ghost player, use regular sprites
     // Base sprite based on direction and animation state
     let spriteName;
 

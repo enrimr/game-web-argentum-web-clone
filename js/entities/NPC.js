@@ -119,6 +119,27 @@ export class NPC extends Character {
             });
         }
         
+        // Healers
+        if (this.services && this.services.canHeal) {
+            options.push({
+                id: 'heal',
+                label: 'Curar Heridas',
+                action: 'heal'
+            });
+        }
+        
+        // Resurrection for ghosts
+        if (this.services && this.services.canResurrect) {
+            const player = window.gameState.player;
+            if (player && player.isGhost) {
+                options.push({
+                    id: 'resurrect',
+                    label: 'Resucitar',
+                    action: 'resurrect'
+                });
+            }
+        }
+        
         // Always allow saying goodbye
         options.push({
             id: 'farewell',
@@ -285,6 +306,133 @@ export class NPC extends Character {
             skill: skillName,
             cost: cost
         };
+    }
+    
+    /**
+     * Heal player's wounds
+     */
+    healPlayer(player) {
+        if (!this.services || !this.services.canHeal) {
+            return { success: false, message: 'No puedo curar heridas.' };
+        }
+        
+        // Check if player needs healing
+        if (player.hp >= player.maxHp) {
+            return { success: false, message: 'No necesitas curación.' };
+        }
+        
+        // Check if player has enough gold
+        const healCost = this.services.healCost || 50;
+        if (player.gold < healCost) {
+            return {
+                success: false,
+                message: `Necesitas ${healCost} oro para curarte.`
+            };
+        }
+        
+        // Apply healing
+        player.gold -= healCost;
+        player.hp = player.maxHp;
+        
+        return {
+            success: true,
+            message: `¡He curado todas tus heridas! (-${healCost} oro)`
+        };
+    }
+    
+    /**
+     * Resurrect ghost player
+     */
+    resurrectPlayer(player) {
+        if (!this.services || !this.services.canResurrect) {
+            return { success: false, message: 'No puedo resucitar.' };
+        }
+        
+        // Check if player is a ghost
+        if (!player.isGhost) {
+            return { success: false, message: '¡Pero si estás vivo!' };
+        }
+        
+        // Check if player has enough gold
+        const resurrectCost = this.services.resurrectCost || 100;
+        if (player.gold < resurrectCost) {
+            return {
+                success: false,
+                message: `Necesitas ${resurrectCost} oro para resucitar.`
+            };
+        }
+        
+        // Apply resurrection
+        player.gold -= resurrectCost;
+        player.isGhost = false;
+        player.hp = player.maxHp;
+        
+        // Return any dropped items that haven't been recovered
+        const droppedItems = this.recoverDroppedItems(player);
+        
+        return {
+            success: true,
+            message: `¡He devuelto tu alma a tu cuerpo! (-${resurrectCost} oro)${
+                droppedItems ? `\nRecuperados ${droppedItems} objetos caídos.` : ''
+            }`
+        };
+    }
+    
+    /**
+     * Recover player's dropped items
+     * @param {Object} player - Player object
+     * @returns {number} Number of recovered items
+     */
+    recoverDroppedItems(player) {
+        // Look for items dropped by this player
+        const droppedItems = window.gameState.droppedItems.filter(
+            item => item.droppedByPlayer && !item.recovered
+        );
+        
+        if (droppedItems.length === 0) {
+            return 0;
+        }
+        
+        let recoveredCount = 0;
+        
+        // Process each dropped item
+        for (const item of droppedItems) {
+            // Mark as recovered
+            item.recovered = true;
+            
+            // Handle equipped items
+            if (item.equippedSlot) {
+                // Re-equip the item if slot is empty
+                if (!player.equipped[item.equippedSlot]) {
+                    player.equipped[item.equippedSlot] = {
+                        type: item.type,
+                        name: item.name || item.type
+                    };
+                    recoveredCount++;
+                }
+                // Otherwise add to inventory
+                else {
+                    import('../systems/Inventory.js').then(({ addItemToInventory }) => {
+                        const success = addItemToInventory(item.type, 1);
+                        if (success) recoveredCount++;
+                    });
+                }
+            }
+            // Handle inventory items
+            else {
+                import('../systems/Inventory.js').then(({ addItemToInventory }) => {
+                    const success = addItemToInventory(item.type, item.quantity);
+                    if (success) recoveredCount++;
+                });
+            }
+        }
+        
+        // Clean up recovered items
+        window.gameState.droppedItems = window.gameState.droppedItems.filter(
+            item => !item.recovered
+        );
+        
+        return recoveredCount;
     }
     
     /**

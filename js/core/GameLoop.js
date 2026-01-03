@@ -101,8 +101,8 @@ function handleMovement(timestamp) {
 
     // Only move if not on cooldown and position is valid
     if (moved && timestamp - lastMoveTime >= MOVE_DELAY && isWalkable(gameState.map, newX, newY)) {
-        // Check if there's an enemy in the target position
-        const enemyInPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
+        // Check if there's an enemy in the target position (ghosts can pass through enemies)
+        const enemyInPosition = !gameState.player.isGhost && gameState.enemies.some(e => e.x === newX && e.y === newY);
 
         // Check if there's an NPC in the target position
         const npcInPosition = gameState.npcs.some(npc => npc.x === newX && npc.y === newY);
@@ -281,6 +281,9 @@ function updateEnemies(timestamp) {
     for (let enemy of gameState.enemies) {
         if (timestamp - enemy.lastMoveTime < enemy.moveDelay) continue;
 
+        // Skip if player is a ghost - enemies ignore ghosts
+        if (gameState.player.isGhost) continue;
+
         const dx = gameState.player.x - enemy.x;
         const dy = gameState.player.y - enemy.y;
         const distance = Math.abs(dx) + Math.abs(dy);
@@ -327,6 +330,9 @@ function updateEnemies(timestamp) {
 function enemyAttacks(timestamp) {
     for (let enemy of gameState.enemies) {
         if (timestamp - enemy.lastAttackTime < enemy.attackDelay) continue;
+
+        // Skip if player is a ghost - enemies can't attack ghosts
+        if (gameState.player.isGhost) continue;
 
         // Check if player is adjacent
         const dx = Math.abs(gameState.player.x - enemy.x);

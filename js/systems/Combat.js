@@ -326,11 +326,12 @@ export function addExp(amount) {
 }
 
 /**
- * Check if player is alive
- * @returns {boolean} True if player has HP > 0
+ * Check if player is alive or is a ghost
+ * @returns {boolean} True if player has HP > 0 or is a ghost
  */
 export function isPlayerAlive() {
-    return gameState.player.hp > 0;
+    // Consider ghost players as "alive" for movement purposes
+    return gameState.player.hp > 0 || gameState.player.isGhost;
 }
 
 // ===== ENEMY RESPAWN SYSTEM =====

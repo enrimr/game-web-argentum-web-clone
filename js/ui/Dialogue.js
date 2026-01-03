@@ -198,6 +198,50 @@ function getNPCDialogue(npc) {
                 }
             ]
         },
+        healer: {
+            text: npc.dialogue.greeting,
+            options: [
+                {
+                    text: "Necesito curación",
+                    response: npc.dialogue.heal,
+                    action: () => {
+                        if (currentDialogue) {
+                            const result = currentDialogue.healPlayer(gameState.player);
+                            if (result.success) {
+                                addChatMessage('system', `💚 ${result.message}`);
+                                updateUI();
+                            } else {
+                                addChatMessage('system', `❌ ${result.message}`);
+                            }
+                        }
+                    }
+                },
+                // Opción de resucitar solo aparece para jugadores fantasma
+                ...(gameState.player.isGhost ? [{
+                    text: "Necesito resucitar",
+                    response: npc.dialogue.resurrect,
+                    action: () => {
+                        if (currentDialogue) {
+                            const result = currentDialogue.resurrectPlayer(gameState.player);
+                            if (result.success) {
+                                addChatMessage('system', `✨ ${result.message}`);
+                                updateUI();
+                            } else {
+                                addChatMessage('system', `❌ ${result.message}`);
+                            }
+                        }
+                    }
+                }] : []),
+                {
+                    text: "¿Cuánto cobras por tus servicios?",
+                    response: `Cobro ${npc.services.healCost} monedas por curar y ${npc.services.resurrectCost} monedas por resucitar.`,
+                },
+                {
+                    text: "Adiós",
+                    response: npc.dialogue.farewell
+                }
+            ]
+        },
         blacksmith: {
             text: "¡Bienvenido a mi herrería! Forjo las mejores armas y armaduras. ¿Buscas algo específico?",
             options: [

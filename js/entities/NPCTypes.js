@@ -14,7 +14,8 @@ export const NPC_TYPE = {
     TRAINER: 'trainer',             // Entrenador
     QUEST_GIVER: 'quest_giver',     // Dador de misiones
     INNKEEPER: 'innkeeper',         // Posadero
-    ALCHEMIST: 'alchemist'          // Alquimista
+    ALCHEMIST: 'alchemist',         // Alquimista
+    HEALER: 'healer'                // Sacerdote/Curandero
 };
 
 // Definiciones de NPCs específicos
@@ -191,6 +192,25 @@ export const NPC_DEFINITIONS = {
                 }
             ]
         }
+    },
+    
+    // Sacerdote/Curandero
+    healer_city: {
+        name: 'Sacerdote Marcos',
+        type: NPC_TYPE.HEALER,
+        sprite: 'npc_healer',
+        dialogue: {
+            greeting: 'La paz sea contigo, viajero.',
+            heal: 'Deja que cure tus heridas.',
+            resurrect: 'Te devolveré a la vida, pero ten más cuidado en adelante.',
+            farewell: 'Ve con la bendición de los dioses.'
+        },
+        services: {
+            canHeal: true,
+            canResurrect: true,
+            resurrectCost: 100, // Costo en oro para resucitar
+            healCost: 50        // Costo en oro para curar
+        }
     }
 };
 
@@ -200,13 +220,15 @@ export const NPC_SPAWN_POSITIONS = {
         { npcType: 'merchant_general', x: 25, y: 15 },
         { npcType: 'banker_city', x: 20, y: 20 },
         { npcType: 'guard_city', x: 15, y: 10 },
-        { npcType: 'guard_city', x: 35, y: 25 }
+        { npcType: 'guard_city', x: 35, y: 25 },
+        { npcType: 'healer_city', x: 30, y: 10 }
     ],
     market: [
         { npcType: 'merchant_general', x: 10, y: 10 },
         { npcType: 'alchemist_market', x: 25, y: 15 }
     ],
     field: [
-        { npcType: 'trainer_skills', x: 30, y: 30 }
+        { npcType: 'trainer_skills', x: 30, y: 30 },
+        { npcType: 'healer_city', x: 15, y: 20 }
     ]
 };
