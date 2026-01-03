@@ -45,8 +45,37 @@ export function generateMap(mapType) {
     if (mapType === 'newbie_field') {
         console.log("🏞️ Generando mapa de Newbie Field");
         const mapData = generateNewbieFieldLayout();
-        extractRoofLayer(mapData);
-        return mapData;
+
+        // Verificar que el mapa es válido
+        if (mapData && Array.isArray(mapData) && mapData.length > 0) {
+            console.log(`🏞️ Mapa Newbie Field generado correctamente: ${mapData.length}x${mapData[0]?.length}`);
+            
+            try {
+                extractRoofLayer(mapData);
+                return mapData;
+            } catch (error) {
+                console.error("Error al extraer capa de techos para newbie_field:", error);
+            }
+        } else {
+            console.error(`❌ generateNewbieFieldLayout devolvió un mapa inválido: ${typeof mapData}`);
+            
+            // Como fallback, crear un mapa mínimo válido
+            const fallbackMap = [];
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                const row = [];
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                        row.push(TILES.WALL);
+                    } else {
+                        row.push(TILES.GRASS);
+                    }
+                }
+                fallbackMap.push(row);
+            }
+            console.log(`⚠️ Usando mapa fallback para newbie_field: ${fallbackMap.length}x${fallbackMap[0].length}`);
+            extractRoofLayer(fallbackMap);
+            return fallbackMap;
+        }
     }
     
     // For other maps, try to load a static map
