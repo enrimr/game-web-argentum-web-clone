@@ -36,15 +36,82 @@ export function toggleWorldMap() {
     worldMapVisible = !worldMapVisible;
 
     if (worldMapVisible) {
-        container.style.display = 'block';
+        // Centrar el mapa en pantalla y mostrarlo
+        centerWorldMapOnScreen();
+        container.style.display = 'flex';
         button.textContent = 'Ocultar Mapa del Mundo';
+        
+        // Crear el botón de cierre si no existe
+        let closeButton = document.getElementById('closeWorldMapBtn');
+        if (!closeButton) {
+            closeButton = document.createElement('button');
+            closeButton.id = 'closeWorldMapBtn';
+            closeButton.className = 'world-map-close-btn';
+            closeButton.textContent = '✕';
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '5px';
+            closeButton.style.right = '5px';
+            closeButton.style.background = 'rgba(200, 0, 0, 0.7)';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.borderRadius = '50%';
+            closeButton.style.width = '24px';
+            closeButton.style.height = '24px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.fontSize = '14px';
+            closeButton.style.fontWeight = 'bold';
+            closeButton.style.display = 'flex';
+            closeButton.style.justifyContent = 'center';
+            closeButton.style.alignItems = 'center';
+            closeButton.style.zIndex = '1000';
+            closeButton.addEventListener('click', closeWorldMap);
+            container.appendChild(closeButton);
+        }
+        
         renderWorldMap();
     } else {
-        container.style.display = 'none';
-        button.textContent = 'Mostrar Mapa del Mundo';
-        const detailsDiv = document.getElementById('worldMapDetails');
-        if (detailsDiv) detailsDiv.innerHTML = '';
+        closeWorldMap();
     }
+}
+
+/**
+ * Close the world map
+ */
+function closeWorldMap() {
+    const container = document.getElementById('worldMapContainer');
+    const button = document.getElementById('toggleWorldMap');
+    
+    if (!container || !button) return; // Safety check
+    
+    worldMapVisible = false;
+    container.style.display = 'none';
+    button.textContent = 'Mostrar Mapa del Mundo';
+    const detailsDiv = document.getElementById('worldMapDetails');
+    if (detailsDiv) detailsDiv.innerHTML = '';
+}
+
+/**
+ * Center the world map on screen
+ */
+function centerWorldMapOnScreen() {
+    const container = document.getElementById('worldMapContainer');
+    if (!container) return;
+    
+    // Establecer estilos para posicionar el mapa en el centro de la pantalla
+    container.style.position = 'fixed';
+    container.style.top = '50%';
+    container.style.left = '50%';
+    container.style.transform = 'translate(-50%, -50%)';
+    container.style.maxWidth = '80%';
+    container.style.maxHeight = '80%';
+    container.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+    container.style.border = '2px solid #ffd700';
+    container.style.borderRadius = '8px';
+    container.style.padding = '20px';
+    container.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.5)';
+    container.style.zIndex = '1000';
+    container.style.flexDirection = 'column';
+    container.style.alignItems = 'center';
 }
 
 /**
@@ -58,14 +125,42 @@ export function renderWorldMap() {
 
     const canvas = worldMapCanvas;
     const ctx = worldMapCtx;
+    
+    // Ajustar el tamaño del canvas para que sea más grande
+    canvas.width = 500;
+    canvas.height = 400;
 
     // Clear canvas
-    ctx.fillStyle = '#1e3c72';
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0f2027');
+    gradient.addColorStop(0.5, '#203a43');
+    gradient.addColorStop(1, '#2c5364');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Añadir título
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('MAPA DEL MUNDO - ARGENTUM ONLINE', canvas.width / 2, 30);
+    
+    // Dibujar leyenda
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('🟢 Ubicación actual', 20, 60);
+    ctx.fillText('🔵 Áreas accesibles', 20, 80);
+    ctx.fillText('🟤 Áreas por descubrir', 20, 100);
+    ctx.fillText('⚔️ Haz clic para ver detalles', 20, 120);
+    
+    // Añadir borde al mapa
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
 
     // Draw connections first (behind maps)
     ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
 
     for (const connection of WORLD_CONNECTIONS) {
@@ -85,36 +180,68 @@ export function renderWorldMap() {
     // Draw each map as a rectangle
     for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
         const isCurrentMap = mapKey === gameState.currentMap;
-        const canAccess = true; // For now, all maps are accessible
+        // Para la demo, definimos que los mapas reales (newbie_city, newbie_field, dark_forest) 
+        // son accesibles, y los demás no
+        const canAccess = mapKey === 'newbie_city' || mapKey === 'newbie_field' || mapKey === 'dark_forest';
 
-        // Draw map rectangle
-        ctx.fillStyle = isCurrentMap ? '#4ade80' : canAccess ? '#60a5fa' : '#6b7280';
-        ctx.fillRect(mapDef.worldX - 20, mapDef.worldY - 15, 40, 30);
+        // Draw map rectangle (más grande)
+        ctx.fillStyle = isCurrentMap ? '#4ade80' : canAccess ? '#60a5fa' : '#8b5cf6';
+        ctx.fillRect(mapDef.worldX - 25, mapDef.worldY - 20, 50, 40);
 
         // Draw border
-        ctx.strokeStyle = isCurrentMap ? '#22c55e' : canAccess ? '#3b82f6' : '#4b5563';
+        ctx.strokeStyle = isCurrentMap ? '#22c55e' : canAccess ? '#3b82f6' : '#7c3aed';
         ctx.lineWidth = 2;
-        ctx.strokeRect(mapDef.worldX - 20, mapDef.worldY - 15, 40, 30);
+        ctx.strokeRect(mapDef.worldX - 25, mapDef.worldY - 20, 50, 40);
 
-        // Draw map name
+        // Draw map icon based on type
         ctx.fillStyle = '#ffffff';
-        ctx.font = '10px monospace';
+        ctx.font = '14px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(mapDef.name.split(' ')[0], mapDef.worldX, mapDef.worldY + 2);
+        
+        // Elegir un emoji según el tipo de mapa
+        let mapIcon = '🏞️';
+        if (mapDef.name.includes('Ciudad')) mapIcon = '🏘️';
+        else if (mapDef.name.includes('Bosque')) mapIcon = '🌲';
+        else if (mapDef.name.includes('Mazmorra')) mapIcon = '🏰';
+        else if (mapDef.name.includes('Mercado')) mapIcon = '🏪';
+        else if (mapDef.name.includes('Ruinas')) mapIcon = '🏛️';
+        else if (mapDef.name.includes('Trono')) mapIcon = '👑';
+        
+        ctx.fillText(mapIcon, mapDef.worldX, mapDef.worldY - 5);
+
+        // Draw map name with shadow for better readability
+        ctx.font = '10px monospace';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 3;
+        ctx.fillText(mapDef.name.split(' ')[0], mapDef.worldX, mapDef.worldY + 10);
+        ctx.shadowBlur = 0;
     }
 
     // Draw player position indicator
     const currentMapDef = MAP_DEFINITIONS[gameState.currentMap];
     if (currentMapDef) {
+        // Dibujar un marcador más visible
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
-        ctx.arc(currentMapDef.worldX, currentMapDef.worldY - 8, 5, 0, Math.PI * 2);
+        ctx.arc(currentMapDef.worldX, currentMapDef.worldY - 25, 8, 0, Math.PI * 2);
         ctx.fill();
 
+        // Añadir un borde blanco al marcador
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Dibujar una estrella dentro del marcador
         ctx.fillStyle = '#ffffff';
-        ctx.font = '8px monospace';
-        ctx.fillText('★', currentMapDef.worldX - 3, currentMapDef.worldY - 5);
+        ctx.font = '12px monospace';
+        ctx.fillText('★', currentMapDef.worldX - 4, currentMapDef.worldY - 21);
     }
+    
+    // Añadir instrucción en la parte inferior
+    ctx.fillStyle = '#ffd700';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Haz clic en el botón X para cerrar', canvas.width / 2, canvas.height - 20);
 }
 
 /**
