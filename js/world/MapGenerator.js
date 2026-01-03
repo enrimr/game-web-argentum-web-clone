@@ -46,36 +46,54 @@ export function generateMap(mapType) {
         console.log("🏞️ Generando mapa de Newbie Field");
         const mapData = generateNewbieFieldLayout();
 
-        // Verificar que el mapa es válido
-        if (mapData && Array.isArray(mapData) && mapData.length > 0) {
-            console.log(`🏞️ Mapa Newbie Field generado correctamente: ${mapData.length}x${mapData[0]?.length}`);
-            
-            try {
-                extractRoofLayer(mapData);
-                return mapData;
-            } catch (error) {
-                console.error("Error al extraer capa de techos para newbie_field:", error);
+        // Verificar que el mapa es válido - puede ser un objeto con {map, roofLayer, etc} o directamente un array 2D
+        if (mapData) {
+            // Si es un objeto con capas (nueva estructura)
+            if (mapData.map && Array.isArray(mapData.map) && mapData.map.length > 0) {
+                console.log(`🏞️ Mapa Newbie Field generado correctamente (formato multicapa): ${mapData.map.length}x${mapData.map[0]?.length}`);
+                
+                // Asignar capas directamente al gameState
+                gameState.roofLayer = mapData.roofLayer || [];
+                gameState.doorLayer = mapData.doorLayer || [];
+                gameState.windowLayer = mapData.windowLayer || [];
+                
+                return mapData.map;
+            } 
+            // Si es un array 2D directamente (estructura antigua)
+            else if (Array.isArray(mapData) && mapData.length > 0) {
+                console.log(`🏞️ Mapa Newbie Field generado correctamente (formato array simple): ${mapData.length}x${mapData[0]?.length}`);
+                
+                try {
+                    extractRoofLayer(mapData);
+                    return mapData;
+                } catch (error) {
+                    console.error("Error al extraer capa de techos para newbie_field:", error);
+                }
+            } 
+            // Si no es ninguno de los formatos esperados
+            else {
+                console.error(`❌ generateNewbieFieldLayout devolvió un formato inesperado: ${typeof mapData}`);
             }
         } else {
             console.error(`❌ generateNewbieFieldLayout devolvió un mapa inválido: ${typeof mapData}`);
-            
-            // Como fallback, crear un mapa mínimo válido
-            const fallbackMap = [];
-            for (let y = 0; y < MAP_HEIGHT; y++) {
-                const row = [];
-                for (let x = 0; x < MAP_WIDTH; x++) {
-                    if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                        row.push(TILES.WALL);
-                    } else {
-                        row.push(TILES.GRASS);
-                    }
-                }
-                fallbackMap.push(row);
-            }
-            console.log(`⚠️ Usando mapa fallback para newbie_field: ${fallbackMap.length}x${fallbackMap[0].length}`);
-            extractRoofLayer(fallbackMap);
-            return fallbackMap;
         }
+        
+        // Como fallback en caso de error, crear un mapa mínimo válido
+        const fallbackMap = [];
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            const row = [];
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                    row.push(TILES.WALL);
+                } else {
+                    row.push(TILES.GRASS);
+                }
+            }
+            fallbackMap.push(row);
+        }
+        console.log(`⚠️ Usando mapa fallback para newbie_field: ${fallbackMap.length}x${fallbackMap[0].length}`);
+        extractRoofLayer(fallbackMap);
+        return fallbackMap;
     }
     
     // For other maps, try to load a static map

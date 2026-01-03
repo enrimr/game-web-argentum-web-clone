@@ -78,16 +78,45 @@ export async function init() {
     // Generate initial map first
     const mapResult = generateMap(gameState.currentMap);
     
+    // Verificación de seguridad para el resultado de generateMap
+    console.log(`🗺️ Resultado de generateMap para ${gameState.currentMap}: ` + 
+               (mapResult ? "✓ (existe)" : "✗ (null/undefined)") + " - " +
+               (Array.isArray(mapResult) ? `Array 2D ${mapResult.length}x${mapResult[0]?.length}` : 
+                (mapResult?.map ? `Objeto con .map ${mapResult.map.length}x${mapResult.map[0]?.length}` : "Formato inválido")));
+    
     // Manejar tanto mapas simples como objetos con múltiples capas
-    if (mapResult.map) {
+    if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
         // Es un objeto con múltiples capas
+        console.log(`🗺️ Asignando mapa con formato multicapa: ${mapResult.map.length}x${mapResult.map[0]?.length}`);
         gameState.map = mapResult.map;
         gameState.roofLayer = mapResult.roofLayer || [];
         gameState.doorLayer = mapResult.doorLayer || [];
         gameState.windowLayer = mapResult.windowLayer || [];
-    } else {
-        // Es un mapa simple
+    } else if (mapResult && Array.isArray(mapResult)) {
+        // Es un mapa simple (array 2D directo)
+        console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
         gameState.map = mapResult;
+        
+        // Crear capas vacías
+        gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+    } else {
+        // Resultado inválido - crear mapa por defecto
+        console.error(`❌ Resultado de generateMap inválido para ${gameState.currentMap}. Creando mapa fallback.`);
+        gameState.map = [];
+        
+        for (let y = 0; y < CONFIG.MAP_HEIGHT; y++) {
+            const row = [];
+            for (let x = 0; x < CONFIG.MAP_WIDTH; x++) {
+                if (x === 0 || x === CONFIG.MAP_WIDTH - 1 || y === 0 || y === CONFIG.MAP_HEIGHT - 1) {
+                    row.push(4); // WALL
+                } else {
+                    row.push(0); // GRASS
+                }
+            }
+            gameState.map.push(row);
+        }
         
         // Crear capas vacías
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));

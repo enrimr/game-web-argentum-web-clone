@@ -70,18 +70,31 @@ export function generateNewbieCityLayout() {
  */
 export function generateNewbieFieldLayout() {
     const map = [];
+    const roofLayer = []; // Capa para techos (vacía para campo)
+    const doorLayer = []; // Capa para puertas (vacía para campo)
+    const windowLayer = []; // Capa para ventanas (vacía para campo)
     
     // Base de hierba con muros perimetrales
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
+        const roofRow = [];
+        const doorRow = [];
+        const windowRow = [];
+        
         for (let x = 0; x < MAP_WIDTH; x++) {
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
             } else {
                 row.push(TILES.GRASS);
             }
+            roofRow.push(0); // No hay techos en el campo
+            doorRow.push(0);  // No hay puertas en el campo
+            windowRow.push(0); // No hay ventanas en el campo
         }
         map.push(row);
+        roofLayer.push(roofRow);
+        doorLayer.push(doorRow);
+        windowLayer.push(windowRow);
     }
     
     // Árboles y piedras dispersos
@@ -103,7 +116,13 @@ export function generateNewbieFieldLayout() {
         }
     }
     
-    return map;
+    // Devolver el mismo formato que generateNewbieCityWithBuildings para consistencia
+    return {
+        map: map,
+        roofLayer: roofLayer,
+        doorLayer: doorLayer,
+        windowLayer: windowLayer
+    };
 }
 
 /**
