@@ -214,7 +214,7 @@ export function changeMap(targetMap, targetX, targetY) {
 
     // Regenerate map content
     const mapResult = generateMap(targetMap);
-    
+
     // Manejar tanto mapas simples como objetos con múltiples capas
     if (mapResult.map) {
         // Es un objeto con múltiples capas
@@ -225,21 +225,22 @@ export function changeMap(targetMap, targetX, targetY) {
     } else {
         // Es un mapa simple
         gameState.map = mapResult;
-        
+
         // Crear capas vacías si no existen
         if (!gameState.roofLayer) {
             gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         }
-        
+
         if (!gameState.doorLayer) {
             gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         }
-        
+
         if (!gameState.windowLayer) {
             gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         }
     }
-    
+
+    // Ahora que gameState.map está asignado, podemos generar objetos
     gameState.objects = generateObjects(targetMap);
     gameState.enemies = generateEnemies(targetMap);
     gameState.npcs = generateNPCs(targetMap);
