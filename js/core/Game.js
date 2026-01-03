@@ -254,7 +254,7 @@ export function changeMap(targetMap, targetX, targetY) {
     gameState.npcs = generateNPCs(targetMap);
 
     // Teleport player to safe target position DESPUÉS de tener el mapa
-    console.log(`🧙‍♂️ Teletransportando jugador a (${targetX}, ${targetY})`);
+    console.log(`🧙‍♂️ Teletransportando jugador a (${targetX}, ${targetY}) - isWalkable: ${isWalkable(gameState.map, targetX, targetY)}`);
     gameState.player.x = targetX;
     gameState.player.y = targetY;
 
