@@ -756,9 +756,28 @@ function connectRooms(map, point1, point2, bounds) {
  * @returns {boolean} True if the tile is walkable
  */
 export function isWalkable(map, x, y) {
+    // Boundary check
     if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
 
-    // Primero comprobar si hay una puerta cerrada en la capa doorLayer
+    // Map validity check
+    if (!map || !Array.isArray(map)) {
+        console.error("isWalkable: map is not an array", map);
+        return false;
+    }
+
+    // Row validity check
+    if (!map[y] || !Array.isArray(map[y])) {
+        console.error(`isWalkable: map[${y}] is not an array`, map[y]);
+        return false;
+    }
+
+    // Cell validity check
+    if (map[y][x] === undefined) {
+        console.error(`isWalkable: map[${y}][${x}] is undefined`);
+        return false;
+    }
+
+    // Puerta check
     if (gameState.doorLayer && gameState.doorLayer[y] && gameState.doorLayer[y][x] !== undefined && 
         gameState.doorLayer[y][x] !== 0) {
         
@@ -775,7 +794,7 @@ export function isWalkable(map, x, y) {
         }
     }
 
-    // Si no hay puerta en la capa de puertas, comprobamos la capa base
+    // Normal tile check
     const tile = map[y][x];
     return isTileWalkable(tile);
 }

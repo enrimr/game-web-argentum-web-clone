@@ -202,29 +202,32 @@ export function changeMap(targetMap, targetX, targetY) {
     // Save current map for transition message
     const oldMap = gameState.currentMap;
 
-    // Change map
+    // Cambiamos el mapa actual
     gameState.currentMap = targetMap;
-
-    // Teleport player to safe target position
-    gameState.player.x = targetX;
-    gameState.player.y = targetY;
 
     // Clear dead enemies from other maps to prevent respawns in wrong maps
     gameState.deadEnemies = gameState.deadEnemies.filter(deadEnemy => deadEnemy.map === targetMap);
 
-    // Regenerate map content
+    // Regeneramos el contenido del mapa primero para asegurarnos de que gameState.map esté disponible
     const mapResult = generateMap(targetMap);
 
+    // Verificación de seguridad para el nuevo mapa
+    console.log(`🗺️ Regenerando mapa ${targetMap}: ` + 
+               (mapResult ? "✓" : "✗") + " " +
+               (Array.isArray(mapResult) ? "Array" : (mapResult?.map ? "Object with map" : "Invalid")));
+
     // Manejar tanto mapas simples como objetos con múltiples capas
-    if (mapResult.map) {
+    if (mapResult && mapResult.map) {
         // Es un objeto con múltiples capas
         gameState.map = mapResult.map;
         gameState.roofLayer = mapResult.roofLayer || [];
         gameState.doorLayer = mapResult.doorLayer || [];
         gameState.windowLayer = mapResult.windowLayer || [];
-    } else {
+        console.log(`🗺️ Asignado mapa con capas: ${gameState.map.length}x${gameState.map[0]?.length}`);
+    } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple
         gameState.map = mapResult;
+        console.log(`🗺️ Asignado mapa simple: ${gameState.map.length}x${gameState.map[0]?.length}`);
 
         // Crear capas vacías si no existen
         if (!gameState.roofLayer) {
@@ -238,12 +241,22 @@ export function changeMap(targetMap, targetX, targetY) {
         if (!gameState.windowLayer) {
             gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         }
+    } else {
+        console.error(`❌ Error al generar mapa ${targetMap} - resultado inválido`);
+        addChatMessage('system', '❌ ¡Error! No se pudo generar el mapa de destino.');
+        return;
     }
 
-    // Ahora que gameState.map está asignado, podemos generar objetos
+    // AHORA que tenemos el mapa, generamos los objetos (que necesitan gameState.map)
+    console.log(`🎮 Generando contenido para mapa ${targetMap}`);
     gameState.objects = generateObjects(targetMap);
     gameState.enemies = generateEnemies(targetMap);
     gameState.npcs = generateNPCs(targetMap);
+
+    // Teleport player to safe target position DESPUÉS de tener el mapa
+    console.log(`🧙‍♂️ Teletransportando jugador a (${targetX}, ${targetY})`);
+    gameState.player.x = targetX;
+    gameState.player.y = targetY;
 
     // Agregar objetos caídos del mapa actual como objetos interactivos
     addDroppedItemsToMap(targetMap);

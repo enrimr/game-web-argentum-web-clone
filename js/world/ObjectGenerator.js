@@ -640,9 +640,23 @@ export function generateNPCs(mapType) {
  * @returns {Object|null} Position object {x, y} or null if not found
  */
 function findSafeWalkablePosition(preferredX, preferredY, maxAttempts = 50) {
-    // First, try the preferred position
-    if (isWalkable(gameState.map, preferredX, preferredY)) {
-        return { x: preferredX, y: preferredY };
+    // Validate gameState.map exists and is valid
+    if (!gameState.map || !Array.isArray(gameState.map) || gameState.map.length === 0) {
+        console.error("findSafeWalkablePosition: gameState.map is invalid", {
+            exists: !!gameState.map,
+            isArray: Array.isArray(gameState.map),
+            length: gameState.map?.length
+        });
+        return { x: preferredX, y: preferredY }; // Fall back to preferred position
+    }
+
+    // First, try the preferred position with validation
+    try {
+        if (isWalkable(gameState.map, preferredX, preferredY)) {
+            return { x: preferredX, y: preferredY };
+        }
+    } catch (error) {
+        console.error("Error checking if preferred position is walkable:", error);
     }
 
     // Search in expanding circles around preferred position
@@ -654,8 +668,13 @@ function findSafeWalkablePosition(preferredX, preferredY, maxAttempts = 50) {
                     const y = preferredY + dy;
 
                     if (x > 0 && x < MAP_WIDTH - 1 && y > 0 && y < MAP_HEIGHT - 1) {
-                        if (isWalkable(gameState.map, x, y)) {
-                            return { x, y };
+                        try {
+                            if (isWalkable(gameState.map, x, y)) {
+                                return { x, y };
+                            }
+                        } catch (error) {
+                            console.error(`Error checking if position (${x}, ${y}) is walkable:`, error);
+                            continue;
                         }
                     }
                 }
@@ -668,12 +687,18 @@ function findSafeWalkablePosition(preferredX, preferredY, maxAttempts = 50) {
         const x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
         const y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
 
-        if (isWalkable(gameState.map, x, y)) {
-            return { x, y };
+        try {
+            if (isWalkable(gameState.map, x, y)) {
+                return { x, y };
+            }
+        } catch (error) {
+            console.error(`Error checking if position (${x}, ${y}) is walkable:`, error);
+            continue;
         }
     }
 
-    return null; // Failed to find position
+    console.warn("findSafeWalkablePosition: Could not find any walkable position, returning preferred position");
+    return { x: preferredX, y: preferredY }; // Last resort, return the preferred position even if not walkable
 }
 
 /**
