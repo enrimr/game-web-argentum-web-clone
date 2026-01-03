@@ -20,6 +20,7 @@ export const gameState = {
         expToNextLevel: 100,
         gold: 0,
         facing: 'down', // Dirección del jugador: 'up', 'down', 'left', 'right'
+        isGhost: false, // Si el jugador está en modo fantasma (muerto)
         animation: {
             state: 'idle', // 'idle', 'walking', 'attacking', 'talking'
             frame: 0, // Frame actual de animación
@@ -52,6 +53,7 @@ export const gameState = {
     npcs: [], // NPCs del juego
     projectiles: [], // Flechas y otros proyectiles volando
     deadEnemies: [], // Enemigos muertos esperando respawn (timestamp, enemyType, map)
+    droppedItems: [], // Objetos caídos al suelo que persisten entre mapas
     playerInBuilding: false, // Si el jugador está dentro de un edificio
     currentBuilding: null, // Información del edificio actual
     buildingLayer: 0, // Capa del edificio (0=exterior, 1=interior)
@@ -80,6 +82,7 @@ export function resetGameState() {
         level: CONFIG.LEVEL.STARTING_LEVEL,
         exp: CONFIG.LEVEL.STARTING_EXP,
         expToNextLevel: CONFIG.LEVEL.BASE_EXP_TO_LEVEL,
+        isGhost: false,
         facing: 'down',
         animation: {
             state: 'idle',
@@ -101,6 +104,7 @@ export function resetGameState() {
     gameState.npcs = [];
     gameState.projectiles = [];
     gameState.deadEnemies = [];
+    gameState.droppedItems = [];
     gameState.enteredBuildings = [];
     gameState.doors = {}; // Reiniciar estado de puertas
     gameState.buildingVisibility = {}; // Reiniciar visibilidad de edificios

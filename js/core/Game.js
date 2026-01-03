@@ -244,6 +244,9 @@ export function changeMap(targetMap, targetX, targetY) {
     gameState.enemies = generateEnemies(targetMap);
     gameState.npcs = generateNPCs(targetMap);
 
+    // Agregar objetos caídos del mapa actual como objetos interactivos
+    addDroppedItemsToMap(targetMap);
+
     // Show transition message
     const mapNames = {
         // Procedural maps
@@ -268,6 +271,26 @@ export function changeMap(targetMap, targetX, targetY) {
 
     addChatMessage('system', `🌟 ¡Viajas a ${displayName}!`);
     updateUI();
+}
+
+/**
+ * Agregar objetos caídos del mapa actual como objetos interactivos
+ * @param {string} mapName - Nombre del mapa actual
+ */
+function addDroppedItemsToMap(mapName) {
+    // Filtrar objetos caídos que pertenecen a este mapa
+    const mapDroppedItems = gameState.droppedItems.filter(item => item.map === mapName);
+
+    // Convertir objetos caídos a objetos interactivos
+    mapDroppedItems.forEach(droppedItem => {
+        const interactiveObject = {
+            type: 'dropped_item',
+            x: droppedItem.x,
+            y: droppedItem.y,
+            droppedItem: droppedItem // Referencia al objeto caído original
+        };
+        gameState.objects.push(interactiveObject);
+    });
 }
 
 /**

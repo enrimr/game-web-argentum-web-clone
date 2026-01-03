@@ -351,6 +351,7 @@ function loadStaticMapData(mapType) {
                     { "type": "merchant", "x": 35, "y": 15, "dialogue": "shop_armor" },
                     { "type": "healer", "x": 25, "y": 25, "dialogue": "healing" },
                     { "type": "trainer", "x": 10, "y": 30, "dialogue": "training" },
+                    { "type": "priest", "x": 40, "y": 30, "dialogue": "resurrection" },
                     { "type": "guard", "x": 25, "y": 5, "dialogue": "guard_north" },
                     { "type": "guard", "x": 5, "y": 20, "dialogue": "guard_west" },
                     { "type": "guard", "x": 45, "y": 20, "dialogue": "guard_east" }

@@ -45,9 +45,78 @@ export function enemyAttack(enemy) {
     updateUI(); // Update UI after taking damage
 
     // Check if player died
-    if (gameState.player.hp === 0) {
-        addChatMessage('system', '💀 ¡Has muerto! Recarga la página para jugar de nuevo.');
+    if (gameState.player.hp === 0 && !gameState.player.isGhost) {
+        // Player dies - enter ghost mode
+        enterGhostMode();
     }
+}
+
+/**
+ * Enter ghost mode when player dies
+ */
+function enterGhostMode() {
+    gameState.player.isGhost = true;
+
+    // Drop all items to the ground
+    dropAllPlayerItems();
+
+    addChatMessage('system', '💀 ¡Has muerto! Ahora eres un fantasma.');
+    addChatMessage('system', '👻 Como fantasma puedes caminar, usar teletransportadores y hablar con sacerdotes.');
+    addChatMessage('system', '⛪ Busca un sacerdote para resucitarte y recuperar tus objetos.');
+}
+
+/**
+ * Drop all player items to the ground at current position
+ */
+function dropAllPlayerItems() {
+    const playerX = gameState.player.x;
+    const playerY = gameState.player.y;
+    const currentMap = gameState.currentMap;
+
+    // Drop inventory items
+    gameState.player.inventory.forEach(item => {
+        const droppedItem = {
+            type: item.type,
+            quantity: item.quantity,
+            x: playerX,
+            y: playerY,
+            map: currentMap,
+            droppedByPlayer: true,
+            dropTime: Date.now()
+        };
+        gameState.droppedItems.push(droppedItem);
+    });
+
+    // Drop equipped items
+    Object.keys(gameState.player.equipped).forEach(slot => {
+        const item = gameState.player.equipped[slot];
+        if (item) {
+            const droppedItem = {
+                type: item.type,
+                quantity: 1,
+                x: playerX,
+                y: playerY,
+                map: currentMap,
+                droppedByPlayer: true,
+                dropTime: Date.now(),
+                equippedSlot: slot
+            };
+            gameState.droppedItems.push(droppedItem);
+        }
+    });
+
+    // Clear player's inventory and equipment
+    gameState.player.inventory = [];
+    gameState.player.equipped = {
+        weapon: null,
+        shield: null,
+        ammunition: null
+    };
+
+    // Lose gold (optional - could keep it or drop it too)
+    // For now, keep gold for resurrection
+
+    addChatMessage('system', '📦 Todos tus objetos han caído al suelo.');
 }
 
 /**

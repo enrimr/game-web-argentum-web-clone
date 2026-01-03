@@ -123,22 +123,30 @@ function handleMovement(timestamp) {
         }
     }
 
-    // Handle interactions
+    // Handle interactions (restricted in ghost mode)
     if (isKeyPressed(' ')) {
-        handleInteractions();
+        if (!gameState.player.isGhost) {
+            handleInteractions();
+        } else {
+            addChatMessage('system', '👻 Como fantasma no puedes recoger objetos ni atacar.');
+        }
         clearKey(' '); // Prevent repeated interactions
     }
 
-    // Abrir/cerrar puertas con tecla E
+    // Abrir/cerrar puertas con tecla E (allowed in ghost mode)
     if (isKeyPressed('e') || isKeyPressed('E')) {
         handleDoorToggle();
         clearKey('e');
         clearKey('E'); // Prevent repeated interactions
     }
 
-    // Ranged attack with X key
+    // Ranged attack with X key (not allowed in ghost mode)
     if (isKeyPressed('x') || isKeyPressed('X')) {
-        shootArrow();
+        if (!gameState.player.isGhost) {
+            shootArrow();
+        } else {
+            addChatMessage('system', '👻 Como fantasma no puedes atacar.');
+        }
         clearKey('x');
         clearKey('X'); // Prevent repeated shooting
     }

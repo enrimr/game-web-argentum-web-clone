@@ -4,6 +4,7 @@
  */
 
 import { gameState } from '../state.js';
+import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { addChatMessage, updateUI } from './UI.js';
 import { setPlayerAnimationState } from '../core/Renderer.js';
 import { openTrade } from './Trading.js';
@@ -441,6 +442,86 @@ function getNPCDialogue(npc) {
                     response: "¡Adiós! Vuelve cuando necesites mis servicios alquímicos."
                 }
             ]
+        },
+        priest: {
+            text: "¡Bendiciones, aventurero! Soy el sacerdote del templo. ¿Necesitas mis servicios espirituales?",
+            options: [
+                {
+                    text: "Curarme",
+                    response: "Puedo restaurar tu vitalidad por 100 monedas de oro. ¿Quieres que te cure completamente?",
+                    followUpOptions: [
+                        {
+                            text: "Sí, cúrame por favor",
+                            response: "¡Que la luz divina te restaure!",
+                            action: () => {
+                                if (gameState.player.gold >= 100) {
+                                    gameState.player.hp = gameState.player.maxHp;
+                                    gameState.player.gold -= 100;
+                                    addChatMessage('system', `💚 ¡Curado completamente! +${gameState.player.maxHp} HP (-100 oro)`);
+                                    updateUI();
+                                } else {
+                                    addChatMessage('npc', 'No tienes suficiente oro para mis servicios.');
+                                }
+                            }
+                        },
+                        {
+                            text: "No, gracias",
+                            response: "Como prefieras. La luz divina siempre está aquí cuando la necesites."
+                        },
+                        {
+                            text: "¿Cuánto cuesta?",
+                            response: "100 monedas de oro por una curación divina completa. Es un precio justo por el favor de los dioses."
+                        }
+                    ]
+                },
+                {
+                    text: "Resucitarme",
+                    response: "Veo que eres un fantasma... Puedo devolverte a la vida por 500 monedas de oro. ¿Quieres resucitar?",
+                    followUpOptions: [
+                        {
+                            text: "Sí, resucítame",
+                            response: "¡Que los dioses te devuelvan a este mundo!",
+                            action: () => {
+                                if (!gameState.player.isGhost) {
+                                    addChatMessage('npc', 'No necesitas resurrección, aventurero.');
+                                    return;
+                                }
+                                if (gameState.player.gold >= 500) {
+                                    // Resucitar al jugador
+                                    gameState.player.isGhost = false;
+                                    gameState.player.hp = Math.floor(gameState.player.maxHp / 2); // Resucitar con la mitad de vida
+                                    gameState.player.gold -= 500;
+
+                                    // Recuperar objetos caídos
+                                    recoverDroppedItems();
+
+                                    addChatMessage('system', `✨ ¡Resucitado! Recuperas la mitad de tu vida máxima y todos tus objetos.`);
+                                    addChatMessage('system', `💰 Perdiste 500 oro en la resurrección.`);
+                                    updateUI();
+                                } else {
+                                    addChatMessage('npc', 'No tienes suficiente oro para la resurrección. Los dioses requieren un sacrificio apropiado.');
+                                }
+                            }
+                        },
+                        {
+                            text: "No, gracias",
+                            response: "Entiendo. Algunos prefieren vagar como fantasmas. Pero recuerda que la vida es preciosa."
+                        },
+                        {
+                            text: "¿Qué cuesta resucitar?",
+                            response: "500 monedas de oro. Es el precio que los dioses exigen para devolver un alma al mundo de los vivos."
+                        }
+                    ]
+                },
+                {
+                    text: "Hablar de los dioses",
+                    response: "Los dioses nos observan a todos. Cada acción tiene consecuencias, cada muerte es una lección. ¿Qué quieres saber?"
+                },
+                {
+                    text: "Hasta luego",
+                    response: "¡Que los dioses te protejan en tu camino, ya seas vivo o fantasma!"
+                }
+            ]
         }
     };
 
@@ -463,6 +544,46 @@ function getNPCDialogue(npc) {
 function getDialogueById(dialogueId) {
     // Aquí irían diálogos más complejos con ramificaciones
     return null;
+}
+
+/**
+ * Recuperar objetos caídos después de resurrección
+ */
+function recoverDroppedItems() {
+    // Filtrar objetos caídos del jugador en el mapa actual
+    const playerDroppedItems = gameState.droppedItems.filter(item =>
+        item.droppedByPlayer && item.map === gameState.currentMap
+    );
+
+    // Recuperar objetos al inventario y equipo
+    playerDroppedItems.forEach(item => {
+        if (item.equippedSlot) {
+            // Es un objeto equipado - volver a equiparlo
+            gameState.player.equipped[item.equippedSlot] = {
+                type: item.type,
+                name: ITEM_TYPES[item.type]?.name || item.type
+            };
+        } else {
+            // Es un objeto de inventario - añadir al inventario
+            const existingItem = gameState.player.inventory.find(invItem => invItem.type === item.type);
+            if (existingItem) {
+                existingItem.quantity += item.quantity;
+            } else {
+                gameState.player.inventory.push({
+                    type: item.type,
+                    quantity: item.quantity,
+                    name: ITEM_TYPES[item.type]?.name || item.type
+                });
+            }
+        }
+    });
+
+    // Remover los objetos caídos del suelo
+    gameState.droppedItems = gameState.droppedItems.filter(item =>
+        !(item.droppedByPlayer && item.map === gameState.currentMap)
+    );
+
+    addChatMessage('system', `📦 ¡Recuperaste ${playerDroppedItems.length} objetos caídos!`);
 }
 
 /**
