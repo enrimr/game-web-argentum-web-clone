@@ -29,7 +29,7 @@ export function initDialogue() {
             <div class="dialogue-speaker">NPC</div>
             <div class="dialogue-text">Texto del diálogo</div>
             <div class="dialogue-options"></div>
-            <button class="dialogue-close">Cerrar (ESC)</button>
+            <button class="dialogue-close">Cerrar (ESC o Q)</button>
         </div>
     `;
 
@@ -38,8 +38,18 @@ export function initDialogue() {
     // Event listeners
     dialogueContainer.querySelector('.dialogue-close').addEventListener('click', closeDialogue);
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && dialogueContainer.style.display !== 'none') {
+        if (dialogueContainer.style.display === 'none') return;
+
+        // Cerrar diálogo con ESC o Q
+        if (e.key === 'Escape' || e.key === 'q' || e.key === 'Q') {
             closeDialogue();
+            return;
+        }
+
+        // Seleccionar opciones con teclas numéricas
+        const numKey = parseInt(e.key);
+        if (numKey >= 1 && numKey <= 9) {
+            selectDialogueOptionByNumber(numKey - 1); // Convertir a índice base 0
         }
     });
 }
@@ -128,6 +138,18 @@ function updateDialogueOptions(options) {
         button.addEventListener('click', () => selectDialogueOption(option));
         optionsContainer.appendChild(button);
     });
+}
+
+/**
+ * Seleccionar opción de diálogo por número
+ * @param {number} index - Índice de la opción (base 0)
+ */
+function selectDialogueOptionByNumber(index) {
+    const optionsButtons = dialogueContainer.querySelectorAll('.dialogue-option');
+    if (optionsButtons.length > index) {
+        // Simular clic en el botón correspondiente
+        optionsButtons[index].click();
+    }
 }
 
 /**

@@ -157,10 +157,12 @@ function combineMapLayers(mapData) {
     // Create combined map (without roofs)
     const combinedMap = [];
     
-    // Save roof data to global state
+    // Initialize layers
     gameState.roofLayer = [];
+    gameState.doorLayer = [];
     for (let y = 0; y < height; y++) {
         gameState.roofLayer[y] = [];
+        gameState.doorLayer[y] = [];
     }
 
     for (let y = 0; y < height; y++) {
@@ -172,7 +174,15 @@ function combineMapLayers(mapData) {
 
             // Override with objects layer (doors, walls, etc.)
             if (objectsLayer[y] && objectsLayer[y][x] !== undefined && objectsLayer[y][x] !== 0) {
-                tile = objectsLayer[y][x];
+                const objectTile = objectsLayer[y][x];
+                // If it's a door, put it in the door layer instead of base layer
+                if (isClosedDoor(objectTile) || isOpenDoor(objectTile)) {
+                    gameState.doorLayer[y][x] = objectTile;
+                    // Keep base layer as floor interior for doors
+                    tile = TILES.FLOOR_INTERIOR;
+                } else {
+                    tile = objectTile;
+                }
             }
 
             // Save roof data in the separate roof layer (if any)
@@ -180,6 +190,11 @@ function combineMapLayers(mapData) {
                 gameState.roofLayer[y][x] = roofsLayer[y][x];
             } else {
                 gameState.roofLayer[y][x] = 0; // No roof
+            }
+
+            // Initialize door layer if not set
+            if (gameState.doorLayer[y][x] === undefined) {
+                gameState.doorLayer[y][x] = 0;
             }
 
             combinedMap[y][x] = tile;

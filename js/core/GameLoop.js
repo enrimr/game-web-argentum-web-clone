@@ -57,12 +57,11 @@ export function gameLoop(timestamp) {
  * @param {number} timestamp - Current timestamp
  */
 function handleMovement(timestamp) {
-    if (timestamp - lastMoveTime < MOVE_DELAY) return;
-
     let newX = gameState.player.x;
     let newY = gameState.player.y;
     let moved = false;
     let newDirection = gameState.player.facing;
+    let isShiftPressed = isKeyPressed('Shift');
 
     // Update player facing direction and movement
     if (isKeyPressed('ArrowUp') || isKeyPressed('w') || isKeyPressed('W')) {
@@ -86,6 +85,13 @@ function handleMovement(timestamp) {
     // Update player direction
     setPlayerFacing(newDirection);
 
+    // If Shift is pressed, only change direction without moving
+    if (isShiftPressed) {
+        // Set idle animation when just orienting
+        setPlayerAnimationState('idle');
+        return; // Don't move the player physically
+    }
+
     // Set animation state based on movement
     if (moved) {
         setPlayerAnimationState('walking');
@@ -93,7 +99,8 @@ function handleMovement(timestamp) {
         setPlayerAnimationState('idle');
     }
 
-    if (moved && isWalkable(gameState.map, newX, newY)) {
+    // Only move if not on cooldown and position is valid
+    if (moved && timestamp - lastMoveTime >= MOVE_DELAY && isWalkable(gameState.map, newX, newY)) {
         // Check if there's an enemy in the target position
         const enemyInPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
 
@@ -109,7 +116,7 @@ function handleMovement(timestamp) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
-            
+
             // Check if player is entering or exiting a building through a door
             checkDoorEntry(newX, newY);
             checkBuildingExit(newX, newY);

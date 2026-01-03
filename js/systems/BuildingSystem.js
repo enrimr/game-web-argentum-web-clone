@@ -3,7 +3,7 @@
  * Sistema de manejo de edificios con capas y navegación interior
  */
 
-import { gameState, toggleDoorState, isDoorOpen } from '../state.js';
+import { gameState, toggleDoorState, isDoorOpen, setDoorState } from '../state.js';
 import { TILES, isDoor, isRoof, isToggleableDoor, isClosedDoor, isOpenDoor, getDoorOpenType, getDoorClosedType } from '../world/TileTypes.js';
 import { CONFIG } from '../config.js';
 import { addChatMessage } from '../ui/UI.js';
@@ -195,29 +195,30 @@ export function toggleDoor(x, y) {
     }
 
     // Verificar si es una puerta que se puede abrir/cerrar (en cualquiera de las capas)
-    let isDoor = false;
-    
+    let currentDoorTile = null;
+
     // Comprobar si hay una puerta en la capa de puertas
     if (gameState.doorLayer && gameState.doorLayer[y] && gameState.doorLayer[y][x] !== undefined) {
-        const doorTile = gameState.doorLayer[y][x];
-        if (isToggleableDoor(doorTile)) {
-            isDoor = true;
-        }
+        currentDoorTile = gameState.doorLayer[y][x];
     }
-    
     // O si hay una puerta en la capa base (compatibilidad con código existente)
-    if (!isDoor) {
-        const tile = gameState.map[y][x];
-        if (isToggleableDoor(tile)) {
-            isDoor = true;
-        } else {
-            return false;
-        }
+    else {
+        currentDoorTile = gameState.map[y][x];
     }
 
-    // Cambiar el estado de la puerta en el gameState
-    const isOpen = toggleDoorState(gameState.currentMap, x, y);
-    
+    if (!isToggleableDoor(currentDoorTile)) {
+        return false;
+    }
+
+    // Determinar el estado actual de la puerta basado en el tile visual
+    const currentlyOpen = isOpenDoor(currentDoorTile);
+
+    // El nuevo estado será el opuesto del estado actual visual
+    const shouldBeOpen = !currentlyOpen;
+
+    // Actualizar el estado en gameState para futuras referencias
+    setDoorState(gameState.currentMap, x, y, shouldBeOpen);
+
     // Inicializar la capa de puertas si no existe
     if (!gameState.doorLayer) {
         gameState.doorLayer = [];
@@ -225,12 +226,12 @@ export function toggleDoor(x, y) {
     if (!gameState.doorLayer[y]) {
         gameState.doorLayer[y] = [];
     }
-    
+
     // Asegurarse de que hay un suelo interior en la capa base
     gameState.map[y][x] = TILES.FLOOR_INTERIOR;
-    
-    // Determinar el tipo correcto de puerta según si está abierta o cerrada y su dirección
-    if (isOpen) {
+
+    // Determinar el tipo correcto de puerta según el nuevo estado y su dirección
+    if (shouldBeOpen) {
         // Si la abrimos, determinar si se abre a la izquierda o derecha
         const doorOpenType = getDoorOpenType(x, y, gameState.doorLayer);
         gameState.doorLayer[y][x] = doorOpenType;
@@ -241,12 +242,12 @@ export function toggleDoor(x, y) {
     }
 
     // Mostrar mensaje
-    addChatMessage('system', isOpen ? 
-        '🔓 Has abierto la puerta.' : 
+    addChatMessage('system', shouldBeOpen ?
+        '🔓 Has abierto la puerta.' :
         '🔒 Has cerrado la puerta con llave.');
-        
-    console.log(`🚪 Puerta en (${x}, ${y}) ahora está ${isOpen ? 'abierta' : 'cerrada'}`);
-    
+
+    console.log(`🚪 Puerta en (${x}, ${y}) ahora está ${shouldBeOpen ? 'abierta' : 'cerrada'}`);
+
     return true;
 }
 
