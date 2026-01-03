@@ -130,9 +130,17 @@ export function generateNewbieFieldLayout() {
  */
 export function generateDarkForestLayout() {
     const map = [];
+    const roofLayer = []; // Capa para techos (vacía para bosque)
+    const doorLayer = []; // Capa para puertas (vacía para bosque)
+    const windowLayer = []; // Capa para ventanas (vacía para bosque)
     
+    // Base de hierba con muros perimetrales
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
+        const roofRow = [];
+        const doorRow = [];
+        const windowRow = [];
+        
         for (let x = 0; x < MAP_WIDTH; x++) {
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
@@ -146,8 +154,14 @@ export function generateDarkForestLayout() {
                     row.push(TILES.GRASS);
                 }
             }
+            roofRow.push(0); // No hay techos en el bosque
+            doorRow.push(0);  // No hay puertas en el bosque
+            windowRow.push(0); // No hay ventanas en el bosque
         }
         map.push(row);
+        roofLayer.push(roofRow);
+        doorLayer.push(doorRow);
+        windowLayer.push(windowRow);
     }
     
     // Crear camino central
@@ -158,7 +172,13 @@ export function generateDarkForestLayout() {
         }
     }
     
-    return map;
+    // Devolver el mismo formato que generateNewbieCityWithBuildings para consistencia
+    return {
+        map: map,
+        roofLayer: roofLayer,
+        doorLayer: doorLayer,
+        windowLayer: windowLayer
+    };
 }
 
 /**
