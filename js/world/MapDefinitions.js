@@ -1,5 +1,13 @@
 // Map definitions for complex world system
 export const MAP_DEFINITIONS = {
+    'newbie_field': {
+        name: '🏞️ Campos de Ullathorpe',
+        description: 'Campos seguros para aventureros novatos',
+        worldX: 100, worldY: 250,
+        portals: [
+            { x: 25, y: 37, targetMap: 'newbie_city', targetX: 25, targetY: 1, name: 'Ciudad' }
+        ]
+    },
     'field': {
         name: '🏞️ Campo Principal',
         description: 'Campo abierto con caminos hacia otras áreas',
@@ -83,6 +91,7 @@ export const MAP_DEFINITIONS = {
 
 // World map connections (which maps are connected)
 export const WORLD_CONNECTIONS = [
+    ['newbie_city', 'newbie_field'],
     ['field', 'city'],
     ['field', 'dungeon'],
     ['field', 'forest'],
