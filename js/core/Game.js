@@ -272,6 +272,9 @@ export function changeMap(targetMap, targetX, targetY) {
 
     addChatMessage('system', `🌟 ¡Viajas a ${displayName}!`);
     updateUI();
+
+    // Forzar actualización del minimapa después del cambio de mapa
+    updateMinimap();
 }
 
 /**
