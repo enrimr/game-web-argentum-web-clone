@@ -176,16 +176,37 @@ async function loadMapDataFromJSON(fileName) {
  */
 function combineMapLayers(mapData) {
     if (!mapData.layers) {
-        throw new Error('Map data must contain layers');
+        console.error('Map data must contain layers', mapData);
+        return null;
     }
 
     const baseLayer = mapData.layers.base;
+    
+    // Validar la capa base
+    if (!baseLayer) {
+        console.error('Base layer is required in mapData', mapData);
+        return null;
+    }
+    
+    if (!Array.isArray(baseLayer)) {
+        console.error('Base layer is not an array', baseLayer);
+        return null;
+    }
+    
+    if (baseLayer.length === 0) {
+        console.error('Base layer is empty');
+        return null;
+    }
+    
+    if (!Array.isArray(baseLayer[0])) {
+        console.error('Base layer is not a 2D array, first row:', baseLayer[0]);
+        return null;
+    }
+    
+    console.log(`🗺️ Procesando mapa con capas: ${baseLayer.length}x${baseLayer[0].length}`);
+    
     const objectsLayer = mapData.layers.objects || [];
     const roofsLayer = mapData.layers.roofs || [];
-
-    if (!baseLayer || !Array.isArray(baseLayer)) {
-        throw new Error('Base layer is required');
-    }
 
     const height = baseLayer.length;
     const width = baseLayer[0].length;
@@ -199,48 +220,92 @@ function combineMapLayers(mapData) {
     for (let y = 0; y < height; y++) {
         gameState.roofLayer[y] = [];
         gameState.doorLayer[y] = [];
+        combinedMap[y] = Array(width).fill(TILES.GRASS); // Inicializar con césped por defecto
     }
 
-    for (let y = 0; y < height; y++) {
-        combinedMap[y] = [];
-
-        for (let x = 0; x < width; x++) {
-            // Start with base layer
-            let tile = baseLayer[y][x];
-
-            // Override with objects layer (doors, walls, etc.)
-            if (objectsLayer[y] && objectsLayer[y][x] !== undefined && objectsLayer[y][x] !== 0) {
-                const objectTile = objectsLayer[y][x];
-                // If it's a door, put it in the door layer instead of base layer
-                if (isClosedDoor(objectTile) || isOpenDoor(objectTile)) {
-                    gameState.doorLayer[y][x] = objectTile;
-                    // Keep base layer as floor interior for doors
-                    tile = TILES.FLOOR_INTERIOR;
+    // Procesar el mapa por capas
+    try {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                // Base layer validation
+                if (baseLayer[y] === undefined || baseLayer[y][x] === undefined) {
+                    console.warn(`Base layer missing at [${y}][${x}], using GRASS`);
+                    combinedMap[y][x] = TILES.GRASS;
                 } else {
-                    tile = objectTile;
+                    // Start with base layer
+                    combinedMap[y][x] = baseLayer[y][x];
+                }
+
+                // Override with objects layer (doors, walls, etc.)
+                if (objectsLayer[y] && objectsLayer[y][x] !== undefined && objectsLayer[y][x] !== 0) {
+                    const objectTile = objectsLayer[y][x];
+                    // If it's a door, put it in the door layer instead of base layer
+                    if (isClosedDoor(objectTile) || isOpenDoor(objectTile)) {
+                        gameState.doorLayer[y][x] = objectTile;
+                        // Keep base layer as floor interior for doors
+                        combinedMap[y][x] = TILES.FLOOR_INTERIOR;
+                    } else {
+                        combinedMap[y][x] = objectTile;
+                    }
+                }
+
+                // Save roof data in the separate roof layer (if any)
+                if (roofsLayer[y] && roofsLayer[y][x] !== undefined && roofsLayer[y][x] !== 0) {
+                    gameState.roofLayer[y][x] = roofsLayer[y][x];
+                } else {
+                    gameState.roofLayer[y][x] = 0; // No roof
+                }
+
+                // Initialize door layer if not set
+                if (gameState.doorLayer[y][x] === undefined) {
+                    gameState.doorLayer[y][x] = 0;
                 }
             }
-
-            // Save roof data in the separate roof layer (if any)
-            if (roofsLayer[y] && roofsLayer[y][x] !== undefined && roofsLayer[y][x] !== 0) {
-                gameState.roofLayer[y][x] = roofsLayer[y][x];
-            } else {
-                gameState.roofLayer[y][x] = 0; // No roof
-            }
-
-            // Initialize door layer if not set
-            if (gameState.doorLayer[y][x] === undefined) {
-                gameState.doorLayer[y][x] = 0;
-            }
-
-            combinedMap[y][x] = tile;
         }
+        
+        // Validar mapa combinado
+        if (!Array.isArray(combinedMap) || combinedMap.length === 0 || !Array.isArray(combinedMap[0])) {
+            console.error('Failed to generate valid combined map', {
+                isArray: Array.isArray(combinedMap),
+                length: combinedMap?.length,
+                firstRowIsArray: Array.isArray(combinedMap[0])
+            });
+            return createFallbackMap(height, width);
+        }
+        
+        // Detect and register buildings
+        identifyBuildingsFromMap(combinedMap);
+        
+        console.log(`✅ Mapa combinado generado: ${combinedMap.length}x${combinedMap[0].length}`);
+        return combinedMap;
+        
+    } catch (error) {
+        console.error('Error combining map layers:', error);
+        return createFallbackMap(height, width);
     }
-    
-    // Detect and register buildings
-    identifyBuildingsFromMap(combinedMap);
-    
-    return combinedMap;
+}
+
+/**
+ * Create a fallback map when normal map generation fails
+ * @param {number} height - Map height
+ * @param {number} width - Map width
+ * @returns {Array} Simple fallback map
+ */
+function createFallbackMap(height = MAP_HEIGHT, width = MAP_WIDTH) {
+    console.warn('⚠️ Usando mapa fallback por error en procesamiento');
+    const fallbackMap = [];
+    for (let y = 0; y < height; y++) {
+        const row = [];
+        for (let x = 0; x < width; x++) {
+            if (x === 0 || x === width - 1 || y === 0 || y === height - 1) {
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.GRASS);
+            }
+        }
+        fallbackMap.push(row);
+    }
+    return fallbackMap;
 }
 
 /**
@@ -1085,9 +1150,38 @@ function generateNewbieCityLayout() {
  * Generate newbie field layout (static)
  */
 function generateNewbieFieldLayout() {
-    const map = [];
-
-    // Base with walls
+    console.log("🏞️ Generando mapa newbie_field con estructura de capas");
+    
+    // Crear mapa con estructura de capas como newbie_city
+    const mapData = {
+        name: "🏞️ Campos de Ullathorpe",
+        description: "Campos seguros para aventureros novatos",
+        type: "field",
+        safeZone: true,
+        worldPosition: { x: 100, y: 250 },
+        layers: {
+            base: [],
+            objects: [],
+            roofs: []
+        },
+        npcs: [
+            { "type": "guard", "x": 25, "y": 32, "dialogue": "guard_field" },
+            { "type": "merchant_general", "x": 15, "y": 10, "dialogue": "merchant_field" }
+        ],
+        enemies: { 
+            "enabled": true, 
+            "types": [
+                { "type": "goblin", "count": 10 },
+                { "type": "skeleton", "count": 5 }
+            ]
+        },
+        portals: [
+            { "x": 25, "y": 37, "targetMap": "newbie_city", "targetX": 25, "targetY": 1, "name": "Ciudad de Ullathorpe" }
+        ]
+    };
+    
+    // Generar capa base
+    const baseLayer = [];
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
@@ -1097,63 +1191,118 @@ function generateNewbieFieldLayout() {
                 row.push(TILES.GRASS);
             }
         }
-        map.push(row);
+        baseLayer.push(row);
     }
-
-    // Some obstacles
+    mapData.layers.base = baseLayer;
+    
+    // Generar capa de objetos
+    const objectsLayer = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
+    
+    // Agregar obstáculos
     for (let y = 1; y < MAP_HEIGHT - 1; y++) {
         for (let x = 1; x < MAP_WIDTH - 1; x++) {
             const rand = Math.random();
             if (rand < 0.05) {
-                map[y][x] = TILES.TREE;
+                objectsLayer[y][x] = TILES.TREE;
             } else if (rand < 0.07) {
-                map[y][x] = TILES.STONE;
+                objectsLayer[y][x] = TILES.STONE;
             }
         }
     }
-
-    // Path
+    
+    // Agregar camino
     for (let x = 10; x < MAP_WIDTH - 10; x++) {
         if (x < MAP_WIDTH && 15 < MAP_HEIGHT) {
-            map[15][x] = TILES.PATH;
+            baseLayer[15][x] = TILES.PATH;
         }
     }
-
-    return map;
+    
+    mapData.layers.objects = objectsLayer;
+    
+    // Capa de techos vacía
+    mapData.layers.roofs = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
+    
+    // Generar el mapa combinado usando el mismo mecanismo que los mapas estáticos
+    return combineMapLayers(mapData);
 }
 
 /**
  * Generate dark forest layout (static)
  */
 function generateDarkForestLayout() {
-    const map = [];
-
+    console.log("🌲 Generando mapa dark_forest con estructura de capas");
+    
+    // Crear mapa con estructura de capas
+    const mapData = {
+        name: "🌲 Bosque Oscuro",
+        description: "Un bosque denso y oscuro lleno de peligros",
+        type: "forest",
+        safeZone: false,
+        worldPosition: { x: 200, y: 150 },
+        layers: {
+            base: [],
+            objects: [],
+            roofs: []
+        },
+        npcs: [
+            { "type": "hermit", "x": 25, "y": 22, "dialogue": "hermit_forest" }
+        ],
+        enemies: { 
+            "enabled": true, 
+            "types": [
+                { "type": "goblin", "count": 15 },
+                { "type": "wolf", "count": 8 },
+                { "type": "elemental", "count": 5 }
+            ]
+        },
+        portals: [
+            { "x": 25, "y": 5, "targetMap": "newbie_field", "targetX": 25, "targetY": 37, "name": "Campos de Ullathorpe" }
+        ]
+    };
+    
+    // Generar capa base
+    const baseLayer = [];
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
             } else {
-                const rand = Math.random();
-                if (rand < 0.35) {
-                    row.push(TILES.TREE);
-                } else if (rand < 0.38) {
-                    row.push(TILES.STONE);
-                } else {
-                    row.push(TILES.GRASS);
-                }
+                row.push(TILES.GRASS);
             }
         }
-        map.push(row);
+        baseLayer.push(row);
     }
-
-    // Central path
-    for (let x = 5; x < MAP_WIDTH - 5; x++) {
-        if (x < MAP_WIDTH && 20 < MAP_HEIGHT) {
-            map[20][x] = TILES.PATH;
-            if (21 < MAP_HEIGHT) map[21][x] = TILES.PATH;
+    mapData.layers.base = baseLayer;
+    
+    // Generar capa de objetos
+    const objectsLayer = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
+    
+    // Agregar árboles y piedras
+    for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (let x = 1; x < MAP_WIDTH - 1; x++) {
+            const rand = Math.random();
+            if (rand < 0.35) {
+                objectsLayer[y][x] = TILES.TREE;
+            } else if (rand < 0.38) {
+                objectsLayer[y][x] = TILES.STONE;
+            }
         }
     }
-
-    return map;
+    
+    // Agregar camino central
+    for (let x = 5; x < MAP_WIDTH - 5; x++) {
+        if (x < MAP_WIDTH && 20 < MAP_HEIGHT) {
+            baseLayer[20][x] = TILES.PATH;
+            if (21 < MAP_HEIGHT) baseLayer[21][x] = TILES.PATH;
+        }
+    }
+    
+    mapData.layers.objects = objectsLayer;
+    
+    // Capa de techos vacía
+    mapData.layers.roofs = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
+    
+    // Generar el mapa combinado usando el mismo mecanismo que los mapas estáticos
+    return combineMapLayers(mapData);
 }
