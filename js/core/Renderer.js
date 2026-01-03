@@ -463,6 +463,19 @@ function renderObjects(camera) {
                     // Default portal sprite for other destinations
                     ctx.drawImage(sprites.portal, screenPos.x, screenPos.y);
                 }
+            } else if (obj.type === 'dropped_item') {
+                // Draw dropped item (only visible to ghosts or all players?)
+                const itemSprite = sprites[ITEM_TYPES[obj.droppedItem.type]?.sprite];
+                if (itemSprite) {
+                    // Add a ghostly effect for dropped items
+                    ctx.globalAlpha = 0.8;
+                    ctx.drawImage(itemSprite, screenPos.x, screenPos.y);
+
+                    // Draw a small indicator that it's a dropped item
+                    ctx.globalAlpha = 1.0;
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                    ctx.fillRect(screenPos.x + TILE_SIZE - 4, screenPos.y, 4, 4);
+                }
             }
         }
     }
