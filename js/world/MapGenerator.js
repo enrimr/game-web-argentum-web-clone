@@ -1148,40 +1148,15 @@ function generateNewbieCityLayout() {
 
 /**
  * Generate newbie field layout (static)
+ * @returns {Array} 2D array representing the map
  */
 function generateNewbieFieldLayout() {
-    console.log("🏞️ Generando mapa newbie_field con estructura de capas");
+    console.log("🏞️ Generando mapa newbie_field directamente como array 2D");
     
-    // Crear mapa con estructura de capas como newbie_city
-    const mapData = {
-        name: "🏞️ Campos de Ullathorpe",
-        description: "Campos seguros para aventureros novatos",
-        type: "field",
-        safeZone: true,
-        worldPosition: { x: 100, y: 250 },
-        layers: {
-            base: [],
-            objects: [],
-            roofs: []
-        },
-        npcs: [
-            { "type": "guard", "x": 25, "y": 32, "dialogue": "guard_field" },
-            { "type": "merchant_general", "x": 15, "y": 10, "dialogue": "merchant_field" }
-        ],
-        enemies: { 
-            "enabled": true, 
-            "types": [
-                { "type": "goblin", "count": 10 },
-                { "type": "skeleton", "count": 5 }
-            ]
-        },
-        portals: [
-            { "x": 25, "y": 37, "targetMap": "newbie_city", "targetX": 25, "targetY": 1, "name": "Ciudad de Ullathorpe" }
-        ]
-    };
+    // Crear mapa directamente como array 2D (enfoque simple y seguro)
+    const map = [];
     
-    // Generar capa base
-    const baseLayer = [];
+    // Generar el terreno base
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
@@ -1191,21 +1166,17 @@ function generateNewbieFieldLayout() {
                 row.push(TILES.GRASS);
             }
         }
-        baseLayer.push(row);
+        map.push(row);
     }
-    mapData.layers.base = baseLayer;
-    
-    // Generar capa de objetos
-    const objectsLayer = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
     
     // Agregar obstáculos
     for (let y = 1; y < MAP_HEIGHT - 1; y++) {
         for (let x = 1; x < MAP_WIDTH - 1; x++) {
             const rand = Math.random();
             if (rand < 0.05) {
-                objectsLayer[y][x] = TILES.TREE;
+                map[y][x] = TILES.TREE;
             } else if (rand < 0.07) {
-                objectsLayer[y][x] = TILES.STONE;
+                map[y][x] = TILES.STONE;
             }
         }
     }
@@ -1213,55 +1184,37 @@ function generateNewbieFieldLayout() {
     // Agregar camino
     for (let x = 10; x < MAP_WIDTH - 10; x++) {
         if (x < MAP_WIDTH && 15 < MAP_HEIGHT) {
-            baseLayer[15][x] = TILES.PATH;
+            map[15][x] = TILES.PATH;
         }
     }
     
-    mapData.layers.objects = objectsLayer;
+    // Dejar área del portal despejada
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            const portalX = 25 + dx;
+            const portalY = 37 + dy;
+            if (portalX > 0 && portalX < MAP_WIDTH - 1 && portalY > 0 && portalY < MAP_HEIGHT - 1) {
+                map[portalY][portalX] = TILES.GRASS;  // Garantizar que el área del portal es caminable
+            }
+        }
+    }
+
+    console.log(`✅ Generado mapa newbie_field: ${map.length}x${map[0].length}`);
     
-    // Capa de techos vacía
-    mapData.layers.roofs = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
-    
-    // Generar el mapa combinado usando el mismo mecanismo que los mapas estáticos
-    return combineMapLayers(mapData);
+    return map;
 }
 
 /**
  * Generate dark forest layout (static)
+ * @returns {Array} 2D array representing the map
  */
 function generateDarkForestLayout() {
-    console.log("🌲 Generando mapa dark_forest con estructura de capas");
+    console.log("🌲 Generando mapa dark_forest directamente como array 2D");
     
-    // Crear mapa con estructura de capas
-    const mapData = {
-        name: "🌲 Bosque Oscuro",
-        description: "Un bosque denso y oscuro lleno de peligros",
-        type: "forest",
-        safeZone: false,
-        worldPosition: { x: 200, y: 150 },
-        layers: {
-            base: [],
-            objects: [],
-            roofs: []
-        },
-        npcs: [
-            { "type": "hermit", "x": 25, "y": 22, "dialogue": "hermit_forest" }
-        ],
-        enemies: { 
-            "enabled": true, 
-            "types": [
-                { "type": "goblin", "count": 15 },
-                { "type": "wolf", "count": 8 },
-                { "type": "elemental", "count": 5 }
-            ]
-        },
-        portals: [
-            { "x": 25, "y": 5, "targetMap": "newbie_field", "targetX": 25, "targetY": 37, "name": "Campos de Ullathorpe" }
-        ]
-    };
+    // Crear mapa directamente como array 2D (enfoque simple y seguro)
+    const map = [];
     
-    // Generar capa base
-    const baseLayer = [];
+    // Generar el terreno base
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
@@ -1271,21 +1224,17 @@ function generateDarkForestLayout() {
                 row.push(TILES.GRASS);
             }
         }
-        baseLayer.push(row);
+        map.push(row);
     }
-    mapData.layers.base = baseLayer;
     
-    // Generar capa de objetos
-    const objectsLayer = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
-    
-    // Agregar árboles y piedras
+    // Agregar árboles y piedras (más densidad que en newbie_field)
     for (let y = 1; y < MAP_HEIGHT - 1; y++) {
         for (let x = 1; x < MAP_WIDTH - 1; x++) {
             const rand = Math.random();
             if (rand < 0.35) {
-                objectsLayer[y][x] = TILES.TREE;
+                map[y][x] = TILES.TREE;
             } else if (rand < 0.38) {
-                objectsLayer[y][x] = TILES.STONE;
+                map[y][x] = TILES.STONE;
             }
         }
     }
@@ -1293,16 +1242,23 @@ function generateDarkForestLayout() {
     // Agregar camino central
     for (let x = 5; x < MAP_WIDTH - 5; x++) {
         if (x < MAP_WIDTH && 20 < MAP_HEIGHT) {
-            baseLayer[20][x] = TILES.PATH;
-            if (21 < MAP_HEIGHT) baseLayer[21][x] = TILES.PATH;
+            map[20][x] = TILES.PATH;
+            if (21 < MAP_HEIGHT) map[21][x] = TILES.PATH;
         }
     }
     
-    mapData.layers.objects = objectsLayer;
+    // Dejar área del portal despejada
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            const portalX = 25 + dx;
+            const portalY = 5 + dy;
+            if (portalX > 0 && portalX < MAP_WIDTH - 1 && portalY > 0 && portalY < MAP_HEIGHT - 1) {
+                map[portalY][portalX] = TILES.GRASS;  // Garantizar que el área del portal es caminable
+            }
+        }
+    }
+
+    console.log(`✅ Generado mapa dark_forest: ${map.length}x${map[0].length}`);
     
-    // Capa de techos vacía
-    mapData.layers.roofs = Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0));
-    
-    // Generar el mapa combinado usando el mismo mecanismo que los mapas estáticos
-    return combineMapLayers(mapData);
+    return map;
 }
