@@ -24,9 +24,26 @@ import { initDebugPanel } from '../ui/DebugPanel.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
+    // Boundary check
     if (x < 0 || x >= CONFIG.MAP_WIDTH || y < 0 || y >= CONFIG.MAP_HEIGHT) return false;
+    
+    // Map validity check
+    if (!map || !Array.isArray(map)) {
+        console.error("isWalkableOnMap: map is not an array", map);
+        return false;
+    }
+    
+    // Row validity check
+    if (!map[y] || !Array.isArray(map[y])) {
+        console.error(`isWalkableOnMap: map[${y}] is not an array`, map[y]);
+        return false;
+    }
+    
+    // Manejo de diferentes tipos de tiles que son caminables
     const tile = map[y][x];
-    return tile === 0 || tile === 6 || tile === 8; // grass, floor, path
+    
+    // Tiles walkable: GRASS (0), FLOOR (6), PATH (8)
+    return tile === 0 || tile === 6 || tile === 8;
 }
 
 function findNearestWalkableTile(map, startX, startY) {
@@ -88,10 +105,22 @@ export async function init() {
     if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
         // Es un objeto con múltiples capas
         console.log(`🗺️ Asignando mapa con formato multicapa: ${mapResult.map.length}x${mapResult.map[0]?.length}`);
+        
+        // Asignar la capa base del mapa
         gameState.map = mapResult.map;
-        gameState.roofLayer = mapResult.roofLayer || [];
-        gameState.doorLayer = mapResult.doorLayer || [];
-        gameState.windowLayer = mapResult.windowLayer || [];
+        
+        // Asignar o crear capas adicionales
+        gameState.roofLayer = Array.isArray(mapResult.roofLayer) ? mapResult.roofLayer : 
+                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                               
+        gameState.doorLayer = Array.isArray(mapResult.doorLayer) ? mapResult.doorLayer : 
+                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                               
+        gameState.windowLayer = Array.isArray(mapResult.windowLayer) ? mapResult.windowLayer : 
+                                Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        
+        // Verificación adicional de asignación
+        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos, puertas, ventanas`);
     } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple (array 2D directo)
         console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
@@ -101,9 +130,13 @@ export async function init() {
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        
+        console.log(`✅ Mapa cargado con estructura simple. Generadas capas vacías adicionales.`);
     } else {
         // Resultado inválido - crear mapa por defecto
         console.error(`❌ Resultado de generateMap inválido para ${gameState.currentMap}. Creando mapa fallback.`);
+        console.error(`Tipo de resultado: ${typeof mapResult}, Es array: ${Array.isArray(mapResult)}, Tiene propiedad .map: ${mapResult?.map ? "Sí" : "No"}`);
+        
         gameState.map = [];
         
         for (let y = 0; y < CONFIG.MAP_HEIGHT; y++) {
@@ -122,6 +155,8 @@ export async function init() {
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        
+        console.log(`⚠️ Creado mapa fallback ${gameState.map.length}x${gameState.map[0]?.length} con bordes sólidos`);
     }
 
     // Generate content
@@ -144,7 +179,7 @@ export async function init() {
     // Añadir NPC de prueba cerca del jugador para testing de colisión
     console.log(`🎭 Creando NPC de prueba cerca del jugador (${gameState.player.x}, ${gameState.player.y})`);
     const { NPC } = await import('../entities/NPC.js');
-    const testNPC = new NPC('merchant_general', gameState.player.x + 2, gameState.player.y);
+    const testNPC = new NPC('merchant_general', gameState.player.x + 2, gameState.player.y + 4);
     gameState.npcs.push(testNPC);
     console.log(`✅ NPC de prueba: ${testNPC.name} en (${testNPC.x}, ${testNPC.y}) - ¡Prueba caminar hacia él!`);
 
@@ -246,32 +281,39 @@ export function changeMap(targetMap, targetX, targetY) {
                (Array.isArray(mapResult) ? "Array" : (mapResult?.map ? "Object with map" : "Invalid")));
 
     // Manejar tanto mapas simples como objetos con múltiples capas
-    if (mapResult && mapResult.map) {
+    if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
         // Es un objeto con múltiples capas
+        console.log(`🗺️ Asignando mapa con formato multicapa: ${mapResult.map.length}x${mapResult.map[0]?.length}`);
+        
+        // Asignar la capa base del mapa
         gameState.map = mapResult.map;
-        gameState.roofLayer = mapResult.roofLayer || [];
-        gameState.doorLayer = mapResult.doorLayer || [];
-        gameState.windowLayer = mapResult.windowLayer || [];
-        console.log(`🗺️ Asignado mapa con capas: ${gameState.map.length}x${gameState.map[0]?.length}`);
+        
+        // Asignar o crear capas adicionales
+        gameState.roofLayer = Array.isArray(mapResult.roofLayer) ? mapResult.roofLayer : 
+                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                               
+        gameState.doorLayer = Array.isArray(mapResult.doorLayer) ? mapResult.doorLayer : 
+                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                               
+        gameState.windowLayer = Array.isArray(mapResult.windowLayer) ? mapResult.windowLayer : 
+                                Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        
+        // Verificación adicional de asignación
+        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos, puertas, ventanas`);
     } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple
+        console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
         gameState.map = mapResult;
-        console.log(`🗺️ Asignado mapa simple: ${gameState.map.length}x${gameState.map[0]?.length}`);
-
-        // Crear capas vacías si no existen
-        if (!gameState.roofLayer) {
-            gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        }
-
-        if (!gameState.doorLayer) {
-            gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        }
-
-        if (!gameState.windowLayer) {
-            gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        }
+        
+        // Crear capas vacías
+        gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        
+        console.log(`✅ Mapa cargado con estructura simple. Generadas capas vacías adicionales.`);
     } else {
-        console.error(`❌ Error al generar mapa ${targetMap} - resultado inválido`);
+        console.error(`❌ Error al generar mapa ${targetMap} - resultado inválido o formato no reconocido`);
+        console.error(`Tipo de resultado: ${typeof mapResult}, Es array: ${Array.isArray(mapResult)}, Tiene propiedad .map: ${mapResult?.map ? "Sí" : "No"}`);
         addChatMessage('system', '❌ ¡Error! No se pudo generar el mapa de destino.');
         return;
     }
