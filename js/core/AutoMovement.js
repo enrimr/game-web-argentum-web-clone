@@ -222,6 +222,19 @@ function executeTargetAction() {
             // Solo movimiento - ya completado
             addChatMessage('system', '✅ Posición alcanzada');
             break;
+            
+        case 'portal':
+            // Usar portal - verificar que sigue existiendo
+            if (target.target && gameState.objects.includes(target.target)) {
+                // Importar y usar la función de cambio de mapa
+                import('./Game.js').then(({ changeMap }) => {
+                    changeMap(target.target.targetMap, target.target.targetX, target.target.targetY);
+                    addChatMessage('system', '🌀 ¡Te has teletransportado!');
+                });
+            } else {
+                addChatMessage('system', '❌ El portal ya no existe');
+            }
+            break;
     }
 
     cancelAutoMovement();

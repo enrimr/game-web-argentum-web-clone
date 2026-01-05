@@ -94,7 +94,35 @@ function handleEntityClick(clickedEntity, worldCoords) {
         case 'object':
             handleObjectClick(clickedEntity.entity);
             break;
+        case 'portal':
+            handlePortalClick(clickedEntity.entity);
+            break;
     }
+}
+
+/**
+ * Manejar clic en portal
+ * @param {Object} portal - El portal clickeado
+ */
+function handlePortalClick(portal) {
+    const dist = Math.abs(portal.x - gameState.player.x) + Math.abs(portal.y - gameState.player.y);
+
+    // Si está en la posición del jugador (distancia = 0), usar directamente
+    if (dist === 0) {
+        console.log(`🌀 Usando portal directamente`);
+
+        // Importar y usar la función de cambio de mapa
+        import('./Game.js').then(({ changeMap }) => {
+            changeMap(portal.targetMap, portal.targetX, portal.targetY);
+        });
+
+        return; // Salir sin iniciar movimiento automático
+    }
+    
+    // Si no está en la posición, establecer objetivo de movimiento
+    console.log(`🚶 Moviéndose hacia portal para teletransportarse`);
+    setAutoMoveTarget(portal.x, portal.y, 'portal', portal);
+    addChatMessage('system', `🎯 Moviendo hacia portal para teletransportarse`);
 }
 
 /**
@@ -213,6 +241,12 @@ function handleDoorClick(door) {
  * @param {Object} obj - El objeto clickeado
  */
 function handleObjectClick(obj) {
+    // Si el objeto es un portal, usar el handler específico de portales
+    if (obj.type === 'portal') {
+        handlePortalClick(obj);
+        return;
+    }
+    
     const dist = Math.abs(obj.x - gameState.player.x) + Math.abs(obj.y - gameState.player.y);
 
     // Si está adyacente (distancia = 1) o en la posición del jugador (distancia = 0)
@@ -230,5 +264,10 @@ function handleObjectClick(obj) {
         });
 
         return; // Salir sin iniciar movimiento automático
+    } else {
+        // Si no está adyacente, establecer objetivo de movimiento
+        console.log(`🚶 Moviéndose hacia objeto para interactuar`);
+        setAutoMoveTarget(obj.x, obj.y, 'object', obj);
+        addChatMessage('system', `🎯 Moviendo hacia objeto para interactuar`);
     }
 }

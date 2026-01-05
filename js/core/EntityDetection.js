@@ -46,6 +46,10 @@ export function getEntityAtPosition(x, y) {
     // Verificar objetos
     for (const obj of gameState.objects) {
         if (obj.x === x && obj.y === y) {
+            // If it's a portal, return it with a specific type for better handling
+            if (obj.type === 'portal') {
+                return { type: 'portal', entity: obj };
+            }
             return { type: 'object', entity: obj };
         }
     }
@@ -68,6 +72,8 @@ export function getTargetDescription(entityInfo) {
             return `Objeto ${entityInfo.entity.type}`;
         case 'door':
             return 'Puerta';
+        case 'portal':
+            return 'Portal';
         default:
             return 'Posición';
     }
