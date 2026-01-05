@@ -1189,43 +1189,57 @@ function generateNewbieCityLayout() {
 
 /**
  * Generate newbie field layout (static)
- * @returns {Array} 2D array representing the map
+ * @returns {Object} Object with map layers
  */
 function generateNewbieFieldLayout() {
-    console.log("🏞️ Generando mapa newbie_field directamente como array 2D");
+    console.log("🏞️ Generando mapa newbie_field con estructura multicapa");
     
-    // Crear mapa directamente como array 2D (enfoque simple y seguro)
-    const map = [];
+    // Crear mapas como objetos con capas
+    const baseLayer = [];
+    const objectsLayer = [];
+    const roofsLayer = [];
+    const doorLayer = [];
     
-    // Generar el terreno base
+    // Inicializar todas las capas
     for (let y = 0; y < MAP_HEIGHT; y++) {
-        const row = [];
+        baseLayer[y] = [];
+        objectsLayer[y] = [];
+        roofsLayer[y] = [];
+        doorLayer[y] = [];
+        
         for (let x = 0; x < MAP_WIDTH; x++) {
+            // Inicializar con valores por defecto
+            objectsLayer[y][x] = 0;
+            roofsLayer[y][x] = 0;
+            doorLayer[y][x] = 0;
+            
+            // Generar el terreno base
             if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                row.push(TILES.WALL);
+                baseLayer[y][x] = TILES.WALL;
             } else {
-                row.push(TILES.GRASS);
+                baseLayer[y][x] = TILES.GRASS;
             }
         }
-        map.push(row);
     }
     
-    // Agregar obstáculos
+    // Agregar obstáculos en la capa de objetos
     for (let y = 1; y < MAP_HEIGHT - 1; y++) {
         for (let x = 1; x < MAP_WIDTH - 1; x++) {
             const rand = Math.random();
             if (rand < 0.05) {
-                map[y][x] = TILES.TREE;
+                // Árboles en la capa de objetos
+                objectsLayer[y][x] = TILES.TREE;
             } else if (rand < 0.07) {
-                map[y][x] = TILES.STONE;
+                // Piedras en la capa de objetos
+                objectsLayer[y][x] = TILES.STONE;
             }
         }
     }
     
-    // Agregar camino
+    // Agregar camino en la capa base
     for (let x = 10; x < MAP_WIDTH - 10; x++) {
         if (x < MAP_WIDTH && 15 < MAP_HEIGHT) {
-            map[15][x] = TILES.PATH;
+            baseLayer[15][x] = TILES.PATH;
         }
     }
     
@@ -1235,14 +1249,22 @@ function generateNewbieFieldLayout() {
             const portalX = 25 + dx;
             const portalY = 37 + dy;
             if (portalX > 0 && portalX < MAP_WIDTH - 1 && portalY > 0 && portalY < MAP_HEIGHT - 1) {
-                map[portalY][portalX] = TILES.GRASS;  // Garantizar que el área del portal es caminable
+                baseLayer[portalY][portalX] = TILES.GRASS;  // Garantizar que el área del portal es caminable
+                objectsLayer[portalY][portalX] = 0;  // Eliminar cualquier objeto en la posición del portal
             }
         }
     }
 
-    console.log(`✅ Generado mapa newbie_field: ${map.length}x${map[0].length}`);
+    console.log(`✅ Generado mapa newbie_field con estructura multicapa: ${baseLayer.length}x${baseLayer[0].length}`);
     
-    return map;
+    // Devolver el resultado como un objeto con capas
+    return {
+        map: baseLayer,
+        objectsLayer: objectsLayer,
+        roofLayer: roofsLayer,
+        doorLayer: doorLayer,
+        windowLayer: Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0))
+    };
 }
 
 /**
