@@ -58,7 +58,10 @@
     "enabled": true,
     "types": [
       { "type": "goblin", "count": 5, "minLevel": 1, "maxLevel": 3 },
-      { "type": "rat", "count": 8, "minLevel": 1, "maxLevel": 2 }
+      { "type": "rat", "count": 8, "minLevel": 1, "maxLevel": 2 },
+      { "type": "skeleton", "count": 4, "minLevel": 2, "maxLevel": 4 },
+      { "type": "bandit", "count": 3, "minLevel": 2, "maxLevel": 4 },
+      { "type": "elemental", "count": 2, "minLevel": 3, "maxLevel": 5 }
     ],
     "spawnAreas": "field",
     "respawnTime": 300000
