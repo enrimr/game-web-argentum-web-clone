@@ -163,10 +163,13 @@ export function renderWorldMap() {
     const ctx = worldMapCtx;
     
     // Ajustar el tamaño del canvas para que sea más grande
-    canvas.width = 500;
-    canvas.height = 400;
+    canvas.width = 600;
+    canvas.height = 450;
 
-    // Clear canvas
+    // Clear canvas completely before drawing anything
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background gradient
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#0f2027');
     gradient.addColorStop(0.5, '#203a43');
@@ -180,19 +183,32 @@ export function renderWorldMap() {
     ctx.textAlign = 'center';
     ctx.fillText('MAPA DEL MUNDO - ARGENTUM ONLINE', canvas.width / 2, 30);
     
-    // Dibujar leyenda
+    // Dibujar leyenda (movida a la parte superior derecha para evitar solapamiento)
     ctx.fillStyle = '#ffffff';
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('🟢 Ubicación actual', 20, 60);
-    ctx.fillText('🔵 Áreas accesibles', 20, 80);
-    ctx.fillText('🟤 Áreas por descubrir', 20, 100);
-    ctx.fillText('⚔️ Haz clic para ver detalles', 20, 120);
+    const legendX = canvas.width - 200;
+    ctx.fillText('🟢 Ubicación actual', legendX, 60);
+    ctx.fillText('🔵 Áreas accesibles', legendX, 80);
+    ctx.fillText('🟤 Áreas por descubrir', legendX, 100);
+    ctx.fillText('⚔️ Haz clic para ver detalles', legendX, 120);
     
     // Añadir borde al mapa
     ctx.strokeStyle = '#ffd700';
     ctx.lineWidth = 3;
     ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+    
+    // Área para mostrar información del mapa al hacer clic
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, canvas.height - 80, canvas.width - 20, 70);
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, canvas.height - 80, canvas.width - 20, 70);
+    
+    ctx.fillStyle = '#ffd700';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Haz clic en un mapa para ver más información', canvas.width / 2, canvas.height - 45);
 
     // Draw connections first (behind maps)
     ctx.strokeStyle = '#fbbf24';
@@ -229,27 +245,28 @@ export function renderWorldMap() {
         ctx.lineWidth = 2;
         ctx.strokeRect(mapDef.worldX - 25, mapDef.worldY - 20, 50, 40);
 
-        // Draw map icon based on type
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '14px monospace';
-        ctx.textAlign = 'center';
-        
-        // Elegir un emoji según el tipo de mapa
-        let mapIcon = '🏞️';
-        if (mapDef.name.includes('Ciudad')) mapIcon = '🏘️';
-        else if (mapDef.name.includes('Bosque')) mapIcon = '🌲';
-        else if (mapDef.name.includes('Mazmorra')) mapIcon = '🏰';
-        else if (mapDef.name.includes('Mercado')) mapIcon = '🏪';
-        else if (mapDef.name.includes('Ruinas')) mapIcon = '🏛️';
-        else if (mapDef.name.includes('Trono')) mapIcon = '👑';
-        
-        ctx.fillText(mapIcon, mapDef.worldX, mapDef.worldY - 5);
-
         // Draw map name with shadow for better readability
-        ctx.font = '10px monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'center';
         ctx.shadowColor = 'black';
         ctx.shadowBlur = 3;
-        ctx.fillText(mapDef.name.split(' ')[0], mapDef.worldX, mapDef.worldY + 10);
+        
+        // Extract the location name without the emoji prefix
+        const nameWithoutEmoji = mapDef.name.split(' ').slice(1).join(' ');
+        
+        // Display name in multiple lines if needed
+        const words = nameWithoutEmoji.split(' ');
+        if (words.length > 1) {
+            // First line
+            ctx.fillText(words[0], mapDef.worldX, mapDef.worldY);
+            // Second line
+            const secondLine = words.slice(1).join(' ');
+            ctx.fillText(secondLine, mapDef.worldX, mapDef.worldY + 12);
+        } else {
+            ctx.fillText(nameWithoutEmoji, mapDef.worldX, mapDef.worldY + 6);
+        }
+        
         ctx.shadowBlur = 0;
     }
 
@@ -287,32 +304,67 @@ function handleWorldMapClick(event) {
     // Initialize canvas if not already done
     initWorldMapCanvas();
     
-    if (!worldMapVisible || !worldMapCanvas) return;
+    if (!worldMapVisible || !worldMapCanvas || !worldMapCtx) return;
 
     const rect = worldMapCanvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
+    // Clear previous info area
+    const canvas = worldMapCanvas;
+    const ctx = worldMapCtx;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, canvas.height - 80, canvas.width - 20, 70);
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, canvas.height - 80, canvas.width - 20, 70);
+
     // Check if clicked on a map
+    let clickedOnMap = false;
     for (const [mapKey, mapDef] of Object.entries(MAP_DEFINITIONS)) {
-        if (x >= mapDef.worldX - 20 && x <= mapDef.worldX + 20 &&
-            y >= mapDef.worldY - 15 && y <= mapDef.worldY + 15) {
-
+        if (x >= mapDef.worldX - 25 && x <= mapDef.worldX + 25 &&
+            y >= mapDef.worldY - 20 && y <= mapDef.worldY + 20) {
+            
+            clickedOnMap = true;
+            
+            // Display map info directly on canvas
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(mapDef.name, canvas.width / 2, canvas.height - 60);
+            
+            ctx.font = '11px sans-serif';
+            ctx.fillText(mapDef.description, canvas.width / 2, canvas.height - 40);
+            
+            const statusText = mapKey === gameState.currentMap ? '✅ Estás aquí' : '🔍 Disponible para explorar';
+            ctx.fillText(statusText, canvas.width / 2, canvas.height - 20);
+            
+            // Update traditional HTML details div too if it exists
             const detailsDiv = document.getElementById('worldMapDetails');
-            detailsDiv.innerHTML = `
-                <strong>${mapDef.name}</strong><br>
-                ${mapDef.description}<br>
-                <em>Estado: ${mapKey === gameState.currentMap ? 'Estás aquí' : 'Disponible'}</em>
-            `;
+            if (detailsDiv) {
+                detailsDiv.innerHTML = `
+                    <strong>${mapDef.name}</strong><br>
+                    ${mapDef.description}<br>
+                    <em>Estado: ${mapKey === gameState.currentMap ? 'Estás aquí' : 'Disponible'}</em>
+                `;
 
-            // If it's not the current map, offer to travel
-            if (mapKey !== gameState.currentMap) {
-                // For now, just show info. In a full implementation, we could check if player can travel
-                detailsDiv.innerHTML += '<br><em>Viaja usando portales en el mapa</em>';
+                // If it's not the current map, offer to travel
+                if (mapKey !== gameState.currentMap) {
+                    // For now, just show info. In a full implementation, we could check if player can travel
+                    detailsDiv.innerHTML += '<br><em>Viaja usando portales en el mapa</em>';
+                }
             }
 
             break;
         }
+    }
+    
+    // If didn't click on any map, show default message
+    if (!clickedOnMap) {
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Haz clic en un mapa para ver más información', canvas.width / 2, canvas.height - 45);
     }
 }
 
