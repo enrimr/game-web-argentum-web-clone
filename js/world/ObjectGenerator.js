@@ -268,33 +268,44 @@ export function generateEnemies(mapType) {
     }
 
     // Fallback to procedural enemy generation
-    if (mapType === 'field') {
-        // Field - mix of goblins and skeletons
-        const enemyTypes = ['goblin', 'skeleton'];
-        for (let i = 0; i < 25; i++) {
-            let x, y;
-            do {
-                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-            } while (gameState.map[y][x] !== TILES.GRASS);
+    if (mapType === 'field' || mapType === 'newbie_field') {
+        // Field - mix of various enemy types
+        const enemyTypes = ['goblin', 'skeleton', 'bandit', 'elemental'];
+        const enemyCounts = {
+            'goblin': 8,     // Más comunes
+            'skeleton': 6,   // Bastante comunes
+            'bandit': 4,     // Menos comunes
+            'elemental': 2   // Raros
+        };
+        
+        // Generar enemigos según su frecuencia
+        for (const enemyType of enemyTypes) {
+            const count = enemyCounts[enemyType];
+            
+            for (let i = 0; i < count; i++) {
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                    y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+                } while (gameState.map[y][x] !== TILES.GRASS);
+    
+                const enemyStats = ENEMY_STATS[enemyType];
 
-            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-            const enemyStats = ENEMY_STATS[enemyType];
-
-            enemies.push({
-                type: enemyType,
-                x: x,
-                y: y,
-                hp: enemyStats.hp,
-                maxHp: enemyStats.hp,
-                lastMoveTime: 0,
-                moveDelay: enemyStats.moveDelay,
-                lastAttackTime: 0,
-                attackDelay: enemyStats.attackDelay,
-                damage: enemyStats.damage,
-                goldDrop: enemyStats.goldDrop,
-                expReward: enemyStats.expReward
-            });
+                enemies.push({
+                    type: enemyType,
+                    x: x,
+                    y: y,
+                    hp: enemyStats.hp,
+                    maxHp: enemyStats.hp,
+                    lastMoveTime: 0,
+                    moveDelay: enemyStats.moveDelay,
+                    lastAttackTime: 0,
+                    attackDelay: enemyStats.attackDelay,
+                    damage: enemyStats.damage,
+                    goldDrop: enemyStats.goldDrop,
+                    expReward: enemyStats.expReward
+                });
+            }
         }
     } else if (mapType === 'city') {
         // City - bandits and elementals
@@ -352,33 +363,70 @@ export function generateEnemies(mapType) {
                 expReward: enemyStats.expReward
             });
         }
-    } else if (mapType === 'forest') {
-        // Forest - goblins, skeletons, and elementals
-        const enemyTypes = ['goblin', 'skeleton', 'elemental'];
-        for (let i = 0; i < 18; i++) {
-            let x, y;
-            do {
-                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-            } while (gameState.map[y][x] !== TILES.GRASS);
+    } else if (mapType === 'forest' || mapType === 'dark_forest') {
+        // Tipos de enemigos según dificultad
+        let enemyTypes;
+        let enemyCounts;
+        let totalEnemies;
+        
+        if (mapType === 'dark_forest') {
+            // Bosque oscuro - enemigos más fuertes y en mayor número
+            enemyTypes = ['goblin', 'skeleton', 'elemental', 'orc', 'troll', 'demon', 'dragon'];
+            enemyCounts = {
+                'goblin': 4,     // Débiles pero siguen presentes
+                'skeleton': 4,   // Débiles pero siguen presentes
+                'elemental': 6,  // Más comunes que en bosques normales
+                'orc': 6,        // Enemigos de fuerza media
+                'troll': 3,      // Enemigos fuertes
+                'demon': 3,      // Enemigos muy fuertes
+                'dragon': 1      // Jefe del área
+            };
+            totalEnemies = 27;   // Mayor densidad de enemigos
+        } else {
+            // Bosque normal - enemigos estándar
+            enemyTypes = ['goblin', 'skeleton', 'elemental'];
+            enemyCounts = {
+                'goblin': 8,
+                'skeleton': 6,
+                'elemental': 4
+            };
+            totalEnemies = 18;
+        }
 
-            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-            const enemyStats = ENEMY_STATS[enemyType];
-
-            enemies.push({
-                type: enemyType,
-                x: x,
-                y: y,
-                hp: enemyStats.hp,
-                maxHp: enemyStats.hp,
-                lastMoveTime: 0,
-                moveDelay: enemyStats.moveDelay,
-                lastAttackTime: 0,
-                attackDelay: enemyStats.attackDelay,
-                damage: enemyStats.damage,
-                goldDrop: enemyStats.goldDrop,
-                expReward: enemyStats.expReward
-            });
+        // Generar enemigos según su tipo y cantidad
+        for (const enemyType of enemyTypes) {
+            const count = enemyCounts[enemyType] || 0;
+            
+            for (let i = 0; i < count; i++) {
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                    y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+                } while (gameState.map[y][x] !== TILES.GRASS);
+    
+                const enemyStats = ENEMY_STATS[enemyType];
+                
+                // Añadir más vida a los enemigos del bosque oscuro
+                let hp = enemyStats.hp;
+                if (mapType === 'dark_forest' && ['orc', 'troll', 'demon', 'dragon'].includes(enemyType)) {
+                    hp = Math.floor(hp * 1.2); // 20% más de vida
+                }
+    
+                enemies.push({
+                    type: enemyType,
+                    x: x,
+                    y: y,
+                    hp: hp,
+                    maxHp: hp,
+                    lastMoveTime: 0,
+                    moveDelay: enemyStats.moveDelay,
+                    lastAttackTime: 0,
+                    attackDelay: enemyStats.attackDelay,
+                    damage: enemyStats.damage,
+                    goldDrop: enemyStats.goldDrop,
+                    expReward: enemyStats.expReward
+                });
+            }
         }
     } else if (mapType === 'castle') {
         // Castle - bandits and demons
@@ -534,13 +582,14 @@ export function generateNPCs(mapType) {
         }
     } else {
         // Fallback to procedural NPC generation
-        if (mapType === 'city') {
+        if (mapType === 'city' || mapType === 'newbie_city') {
             // Ciudad: Colocar varios NPCs usando la clase NPC
             const cityNPCs = [
                 { type: 'merchant_general', x: 25, y: 15 },
                 { type: 'blacksmith_ullathorpe', x: 18, y: 22 },
                 { type: 'guard_city', x: 32, y: 18 },
-                { type: 'banker_city', x: 20, y: 10 }
+                { type: 'banker_city', x: 20, y: 10 },
+                { type: 'healer_city', x: 15, y: 15 }  // Añadido sacerdote curandero que puede resucitar al jugador
             ];
 
             for (const npcSpawn of cityNPCs) {
