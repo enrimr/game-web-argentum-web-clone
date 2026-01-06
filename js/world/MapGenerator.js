@@ -6,6 +6,7 @@
 
 import { CONFIG } from '../config.js';
 import { gameState } from '../state.js';
+import { generateNewbieCityWithBuildings } from './StaticMapLayouts.js';
 import { extractRoofLayer } from './generators/BuildingIdentifier.js';
 import { loadStaticMap } from './generators/StaticMapLoader.js';
 import { isWalkable, createFallbackMap } from './generators/BaseGenerator.js';
@@ -40,7 +41,9 @@ export function generateMap(mapType) {
         console.log("🏙️ Generando mapa de Newbie City con edificios mejorados");
 
         try {
-            const mapData = generateNewbieCityLayout();
+            // Usamos directamente la función importada al inicio del archivo
+            const mapData = generateNewbieCityWithBuildings();
+
             // Guardar la capa de techos por separado
             if (mapData && Array.isArray(mapData)) {
                 extractRoofLayer(mapData);
