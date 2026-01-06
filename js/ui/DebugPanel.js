@@ -60,6 +60,7 @@ function createDebugPanel() {
     // Lista de capas disponibles
     const layers = [
         { id: 'baseMap', name: 'Mapa base' },
+        { id: 'treeLayer', name: 'Árboles' }, // Añadido toggle para árboles
         { id: 'doorLayer', name: 'Puertas' },
         { id: 'windowLayer', name: 'Ventanas' },
         { id: 'roofLayer', name: 'Tejados' },
