@@ -21,6 +21,7 @@ import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 import { getStaticMap } from '../world/StaticWorldMaps.js';
 import { initMouseControls } from './MouseControls.js';
 import { initDebugPanel } from '../ui/DebugPanel.js';
+import { preloadAllMaps, getPreloadedMap } from '../world/PreloadedMaps.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
@@ -70,6 +71,15 @@ function findNearestWalkableTile(map, startX, startY) {
  */
 export async function init() {
     console.log('Initializing game...');
+    
+    // Precargar todos los mapas JSON antes de inicializar el juego
+    try {
+        console.log('🗺️ Iniciando precarga de mapas JSON...');
+        await preloadAllMaps();
+        console.log('✅ Mapas JSON precargados con éxito');
+    } catch (error) {
+        console.error('❌ Error al precargar mapas JSON:', error);
+    }
 
     // Initialize input handling
     initInput();
@@ -262,6 +272,17 @@ export function changeMap(targetMap, targetX, targetY) {
             return;
         }
     }
+    
+    // Cargar previamente el mapa si es uno de las Islas Canarias
+    if (targetMap.startsWith('canarias_')) {
+        const preloadedMap = getPreloadedMap(targetMap);
+        if (preloadedMap) {
+            console.log(`📦 Mapa precargado encontrado para ${targetMap}`);
+            window.__PRELOADED_MAPS__[targetMap] = preloadedMap;
+        } else {
+            console.warn(`⚠️ No se encontró mapa precargado para ${targetMap}`);
+        }
+    }
 
     // Save current map for transition message
     const oldMap = gameState.currentMap;
@@ -347,7 +368,12 @@ export function changeMap(targetMap, targetX, targetY) {
         // Static maps
         'newbie_city': '🏘️ Ciudad de Ullathorpe',
         'newbie_field': '🏞️ Campos de Ullathorpe',
-        'dark_forest': '🌲 Bosque Oscuro'
+        'dark_forest': '🌲 Bosque Oscuro',
+        // Mapas Canarias
+        'canarias_capital': '🏙️ Las Palmas de GC',
+        'canarias_playa_canteras': '🏖️ Playa de Las Canteras',
+        'canarias_dunas': '🏜️ Dunas de Maspalomas',
+        'canarias_teide_dungeon': '🌋 Volcán del Teide'
     };
 
     // Use static map name if available, otherwise fallback to procedural name

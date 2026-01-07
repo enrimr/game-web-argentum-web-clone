@@ -8,6 +8,7 @@ import { gameState } from '../../state.js';
 import { CONFIG } from '../../config.js';
 import { identifyBuildingsFromMap } from './BuildingIdentifier.js';
 import { createFallbackMap } from './BaseGenerator.js';
+import { getStaticMap } from '../StaticWorldMaps.js';
 
 const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
@@ -18,27 +19,90 @@ const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
  */
 export function loadStaticMap(mapType) {
     try {
-        // Map of mapType to static map file names
-        const staticMapFiles = {
-            'newbie_city': 'newbie_city.json',
-            'newbie_field': 'newbie_field.json',
-            'dark_forest': 'dark_forest.json',
-            // Add more mappings as static maps are created
-        };
-
-        if (staticMapFiles[mapType]) {
-            // For now, we'll simulate loading JSON data
-            // In production, this would load JSON files asynchronously
-            const mapData = loadStaticMapData(mapType);
+        // Check if the map is defined in STATIC_WORLD_MAPS
+        const staticMapConfig = getStaticMap(mapType);
+        
+        if (staticMapConfig) {
+            let mapData = null;
+            
+            // If the map has a fileSource property, load from JSON file
+            if (staticMapConfig.fileSource) {
+                console.log(`Loading map from file: ${staticMapConfig.fileSource}`);
+                
+                try {
+                    // Try to load the JSON map using the predefined method
+                    mapData = loadJSONMapByType(mapType);
+                } catch (e) {
+                    console.warn(`Error loading JSON file: ${e.message}, trying fallback...`);
+                }
+            } 
+            // If no fileSource, use layout function if provided
+            else if (staticMapConfig.layout) {
+                console.log(`Generating map with layout function for: ${mapType}`);
+                mapData = {
+                    layers: {
+                        base: staticMapConfig.layout()
+                    }
+                };
+            }
+            
+            // Fallback to hardcoded maps
+            if (!mapData) {
+                mapData = loadStaticMapData(mapType);
+            }
+            
             if (mapData && mapData.layers) {
                 // Combine layers into single map for compatibility
                 return combineMapLayers(mapData);
             }
-            return null;
         }
     } catch (error) {
         console.warn(`Failed to load static map for ${mapType}:`, error);
     }
+    return null;
+}
+
+/**
+ * Load JSON map data by type
+ * @param {string} mapType - Map type to load
+ * @returns {Object|null} Map data object or null
+ */
+function loadJSONMapByType(mapType) {
+    console.log(`Loading JSON map for: ${mapType}`);
+    
+    try {
+        // In a browser environment, we would use fetch
+        // But for now, we'll use a direct import approach for the demo
+        const staticMapConfig = getStaticMap(mapType);
+        
+        if (staticMapConfig && staticMapConfig.fileSource) {
+            // Since we can't directly load files at runtime in this demo,
+            // we'll use our predefined JSON maps that are already loaded
+            
+            // Check if the mapType is one of our canarias maps
+            if (mapType.startsWith('canarias_')) {
+                // Return the map data directly from the source
+                return {
+                    name: staticMapConfig.name,
+                    description: staticMapConfig.description,
+                    type: staticMapConfig.type,
+                    safeZone: staticMapConfig.safeZone,
+                    worldPosition: staticMapConfig.worldPosition,
+                    // For demo purposes, we'll load the map directly from the layers in the JSON files
+                    layers: {
+                        base: window.__PRELOADED_MAPS__[mapType]?.layers?.base || [],
+                        objects: window.__PRELOADED_MAPS__[mapType]?.layers?.objects || [],
+                        roofs: window.__PRELOADED_MAPS__[mapType]?.layers?.roofs || [],
+                        doors: window.__PRELOADED_MAPS__[mapType]?.layers?.doors || [],
+                        windows: window.__PRELOADED_MAPS__[mapType]?.layers?.windows || []
+                    }
+                };
+            }
+        }
+    } catch (error) {
+        console.error(`Error loading JSON map: ${error}`);
+    }
+    
     return null;
 }
 
@@ -50,7 +114,6 @@ export function loadStaticMap(mapType) {
 function loadStaticMapData(mapType) {
     // This simulates loading JSON data
     // In production, this would be async JSON loading
-
     switch (mapType) {
         case 'newbie_field':
             return {
@@ -61,63 +124,29 @@ function loadStaticMapData(mapType) {
                 worldPosition: { x: 100, y: 250 },
                 layers: {
                     base: [
-                        [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-                        [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]
+                        [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
+                        [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]
                     ]
-                },
-                npcs: [
-                    { "type": "guard", "x": 25, "y": 32, "dialogue": "guard_field" }
-                ],
-                enemies: { "enabled": true, "spawnAreas": [{ "x": 10, "y": 10, "width": 30, "height": 20 }] },
-                objects: {
-                    "density": 0.05,
-                    "types": ["potion", "gold"],
-                    "spawnAreas": "walkable"
-                },
-                portals: [
-                    { "x": 25, "y": 37, "targetMap": "newbie_city", "targetX": 25, "targetY": 1, "name": "Ciudad" }
-                ],
-                connections: {}
+                }
             };
-
         default:
             return null;
     }
@@ -162,6 +191,8 @@ export function combineMapLayers(mapData) {
     
     const objectsLayer = mapData.layers.objects || [];
     const roofsLayer = mapData.layers.roofs || [];
+    const windowsLayer = mapData.layers.windows || [];
+    const doorsLayer = mapData.layers.doors || [];
 
     const height = baseLayer.length;
     const width = baseLayer[0].length;
@@ -169,12 +200,15 @@ export function combineMapLayers(mapData) {
     // Create combined map (without roofs)
     const combinedMap = [];
     
-    // Initialize layers
+    // Initialize layers in gameState
     gameState.roofLayer = [];
     gameState.doorLayer = [];
+    gameState.windowLayer = [];
+
     for (let y = 0; y < height; y++) {
         gameState.roofLayer[y] = [];
         gameState.doorLayer[y] = [];
+        gameState.windowLayer[y] = [];
         combinedMap[y] = Array(width).fill(TILES.GRASS); // Inicializar con césped por defecto
     }
 
@@ -191,17 +225,25 @@ export function combineMapLayers(mapData) {
                     combinedMap[y][x] = baseLayer[y][x];
                 }
 
-                // Override with objects layer (doors, walls, etc.)
+                // Override with objects layer (walls, etc.)
                 if (objectsLayer[y] && objectsLayer[y][x] !== undefined && objectsLayer[y][x] !== 0) {
-                    const objectTile = objectsLayer[y][x];
-                    // If it's a door, put it in the door layer instead of base layer
-                    if (isClosedDoor(objectTile) || isOpenDoor(objectTile)) {
-                        gameState.doorLayer[y][x] = objectTile;
-                        // Keep base layer as floor interior for doors
-                        combinedMap[y][x] = TILES.FLOOR_INTERIOR;
-                    } else {
-                        combinedMap[y][x] = objectTile;
-                    }
+                    combinedMap[y][x] = objectsLayer[y][x];
+                }
+                
+                // Process door layer
+                if (doorsLayer[y] && doorsLayer[y][x] !== undefined && doorsLayer[y][x] !== 0) {
+                    gameState.doorLayer[y][x] = doorsLayer[y][x];
+                    // Keep base layer as floor interior for doors
+                    combinedMap[y][x] = TILES.FLOOR_INTERIOR;
+                } else {
+                    gameState.doorLayer[y][x] = 0;
+                }
+                
+                // Process window layer
+                if (windowsLayer[y] && windowsLayer[y][x] !== undefined && windowsLayer[y][x] !== 0) {
+                    gameState.windowLayer[y][x] = windowsLayer[y][x];
+                } else {
+                    gameState.windowLayer[y][x] = 0;
                 }
 
                 // Save roof data in the separate roof layer (if any)
@@ -209,11 +251,6 @@ export function combineMapLayers(mapData) {
                     gameState.roofLayer[y][x] = roofsLayer[y][x];
                 } else {
                     gameState.roofLayer[y][x] = 0; // No roof
-                }
-
-                // Initialize door layer if not set
-                if (gameState.doorLayer[y][x] === undefined) {
-                    gameState.doorLayer[y][x] = 0;
                 }
             }
         }

@@ -20,7 +20,19 @@ export const TILES = {
     DOOR_CLOSED_LEFT: 16, // Puerta cerrada con pomo a la derecha (abre hacia la izquierda) - not walkable
     DOOR_OPEN_RIGHT: 17,  // Puerta abierta hacia la derecha - walkable
     DOOR_CLOSED_RIGHT: 18, // Puerta cerrada con pomo a la izquierda (abre hacia la derecha) - not walkable
-    WINDOW_WALKABLE: 19   // Ventana junto a puerta - walkable
+    WINDOW_WALKABLE: 19,  // Ventana junto a puerta - walkable
+    
+    // Nuevos tipos de tiles para las Islas Canarias
+    SAND: 20,             // Arena de playa - walkable
+    DUNE: 21,             // Duna de arena - walkable
+    MOUNTAIN: 22,         // Montaña - not walkable
+    ROCK: 23,             // Roca normal - not walkable
+    VOLCANIC_ROCK: 24,    // Roca volcánica negra - not walkable
+    LAVA: 25,             // Lava volcánica - not walkable, daña al jugador
+    PALM_TREE: 26,        // Palmera canaria - not walkable
+    CACTUS: 27,           // Cactus de zonas áridas - not walkable
+    SEASHELL: 28,         // Concha marina decorativa - walkable
+    VOLCANO: 29           // Cráter de volcán - not walkable
 };
 
 // Por compatibilidad con el código existente
@@ -41,7 +53,10 @@ export function isTileWalkable(tile) {
            tile === TILES.DOOR_OPEN_RIGHT ||
            tile === TILES.DOOR_SHADOW ||
            tile === TILES.FLOOR_INTERIOR ||
-           tile === TILES.WINDOW_WALKABLE;      // Solo ventanas junto a puertas son caminables
+           tile === TILES.WINDOW_WALKABLE ||
+           tile === TILES.SAND ||
+           tile === TILES.DUNE ||
+           tile === TILES.SEASHELL;      // Nuevos tiles canarios caminables
 }
 
 /**

@@ -43,7 +43,7 @@ Una pequeña demo inspirada en el clásico juego argentino **Argentum Online**, 
 
 ## 🚀 Cómo jugar
 
-1. Abre el archivo `index.html` en tu navegador web
+1. **Importante**: Este juego debe ser ejecutado bajo un servidor web para evitar errores CORS. [Ver instrucciones de ejecución](EJECUCION.md)
 2. Usa las **flechas del teclado** o **WASD** para mover tu personaje
 3. Presiona **ESPACIO** para interactuar con objetos o atacar enemigos
 4. Recoge todo el oro que puedas explorando el mapa
@@ -82,15 +82,25 @@ Los sprites están generados proceduralmente usando Canvas 2D, creando un estilo
 - Derrota a todos los goblins
 - Acumula la mayor cantidad de oro posible
 
+## 📚 Documentación Técnica
+
+El proyecto incluye documentación técnica detallada sobre su arquitectura y sistemas:
+
+- [Arquitectura del Motor de Juego](ARCHITECTURE.md) - Visión general de la estructura del motor
+- [Instrucciones de Ejecución](EJECUCION.md) - Cómo lanzar el juego correctamente usando un servidor web
+- [Documentación de Sistemas](docs/README.md) - Documentación detallada de los subsistemas
+  - [Sistema de Generación de Mapas](docs/sistema-generacion-mapas.md) - Arquitectura de generación de mapas estáticos y procedurales
+  - [Estado Actual del Juego](docs/ESTADO_ACTUAL.md) - Descripción del estado actual del proyecto
+  - [Mapas de Canarias](docs/MAPAS_CANARIAS.md) - Documentación técnica sobre los mapas de las Islas Canarias
+
 ## 🔮 Posibles mejoras futuras
 
-- Sistema de niveles y experiencia
 - Más tipos de enemigos
-- Items equipables (armas, armaduras)
-- Sistema de hechizos usando maná
-- Mapas múltiples conectados
-- NPCs con diálogos
-- Sistema de misiones más complejo
+- Sistema de misiones complejo
+- Sistema de gremios/clanes
+- Sistema de comercio entre jugadores
+- Sistema de hechizos avanzado
+- Editor de mapas en el navegador
 - Multijugador online
 
 ---

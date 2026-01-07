@@ -125,11 +125,92 @@ function createDebugPanel() {
     updateBuildingsButton.onclick = updateBuildingsList;
     debugPanel.appendChild(updateBuildingsButton);
     
+    // Sección de teletransporte a mapas
+    const teleportTitle = document.createElement('div');
+    teleportTitle.textContent = 'Teletransporte:';
+    teleportTitle.style.marginTop = '15px';
+    teleportTitle.style.marginBottom = '5px';
+    teleportTitle.style.borderTop = '1px solid #555';
+    teleportTitle.style.paddingTop = '5px';
+    debugPanel.appendChild(teleportTitle);
+    
+    // Crear selector de mapas
+    const mapSelector = document.createElement('select');
+    mapSelector.id = 'map-teleporter';
+    mapSelector.style.width = '100%';
+    mapSelector.style.padding = '3px';
+    mapSelector.style.backgroundColor = '#2d3748';
+    mapSelector.style.color = 'white';
+    mapSelector.style.border = '1px solid #4a5568';
+    mapSelector.style.borderRadius = '3px';
+    
+    // Botón de teletransporte
+    const teleportButton = document.createElement('button');
+    teleportButton.textContent = '🌀 Teletransportar';
+    teleportButton.style.marginTop = '5px';
+    teleportButton.style.width = '100%';
+    teleportButton.style.backgroundColor = '#553c9a';
+    teleportButton.style.color = 'white';
+    teleportButton.style.border = 'none';
+    teleportButton.style.padding = '5px 10px';
+    teleportButton.style.borderRadius = '3px';
+    teleportButton.style.cursor = 'pointer';
+    
+    // Actualizar lista de mapas disponibles
+    updateMapsList(mapSelector);
+    
+    // Evento de teletransporte
+    teleportButton.addEventListener('click', () => {
+        const selectedMap = mapSelector.value;
+        if (selectedMap) {
+            // Importar la función changeMap dinámicamente para evitar dependencias circulares
+            import('../core/Game.js').then(({ changeMap }) => {
+                // Teletransportar al centro del mapa seleccionado
+                changeMap(selectedMap, 25, 25);
+                // Ocultar el panel de depuración después de teletransportarse
+                const debugPanel = document.getElementById('debug-panel');
+                debugPanelVisible = false;
+                debugPanel.style.display = 'none';
+                document.getElementById('debug-toggle').textContent = '🛠️';
+            });
+        }
+    });
+    
+    debugPanel.appendChild(mapSelector);
+    debugPanel.appendChild(teleportButton);
+    
     // Añadir el panel al DOM
     document.body.appendChild(debugPanel);
     
     // Actualizar inicialmente la lista de edificios
     updateBuildingsList();
+}
+
+/**
+ * Actualizar la lista de mapas disponibles en el selector
+ * @param {HTMLSelectElement} selector - Selector donde cargar los mapas
+ */
+function updateMapsList(selector) {
+    // Vaciar selector primero
+    selector.innerHTML = '';
+    
+    // Importar dinámicamente MAP_DEFINITIONS
+    import('../world/MapDefinitions.js').then(({ MAP_DEFINITIONS }) => {
+        // Opción inicial
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '-- Seleccionar mapa --';
+        selector.appendChild(defaultOption);
+        
+        // Añadir todos los mapas disponibles
+        Object.keys(MAP_DEFINITIONS).forEach(mapKey => {
+            const mapDef = MAP_DEFINITIONS[mapKey];
+            const option = document.createElement('option');
+            option.value = mapKey;
+            option.textContent = mapDef.name || mapKey;
+            selector.appendChild(option);
+        });
+    });
 }
 
 /**

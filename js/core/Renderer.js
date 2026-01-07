@@ -791,6 +791,19 @@ function getTileSprite(tileType) {
         case TILES.WINDOW_WALKABLE: return sprites.window; // Usar el mismo sprite de ventana normal
         case TILES.DOOR_SHADOW: return sprites.doorShadow;
         case TILES.FACADE: return sprites.facade;
+        
+        // Nuevos tipos de tiles para las Islas Canarias
+        case TILES.SAND: return sprites.sand;
+        case TILES.DUNE: return sprites.dune;
+        case TILES.MOUNTAIN: return sprites.mountain;
+        case TILES.ROCK: return sprites.rock;
+        case TILES.VOLCANIC_ROCK: return sprites.volcanicRock;
+        case TILES.LAVA: return sprites.lava;
+        case TILES.PALM_TREE: return sprites.palmTree;
+        case TILES.CACTUS: return sprites.cactus;
+        case TILES.SEASHELL: return sprites.seashell;
+        case TILES.VOLCANO: return sprites.volcano;
+        
         default: return sprites.grass;
     }
 }
