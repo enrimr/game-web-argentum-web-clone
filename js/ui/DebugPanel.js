@@ -5,6 +5,7 @@
 
 import { layerVisibility } from '../core/Renderer.js';
 import { gameState, getBuildingId, isBuildingVisible, toggleBuildingVisibility } from '../state.js';
+import { addExportButtonsToDebugPanel } from '../world/MapExporter.js';
 
 // Estado del panel de depuración
 let debugPanelVisible = false;
@@ -178,6 +179,14 @@ function createDebugPanel() {
     
     debugPanel.appendChild(mapSelector);
     debugPanel.appendChild(teleportButton);
+    
+    // Añadir los botones de exportación de mapas
+    try {
+        // Importar la función para añadir botones de exportación
+        addExportButtonsToDebugPanel(debugPanel);
+    } catch (error) {
+        console.error('Error al añadir botones de exportación al panel de depuración:', error);
+    }
     
     // Añadir el panel al DOM
     document.body.appendChild(debugPanel);

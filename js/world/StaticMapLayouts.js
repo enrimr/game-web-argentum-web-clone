@@ -338,6 +338,7 @@ export function generateMountainPassLayout() {
 
 /**
  * Genera el layout de la ciudad inicial con edificios navegables (fachadas de 2 filas, puertas, sombras)
+ * Si no existe, exporta el mapa a un archivo JSON la primera vez que se ejecuta
  */
 export function generateNewbieCityWithBuildings() {
     const map = [];
@@ -536,10 +537,28 @@ export function generateNewbieCityWithBuildings() {
         }
     }
 
-    return {
+    // Preparar el resultado para devolver
+    const mapData = {
         map: map,
         roofLayer: roofLayer,
         doorLayer: doorLayer,
         windowLayer: windowLayer
     };
+    
+    // Registrar el mapa para exportación en el panel de depuración (sin descarga automática)
+    try {
+        import('../world/MapExporter.js').then(({ addExportButton }) => {
+            // Solo registrar para el panel de depuración, sin descarga automática
+            console.log('📝 Registrando mapa Newbie City con edificios para exportación manual...');
+            
+            // Añadir un botón al panel de depuración para exportar manualmente
+            addExportButton('newbie_city_detailed', mapData);
+        }).catch(err => {
+            console.error('❌ Error al importar MapExporter:', err);
+        });
+    } catch (error) {
+        console.error('❌ Error al intentar registrar el mapa para exportación:', error);
+    }
+    
+    return mapData;
 }
