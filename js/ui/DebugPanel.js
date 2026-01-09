@@ -6,6 +6,7 @@
 import { layerVisibility } from '../core/Renderer.js';
 import { gameState, getBuildingId, isBuildingVisible, toggleBuildingVisibility } from '../state.js';
 import { addExportButtonsToDebugPanel } from '../world/MapExporter.js';
+import { showDebugSkillsPanel, initPlayerSkills } from './DebugSkills.js';
 
 // Estado del panel de depuración
 let debugPanelVisible = false;
@@ -14,6 +15,9 @@ let debugPanelVisible = false;
  * Inicializar el panel de depuración
  */
 export function initDebugPanel() {
+    // Inicializar las habilidades del jugador
+    initPlayerSkills();
+    
     createDebugPanel();
     addToggleButton();
     
@@ -125,6 +129,29 @@ function createDebugPanel() {
     updateBuildingsButton.style.cursor = 'pointer';
     updateBuildingsButton.onclick = updateBuildingsList;
     debugPanel.appendChild(updateBuildingsButton);
+    
+    // Sección de habilidades
+    const skillsTitle = document.createElement('div');
+    skillsTitle.textContent = 'Habilidades:';
+    skillsTitle.style.marginTop = '15px';
+    skillsTitle.style.marginBottom = '5px';
+    skillsTitle.style.borderTop = '1px solid #555';
+    skillsTitle.style.paddingTop = '5px';
+    debugPanel.appendChild(skillsTitle);
+    
+    // Botón para mostrar panel de habilidades
+    const skillsButton = document.createElement('button');
+    skillsButton.textContent = '✨ Panel de Habilidades';
+    skillsButton.style.marginTop = '5px';
+    skillsButton.style.width = '100%';
+    skillsButton.style.backgroundColor = '#805ad5';
+    skillsButton.style.color = 'white';
+    skillsButton.style.border = 'none';
+    skillsButton.style.padding = '5px 10px';
+    skillsButton.style.borderRadius = '3px';
+    skillsButton.style.cursor = 'pointer';
+    skillsButton.onclick = showDebugSkillsPanel;
+    debugPanel.appendChild(skillsButton);
     
     // Sección de teletransporte a mapas
     const teleportTitle = document.createElement('div');
