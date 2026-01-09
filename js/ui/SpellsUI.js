@@ -20,76 +20,37 @@ const uiState = {
  * Inicializar la UI de hechizos
  */
 export function initSpellsUI() {
-    // Crear el panel de hechizos en el DOM
-    createSpellsPanel();
-    
     // Asignar eventos
     document.addEventListener('keydown', handleSpellHotkeys);
     
-    // Ocultar inicialmente
-    toggleSpellsPanel(false);
-}
-
-/**
- * Crear el panel de hechizos en el DOM
- */
-function createSpellsPanel() {
-    const gameContainer = document.querySelector('.game-container');
+    // Configurar los botones del panel lateral
+    const toggleSpellsListBtn = document.getElementById('toggleSpellsList');
+    if (toggleSpellsListBtn) {
+        toggleSpellsListBtn.addEventListener('click', () => toggleSpellsPanel());
+    }
     
-    // Crear panel principal
-    const spellsPanel = document.createElement('div');
-    spellsPanel.id = 'spells-panel';
-    spellsPanel.className = 'game-panel';
+    const castSpellBtn = document.getElementById('castSpellBtn');
+    if (castSpellBtn) {
+        castSpellBtn.addEventListener('click', () => handleCastButtonClick());
+    }
     
-    // Título del panel
-    const title = document.createElement('h3');
-    title.textContent = '✨ Hechizos';
-    spellsPanel.appendChild(title);
+    const meditateBtn = document.getElementById('meditateBtn');
+    if (meditateBtn) {
+        meditateBtn.addEventListener('click', () => {
+            const isMeditating = toggleMeditation();
+            meditateBtn.textContent = isMeditating ? 'Dejar de Meditar' : 'Meditar';
+        });
+    }
     
-    // Lista de hechizos
-    const spellsList = document.createElement('div');
-    spellsList.id = 'spells-list';
-    spellsList.className = 'spells-list';
-    spellsPanel.appendChild(spellsList);
-    
-    // Botones de acción
-    const actionButtons = document.createElement('div');
-    actionButtons.className = 'spells-actions';
-    
-    // Botón para lanzar hechizo
-    const castButton = document.createElement('button');
-    castButton.id = 'cast-spell-btn';
-    castButton.textContent = 'Lanzar';
-    castButton.onclick = () => handleCastButtonClick();
-    actionButtons.appendChild(castButton);
-    
-    // Botón para meditar
-    const meditateButton = document.createElement('button');
-    meditateButton.id = 'meditate-btn';
-    meditateButton.textContent = 'Meditar';
-    meditateButton.onclick = () => {
-        const isMeditating = toggleMeditation();
-        meditateButton.textContent = isMeditating ? 'Dejar de Meditar' : 'Meditar';
-    };
-    actionButtons.appendChild(meditateButton);
-    
-    // Botón para cerrar
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Cerrar';
-    closeButton.onclick = () => toggleSpellsPanel(false);
-    actionButtons.appendChild(closeButton);
-    
-    spellsPanel.appendChild(actionButtons);
-    
-    // Agregar al contenedor del juego
-    gameContainer.appendChild(spellsPanel);
+    // Actualizar lista de hechizos (vacía inicialmente)
+    updateSpellsList();
 }
 
 /**
  * Actualizar la lista de hechizos disponibles
  */
 export function updateSpellsList() {
-    const spellsList = document.getElementById('spells-list');
+    const spellsList = document.getElementById('sidebarSpellsList');
     if (!spellsList) return;
     
     // Limpiar lista actual
@@ -205,8 +166,11 @@ function handleSpellHotkeys(event) {
  * @param {boolean} visible - Si el panel debe estar visible
  */
 export function toggleSpellsPanel(visible = null) {
-    const panel = document.getElementById('spells-panel');
-    if (!panel) return;
+    const spellsList = document.getElementById('sidebarSpellsList');
+    const spellsActions = document.querySelector('.spells-actions');
+    const toggleBtn = document.getElementById('toggleSpellsList');
+    
+    if (!spellsList) return;
     
     // Si no se proporciona valor, alternar estado actual
     if (visible === null) {
@@ -215,7 +179,13 @@ export function toggleSpellsPanel(visible = null) {
     
     // Actualizar estado y visibilidad
     uiState.visible = visible;
-    panel.style.display = visible ? 'flex' : 'none';
+    spellsList.style.display = visible ? 'block' : 'none';
+    spellsActions.style.display = visible ? 'flex' : 'none';
+    
+    // Actualizar texto del botón
+    if (toggleBtn) {
+        toggleBtn.textContent = visible ? 'Ocultar' : 'Mostrar';
+    }
     
     // Al mostrar, actualizar lista de hechizos
     if (visible) {

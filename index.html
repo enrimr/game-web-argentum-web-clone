@@ -136,7 +136,19 @@
                         <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
                         <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
                     </div>
-                    <button id="toggleSpellsBtn" class="panel-button">✨ Hechizos</button>
+                </div>
+
+                <div class="panel">
+                    <h3>✨ Hechizos
+                        <button id="toggleSpellsList" class="spells-toggle">Mostrar</button>
+                    </h3>
+                    <div id="sidebarSpellsList" class="spells-list" style="display: none;">
+                        <!-- Los hechizos se cargarán dinámicamente aquí -->
+                    </div>
+                    <div class="spells-actions" style="display: none;">
+                        <button id="castSpellBtn">Lanzar</button>
+                        <button id="meditateBtn">Meditar</button>
+                    </div>
                 </div>
 
                 <div class="panel">
