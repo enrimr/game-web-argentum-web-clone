@@ -534,17 +534,25 @@ export class LoginScreen {
     startLocalGame() {
         console.log('Iniciando juego en modo local');
         
-        // Ocultar pantalla de login con una animación
+        // Buscar el elemento de pantalla de login
         const loginScreen = document.getElementById('loginScreen');
-        loginScreen.classList.add('hidden');
         
-        // Eliminar después de la animación
-        setTimeout(() => {
-            loginScreen.remove();
+        // Si existe la pantalla de login (no estamos saltándola con parámetros URL)
+        if (loginScreen) {
+            // Ocultar pantalla de login con una animación
+            loginScreen.classList.add('hidden');
             
-            // Inicializar juego actual
+            // Eliminar después de la animación
+            setTimeout(() => {
+                loginScreen.remove();
+                // Inicializar juego actual
+                window.dispatchEvent(new Event('login-complete'));
+            }, 500);
+        } else {
+            // Si no existe pantalla de login (estamos usando parámetros URL para saltarla)
+            // Inicializar juego actual directamente
             window.dispatchEvent(new Event('login-complete'));
-        }, 500);
+        }
     }
     
     /**
