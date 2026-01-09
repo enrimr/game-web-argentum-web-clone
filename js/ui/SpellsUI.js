@@ -34,7 +34,7 @@ export function initSpellsUI() {
  * Crear el panel de hechizos en el DOM
  */
 function createSpellsPanel() {
-    const gameContainer = document.getElementById('game-container');
+    const gameContainer = document.querySelector('.game-container');
     
     // Crear panel principal
     const spellsPanel = document.createElement('div');
