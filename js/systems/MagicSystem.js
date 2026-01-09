@@ -516,8 +516,10 @@ export function toggleMeditation() {
     
     if (gameState.player.meditating) {
         addChatMessage('player', '🧘 Has comenzado a meditar. Recuperarás maná gradualmente.');
+        setPlayerAnimationState('meditating'); // Establecer animación de meditación
     } else {
         addChatMessage('player', '🧘 Has dejado de meditar.');
+        setPlayerAnimationState('idle'); // Volver a animación normal
     }
     
     return gameState.player.meditating;

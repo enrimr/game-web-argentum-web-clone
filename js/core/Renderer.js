@@ -681,9 +681,9 @@ function getAnimatedPlayerSprite() {
     } else if (animation.state === 'meditating') {
         // Para meditación, usamos un sprite especial o alternamos entre sprites para animación
         // Hacemos una animación pulsante basada en el tiempo
-        const now = Date.now(); // Obtener tiempo actual
+        const currentTime = Date.now(); // Obtener tiempo actual
         const pulseRate = 500; // Velocidad de pulso en ms
-        const pulse = Math.sin((now % (pulseRate * 2)) / pulseRate * Math.PI);
+        const pulse = Math.sin((currentTime % (pulseRate * 2)) / pulseRate * Math.PI);
         
         if (pulse > 0) {
             spriteName = `playerMeditating1`;  // Posición 1 de meditación
@@ -694,22 +694,67 @@ function getAnimatedPlayerSprite() {
         // Si no existen sprites específicos de meditación, usar un sprite genérico según dirección
         const fallbackSprite = `player${facing.charAt(0).toUpperCase() + facing.slice(1)}`;
         
-        // Añadir un efecto visual de aura si está meditando
+        // Añadir un efecto visual de aura estilo DBZ si está meditando
         const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
         
-        // Dibujar aura alrededor del jugador
+        // Dibujar la animación estilo DBZ (espiral cónica)
         ctx.save();
-        const auraSize = 40 + Math.abs(pulse) * 10; // Tamaño variable del aura
+        
+        // Centro del jugador
+        const centerX = playerScreenPos.x + TILE_SIZE/2;
+        const centerY = playerScreenPos.y + TILE_SIZE/2;
+        
+        // Parámetros de la animación usando el tiempo actual
+        const baseSpeed = 0.005;  
+        const heightVariation = Math.sin(currentTime * 0.003) * 5;  // Variación de altura
+        const maxHeight = 70 + heightVariation;  // Altura máxima de la espiral
+        const spiralSpeed = currentTime * 0.01;  // Velocidad de rotación
+        
+        // Dibujar múltiples espirales para crear efecto de carga de energía
+        for (let i = 0; i < 3; i++) {
+            const offset = i * (Math.PI * 2 / 3); // Distribuir espirales equitativamente
+            
+            // Color específico para cada espiral
+            const colors = [
+                'rgba(138, 43, 226, 0.7)', // Violeta
+                'rgba(75, 0, 130, 0.7)',   // Índigo
+                'rgba(106, 90, 205, 0.7)'  // SlateBlue
+            ];
+            
+            // Dibujar espiral ascendente
+            ctx.beginPath();
+            for (let y = 0; y < maxHeight; y += 0.5) {
+                const progress = y / maxHeight; // 0 a 1
+                const radius = 15 * Math.pow(progress, 0.7) * (1 + Math.sin(progress * 5 + currentTime * 0.01) * 0.1);
+                const angle = currentTime * 0.01 + y * 0.2 + offset;
+                const x = centerX + Math.cos(angle) * radius;
+                const yPos = centerY - y - 5;  // -5 para que empiece un poco más arriba del centro
+                
+                // Tamaño de las partículas varía con el pulso
+                const particleSize = 2 + Math.sin(currentTime * baseSpeed + y * 0.2) * 1.5;
+                
+                // Opacidad varía con la altura (más transparente arriba)
+                const opacity = 0.8 * (1 - Math.pow(progress, 2));
+                
+                ctx.fillStyle = colors[i].replace('0.7', opacity.toFixed(2));
+                ctx.fillRect(x - particleSize/2, yPos - particleSize/2, particleSize, particleSize);
+            }
+        }
+        
+        // Dibujar aura resplandeciente alrededor del personaje
+        const pulseIntensity = 0.5 + Math.abs(pulse) * 0.5;
         const gradient = ctx.createRadialGradient(
-            playerScreenPos.x + 16, playerScreenPos.y + 16, 5,
-            playerScreenPos.x + 16, playerScreenPos.y + 16, auraSize
+            centerX, centerY, 5,
+            centerX, centerY, 25 * pulseIntensity
         );
         gradient.addColorStop(0, 'rgba(138, 75, 175, 0.5)');
+        gradient.addColorStop(0.7, 'rgba(138, 75, 175, 0.3)');
         gradient.addColorStop(1, 'rgba(138, 75, 175, 0)');
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(playerScreenPos.x + 16, playerScreenPos.y + 16, auraSize, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, 25 * pulseIntensity, 0, Math.PI * 2);
         ctx.fill();
+        
         ctx.restore();
         
         return sprites[spriteName] || sprites[fallbackSprite] || sprites.player;
