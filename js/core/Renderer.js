@@ -54,6 +54,14 @@ export function updatePlayerAnimation(deltaTime) {
             animation.frame = (animation.frame + 1) % 3; // 3 frames for attacking
         } else if (animation.state === 'talking') {
             animation.frame = (animation.frame + 1) % 2; // 2 frames for talking
+        } else if (animation.state === 'meditating') {
+            animation.frame = (animation.frame + 1) % 2; // 2 frames for meditation
+            
+            // Si el jugador está meditando, actualizar el maná periódicamente
+            if (gameState.player.meditating && gameState.player.mana < gameState.player.maxMana) {
+                // La recuperación de maná ya se maneja en MagicSystem.js con recoverMana()
+                // Solo actualizamos la animación aquí
+            }
         } else {
             // Idle state - minimal animation
             animation.frame = (animation.frame + 1) % 2; // 2 frames for idle
@@ -670,6 +678,41 @@ function getAnimatedPlayerSprite() {
         // For walking, use animated frames if available, otherwise base directional sprite
         const frameSuffix = animation.frame > 0 ? animation.frame.toString() : '';
         spriteName = `playerWalk${facing.charAt(0).toUpperCase() + facing.slice(1)}${frameSuffix}`;
+    } else if (animation.state === 'meditating') {
+        // Para meditación, usamos un sprite especial o alternamos entre sprites para animación
+        // Hacemos una animación pulsante basada en el tiempo
+        const now = Date.now(); // Obtener tiempo actual
+        const pulseRate = 500; // Velocidad de pulso en ms
+        const pulse = Math.sin((now % (pulseRate * 2)) / pulseRate * Math.PI);
+        
+        if (pulse > 0) {
+            spriteName = `playerMeditating1`;  // Posición 1 de meditación
+        } else {
+            spriteName = `playerMeditating2`;  // Posición 2 de meditación
+        }
+        
+        // Si no existen sprites específicos de meditación, usar un sprite genérico según dirección
+        const fallbackSprite = `player${facing.charAt(0).toUpperCase() + facing.slice(1)}`;
+        
+        // Añadir un efecto visual de aura si está meditando
+        const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
+        
+        // Dibujar aura alrededor del jugador
+        ctx.save();
+        const auraSize = 40 + Math.abs(pulse) * 10; // Tamaño variable del aura
+        const gradient = ctx.createRadialGradient(
+            playerScreenPos.x + 16, playerScreenPos.y + 16, 5,
+            playerScreenPos.x + 16, playerScreenPos.y + 16, auraSize
+        );
+        gradient.addColorStop(0, 'rgba(138, 75, 175, 0.5)');
+        gradient.addColorStop(1, 'rgba(138, 75, 175, 0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(playerScreenPos.x + 16, playerScreenPos.y + 16, auraSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        return sprites[spriteName] || sprites[fallbackSprite] || sprites.player;
     } else if (animation.state === 'attacking') {
         // For attacking, use animated frames if available
         const frameSuffix = animation.frame > 0 ? animation.frame.toString() : '';
