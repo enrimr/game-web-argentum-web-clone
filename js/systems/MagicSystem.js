@@ -155,14 +155,21 @@ function isValidTarget(spell, target) {
         return spell.target === SPELL_TARGETS.SELF;
     }
     
+    // Si el objetivo es el jugador (directamente)
+    if (target === gameState.player || target.isPlayer === true) {
+        return spell.target === SPELL_TARGETS.SELF || 
+               spell.target === SPELL_TARGETS.FRIENDLY || 
+               spell.target === SPELL_TARGETS.ANY;
+    }
+    
     switch (spell.target) {
         case SPELL_TARGETS.SELF:
-            return target.isPlayer === true;
+            return false; // Ya lo comprobamos arriba
             
         case SPELL_TARGETS.FRIENDLY:
             // Por ahora solo el jugador puede ser objetivo amistoso
             // En el futuro se podrían incluir NPCs aliados
-            return target.isPlayer === true;
+            return false;
             
         case SPELL_TARGETS.ENEMY:
             // Verificar si el objetivo es un enemigo
@@ -170,8 +177,7 @@ function isValidTarget(spell, target) {
             
         case SPELL_TARGETS.ANY:
             // Cualquier personaje válido
-            return (target.isPlayer === true) || 
-                   (target.type && gameState.enemies.includes(target)) || 
+            return (target.type && gameState.enemies.includes(target)) || 
                    (gameState.npcs && gameState.npcs.includes(target));
             
         case SPELL_TARGETS.TERRAIN:
@@ -190,8 +196,9 @@ function isValidTarget(spell, target) {
  */
 function applySpellEffects(spell, target) {
     // Si el hechizo es de tipo SELF, el objetivo siempre es el jugador
-    const finalTarget = (spell.target === SPELL_TARGETS.SELF) ? 
-                       { isPlayer: true } : 
+    // O si el objetivo tiene la propiedad isPlayer, asegurarnos de usar el gameState.player real
+    const finalTarget = (spell.target === SPELL_TARGETS.SELF || target === gameState.player || target.isPlayer === true) ? 
+                       gameState.player : 
                        target;
     
     // Efectos visuales (en el futuro, esto mostraría efectos gráficos)
