@@ -131,11 +131,29 @@ export class LoginScreen {
     }
     
     /**
+     * Verificar si hay parámetros en la URL para saltar la pantalla de login
+     * @returns {boolean} True si debe iniciar en modo local directamente
+     */
+    checkUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const skipLogin = urlParams.has('local') || urlParams.get('mode') === 'local';
+        
+        return skipLogin;
+    }
+    
+    /**
      * Inicializar la pantalla de login
      * @returns {Promise<void>}
      */
     async init() {
         if (this.isInitialized) return;
+        
+        // Verificar si hay que saltar la pantalla de login e iniciar en modo local
+        if (this.checkUrlParams()) {
+            console.log('URL parameter detected: skipping login screen and starting in local mode');
+            this.startLocalGame();
+            return;
+        }
         
         // Crear elemento HTML de la pantalla de login
         const loginScreenElement = document.createElement('div');
