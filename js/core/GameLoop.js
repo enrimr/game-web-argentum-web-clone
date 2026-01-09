@@ -16,6 +16,8 @@ import { addChatMessage, updateUI } from '../ui/UI.js';
 import { showDialogue, isDialogueOpen } from '../ui/Dialogue.js';
 import { updatePlayerAnimation, setPlayerAnimationState, setPlayerFacing } from './Renderer.js';
 import { updateAutoMovement, isPlayerAutoMoving, getAutoMoveTarget } from './MouseControls.js';
+import { updateSpellEffects, recoverMana } from '../systems/MagicSystem.js';
+import { getSpellsUIState } from '../ui/SpellsUI.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -46,6 +48,15 @@ export function gameLoop(timestamp) {
         if (timestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {
             checkEnemyRespawns();
             gameLoop.lastRespawnCheck = timestamp;
+        }
+        
+        // Update spell effects (buffs, debuffs, etc.)
+        updateSpellEffects();
+        
+        // Recover mana if meditating (every 3 seconds)
+        if (timestamp - (gameLoop.lastManaRecovery || 0) > 3000) {
+            recoverMana();
+            gameLoop.lastManaRecovery = timestamp;
         }
     }
 
@@ -149,6 +160,16 @@ function handleMovement(timestamp) {
         }
         clearKey('x');
         clearKey('X'); // Prevent repeated shooting
+    }
+    
+    // Toggle spells panel with M key
+    if (isKeyPressed('m') || isKeyPressed('M')) {
+        const { toggleSpellsPanel } = window;
+        if (typeof toggleSpellsPanel === 'function') {
+            toggleSpellsPanel();
+        }
+        clearKey('m');
+        clearKey('M');
     }
 }
 

@@ -7,6 +7,7 @@ import { CONFIG } from '../config.js';
 import { gameState } from '../state.js';
 import { ITEM_TYPES } from './ItemTypes.js';
 import { addChatMessage, updateUI } from '../ui/UI.js';
+import { addSpellToPlayer, castSpell } from './MagicSystem.js';
 
 const { MAX_INVENTORY_SLOTS } = CONFIG;
 
@@ -68,6 +69,12 @@ export function toggleEquipItem(slotIndex) {
         equipItem(slotIndex);
         return;
     }
+    
+    // Handle spell books
+    if (itemDef.type === 'spell') {
+        useSpellBook(slotIndex);
+        return;
+    }
 
     // Other item types
     addChatMessage('system', '❌ No puedes usar este item.');
@@ -103,6 +110,19 @@ export function useConsumable(slotIndex) {
         case 'cure_poison':
             addChatMessage('system', `💚 Has usado ${item.name}! Veneno curado`);
             // En el futuro: gameState.player.poisoned = false;
+            break;
+            
+        case 'cast_spell':
+            // Lanza un hechizo desde un pergamino
+            if (itemDef.spellKey) {
+                addChatMessage('system', `📜 Has usado ${item.name}!`);
+                // No consume maná al usar el pergamino
+                const target = { isPlayer: true }; // Por defecto se lanza sobre uno mismo
+                // Aquí podríamos implementar selección de objetivo
+                castSpell(itemDef.spellKey, target);
+            } else {
+                addChatMessage('system', '❌ Error: Pergamino sin hechizo definido');
+            }
             break;
 
         default:
@@ -263,4 +283,31 @@ export function getEquippedArmorDefense() {
 
     const shieldDef = ITEM_TYPES[shield];
     return shieldDef ? shieldDef.defense : 0;
+}
+
+/**
+ * Usar un libro de hechizos para aprender el hechizo
+ * @param {number} slotIndex - Índice del item en el inventario
+ */
+export function useSpellBook(slotIndex) {
+    const item = gameState.player.inventory[slotIndex];
+    if (!item) return;
+
+    const itemDef = ITEM_TYPES[item.type];
+    if (!itemDef || itemDef.type !== 'spell' || !itemDef.spellKey) return;
+    
+    // Intentar aprender el hechizo
+    const success = addSpellToPlayer(itemDef.spellKey);
+    
+    if (success) {
+        addChatMessage('system', `📖 ¡Has aprendido el hechizo ${itemDef.name.replace('Libro: ', '')}!`);
+        
+        // Eliminar el libro del inventario (se consume al aprender)
+        gameState.player.inventory.splice(slotIndex, 1);
+    } else {
+        addChatMessage('system', '📖 Ya conoces este hechizo.');
+    }
+    
+    // Actualizar interfaz
+    updateUI();
 }

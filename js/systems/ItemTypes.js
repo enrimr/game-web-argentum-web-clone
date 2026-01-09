@@ -1,5 +1,78 @@
 // Item types (inspirado en Argentum Online)
 export const ITEM_TYPES = {
+    // Hechizos (libros y pergaminos)
+    SPELLBOOK_MAGIC_ARROW: { 
+        name: 'Libro: Flecha Mágica', 
+        icon: '📖', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'spellBook',
+        type: 'spell',
+        spellKey: 'MAGIC_ARROW',
+        description: 'Te enseña el hechizo "Flecha Mágica"'
+    },
+    SPELLBOOK_FIREBALL: { 
+        name: 'Libro: Bola de Fuego', 
+        icon: '📕', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'spellBook',
+        type: 'spell',
+        spellKey: 'FIREBALL',
+        description: 'Te enseña el hechizo "Bola de Fuego"'
+    },
+    SPELLBOOK_HEAL_WOUNDS: { 
+        name: 'Libro: Curar Heridas', 
+        icon: '📗', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'spellBook',
+        type: 'spell',
+        spellKey: 'HEAL_WOUNDS',
+        description: 'Te enseña el hechizo "Curar Heridas"'
+    },
+    SPELLBOOK_PARALYZE: { 
+        name: 'Libro: Paralizar', 
+        icon: '📘', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'spellBook',
+        type: 'spell',
+        spellKey: 'PARALYZE',
+        description: 'Te enseña el hechizo "Paralizar"'
+    },
+    SPELLBOOK_STRENGTHEN: { 
+        name: 'Libro: Fuerza', 
+        icon: '📙', 
+        stackable: false, 
+        maxStack: 1, 
+        sprite: 'spellBook',
+        type: 'spell',
+        spellKey: 'STRENGTHEN',
+        description: 'Te enseña el hechizo "Fuerza"'
+    },
+    SCROLL_LIGHTNING: { 
+        name: 'Pergamino: Relámpago', 
+        icon: '📜', 
+        stackable: true, 
+        maxStack: 10, 
+        sprite: 'scroll',
+        type: 'consumable',
+        effect: 'cast_spell',
+        spellKey: 'LIGHTNING',
+        description: 'Lanza el hechizo "Relámpago" una vez'
+    },
+    SCROLL_POISON: { 
+        name: 'Pergamino: Envenenar', 
+        icon: '🧾', 
+        stackable: true, 
+        maxStack: 10, 
+        sprite: 'scroll',
+        type: 'consumable',
+        effect: 'cast_spell',
+        spellKey: 'POISON',
+        description: 'Lanza el hechizo "Envenenar" una vez'
+    },
     // Pociones consumibles
     POTION_RED: { 
         name: 'Poción Roja', 

@@ -1,0 +1,152 @@
+/**
+ * Estilos para el panel de hechizos
+ */
+
+/* Panel de hechizos */
+#spells-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(20, 20, 40, 0.95);
+    border: 2px solid #8a4baf;
+    border-radius: 8px;
+    padding: 10px;
+    width: 400px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    color: #eee;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(138, 75, 175, 0.6);
+}
+
+#spells-panel h3 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    text-align: center;
+    border-bottom: 1px solid #8a4baf;
+    color: #b76ddf;
+}
+
+/* Lista de hechizos */
+.spells-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    max-height: 350px;
+}
+
+/* Mensaje de lista vacía */
+.empty-message {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-style: italic;
+}
+
+/* Item de hechizo */
+.spell-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    background-color: rgba(60, 60, 90, 0.5);
+    position: relative;
+}
+
+.spell-item:hover {
+    background-color: rgba(80, 80, 120, 0.7);
+}
+
+.spell-item.selected {
+    background-color: rgba(100, 70, 140, 0.8);
+    box-shadow: 0 0 8px rgba(138, 75, 175, 0.8);
+}
+
+/* Elementos dentro de los items de hechizo */
+.spell-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+    width: 30px;
+    text-align: center;
+}
+
+.spell-name {
+    flex-grow: 1;
+    font-weight: bold;
+}
+
+.spell-details {
+    color: #b3b3cc;
+    font-size: 0.85rem;
+    margin-left: 5px;
+}
+
+.spell-hotkey {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(138, 75, 175, 0.7);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+/* Botones de acción */
+.spells-actions {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 5px;
+}
+
+.spells-actions button {
+    padding: 5px 15px;
+    background-color: #6a3b8a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-grow: 1;
+    margin: 0 5px;
+}
+
+.spells-actions button:hover {
+    background-color: #8a4baf;
+}
+
+.spells-actions button:active {
+    background-color: #5a2d7a;
+}
+
+/* Modificadores del cursor para selección de objetivo */
+body.targeting {
+    cursor: crosshair;
+}
+
+/* Barra de desplazamiento personalizada */
+.spells-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.spells-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.spells-list::-webkit-scrollbar-thumb {
+    background: #6a3b8a;
+    border-radius: 4px;
+}
+
+.spells-list::-webkit-scrollbar-thumb:hover {
+    background: #8a4baf;
+}

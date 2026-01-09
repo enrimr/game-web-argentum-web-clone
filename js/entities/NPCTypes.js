@@ -15,7 +15,8 @@ export const NPC_TYPE = {
     QUEST_GIVER: 'quest_giver',     // Dador de misiones
     INNKEEPER: 'innkeeper',         // Posadero
     ALCHEMIST: 'alchemist',         // Alquimista
-    HEALER: 'healer'                // Sacerdote/Curandero
+    HEALER: 'healer',               // Sacerdote/Curandero
+    MAGE: 'mage'                    // Mago/Vendedor de hechizos
 };
 
 // Definiciones de NPCs específicos
@@ -211,6 +212,29 @@ export const NPC_DEFINITIONS = {
             resurrectCost: 100, // Costo en oro para resucitar
             healCost: 50        // Costo en oro para curar
         }
+    },
+    
+    // Mago vendedor de hechizos
+    mage_city: {
+        name: 'Mago Nemesius',
+        type: NPC_TYPE.MAGE,
+        sprite: 'npc_mage',
+        dialogue: {
+            greeting: '¡Saludos, buscador de conocimientos arcanos! Mis libros de hechizos contienen gran poder.',
+            trade: 'Estos son los hechizos que puedo ofrecerte. Úsalos con sabiduría.',
+            teach: 'Aprender magia requiere disciplina y mana, pero sus recompensas son inigualables.',
+            farewell: 'Que la magia te acompañe en tu camino.'
+        },
+        inventory: [
+            { itemType: 'SPELLBOOK_MAGIC_ARROW', quantity: 5, price: 500 },
+            { itemType: 'SPELLBOOK_FIREBALL', quantity: 3, price: 1000 },
+            { itemType: 'SPELLBOOK_HEAL_WOUNDS', quantity: 5, price: 800 },
+            { itemType: 'SPELLBOOK_PARALYZE', quantity: 2, price: 1200 },
+            { itemType: 'SPELLBOOK_STRENGTHEN', quantity: 3, price: 900 },
+            { itemType: 'SCROLL_LIGHTNING', quantity: 10, price: 300 },
+            { itemType: 'SCROLL_POISON', quantity: 10, price: 250 },
+            { itemType: 'POTION_BLUE', quantity: 100, price: 75 }  // Poción de maná más barata
+        ]
     }
 };
 
@@ -221,7 +245,8 @@ export const NPC_SPAWN_POSITIONS = {
         { npcType: 'banker_city', x: 20, y: 20 },
         { npcType: 'guard_city', x: 15, y: 10 },
         { npcType: 'guard_city', x: 35, y: 25 },
-        { npcType: 'healer_city', x: 30, y: 10 }
+        { npcType: 'healer_city', x: 30, y: 10 },
+        { npcType: 'mage_city', x: 10, y: 15 }
     ],
     market: [
         { npcType: 'merchant_general', x: 10, y: 10 },

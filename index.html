@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Argentum Demo - MMORPG 2D</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/spells.css">
 </head>
 <body>
     <div class="game-container">
@@ -135,6 +136,7 @@
                         <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
                         <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
                     </div>
+                    <button id="toggleSpellsBtn" class="panel-button">✨ Hechizos</button>
                 </div>
 
                 <div class="panel">
@@ -202,6 +204,10 @@
                         <span class="menu-icon">⚔️</span>
                         <span>Estadísticas</span>
                     </button>
+                    <button onclick="toggleSpellsPanel(); closeMobileMenu();" class="menu-item">
+                        <span class="menu-icon">✨</span>
+                        <span>Hechizos</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -211,6 +217,7 @@
         import { init, toggleQuests } from './js/core/Game.js';
         import { toggleMinimap } from './js/ui/Minimap.js';
         import { toggleWorldMap } from './js/ui/WorldMap.js';
+        import { toggleSpellsPanel } from './js/ui/SpellsUI.js';
 
         // Initialize the game when the page loads
         window.addEventListener('load', () => {
@@ -222,6 +229,7 @@
         window.toggleMinimap = toggleMinimap;
         window.toggleWorldMap = toggleWorldMap;
         window.toggleQuests = toggleQuests;
+        window.toggleSpellsPanel = toggleSpellsPanel;
 
         // Mobile UI functions
         function setupMobileUI() {
@@ -230,6 +238,14 @@
             if (menuButton) {
                 menuButton.addEventListener('click', () => {
                     document.getElementById('mobileMenu').style.display = 'flex';
+                });
+            }
+            
+            // Spell button
+            const spellsButton = document.getElementById('toggleSpellsBtn');
+            if (spellsButton) {
+                spellsButton.addEventListener('click', () => {
+                    toggleSpellsPanel();
                 });
             }
 
