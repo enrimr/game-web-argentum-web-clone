@@ -214,11 +214,59 @@ function handleCastButtonClick() {
         // Activar modo de selección de objetivo
         uiState.waitingForTarget = true;
         uiState.currentSpellKey = spellKey;
-        addChatMessage('system', `🎯 Selecciona un objetivo para ${spell.name}.`);
+        
+        // Mostrar un mensaje más claro según el tipo de hechizo
+        let targetMessage;
+        switch (spell.target) {
+            case SPELL_TARGETS.ENEMY:
+                targetMessage = `Haz clic sobre un enemigo para lanzar ${spell.name}.`;
+                break;
+            case SPELL_TARGETS.FRIENDLY:
+                targetMessage = `Haz clic sobre ti mismo u otro personaje amistoso para lanzar ${spell.name}.`;
+                break;
+            case SPELL_TARGETS.ANY:
+                targetMessage = `Haz clic sobre cualquier personaje para lanzar ${spell.name}.`;
+                break;
+            case SPELL_TARGETS.TERRAIN:
+                targetMessage = `Haz clic en un lugar del mapa para lanzar ${spell.name}.`;
+                break;
+            default:
+                targetMessage = `Selecciona un objetivo para ${spell.name}.`;
+        }
+        
+        addChatMessage('system', `✨ ${targetMessage}`);
         
         // Cambiar cursor para indicar selección de objetivo
         document.body.classList.add('targeting');
+        
+        // Añadir un botón de cancelación al DOM
+        const castButton = document.getElementById('castSpellBtn');
+        if (castButton) {
+            castButton.textContent = 'Cancelar';
+            castButton.classList.add('cancel-mode');
+            castButton.onclick = cancelTargetSelection;
+        }
     }
+}
+
+/**
+ * Cancelar la selección de objetivo
+ */
+function cancelTargetSelection() {
+    // Resetear estado de selección de objetivo
+    uiState.waitingForTarget = false;
+    uiState.currentSpellKey = null;
+    document.body.classList.remove('targeting');
+    
+    // Restaurar el botón de lanzar
+    const castButton = document.getElementById('castSpellBtn');
+    if (castButton) {
+        castButton.textContent = 'Lanzar';
+        castButton.classList.remove('cancel-mode');
+        castButton.onclick = () => handleCastButtonClick();
+    }
+    
+    addChatMessage('system', '✨ Lanzamiento de hechizo cancelado.');
 }
 
 /**
@@ -233,10 +281,18 @@ export function handleTargetSelection(target) {
     // Intentar lanzar el hechizo sobre el objetivo
     const success = castSpell(uiState.currentSpellKey, target);
     
-    // Resetear estado de selección de objetivo
+    // Resetear estado de selección de objetivo y restaurar la interfaz
     uiState.waitingForTarget = false;
     uiState.currentSpellKey = null;
     document.body.classList.remove('targeting');
+    
+    // Restaurar el botón de lanzar
+    const castButton = document.getElementById('castSpellBtn');
+    if (castButton) {
+        castButton.textContent = 'Lanzar';
+        castButton.classList.remove('cancel-mode');
+        castButton.onclick = () => handleCastButtonClick();
+    }
     
     return success;
 }

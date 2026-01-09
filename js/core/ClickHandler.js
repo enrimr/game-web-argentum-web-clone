@@ -13,6 +13,7 @@ import { getCameraPosition } from './Renderer.js';
 import { getEntityAtPosition, getTargetDescription } from './EntityDetection.js';
 import { screenToWorld, updatePlayerFacingTowardsTarget, isPlayerFacingTarget } from './CoordinateUtils.js';
 import { setAutoMoveTarget } from './AutoMovement.js';
+import { getSpellsUIState, handleTargetSelection } from '../ui/SpellsUI.js';
 
 const { TILE_SIZE } = CONFIG;
 
@@ -37,6 +38,37 @@ export function handleCanvasClick(event) {
 
     // Convertir a coordenadas del mundo usando Math.floor para consistencia con renderizado
     const worldCoords = screenToWorld(screenX, screenY);
+    
+    // Verificar primero si estamos en modo de selección de objetivo para un hechizo
+    const spellsUIState = getSpellsUIState();
+    if (spellsUIState && spellsUIState.waitingForTarget) {
+        console.log('🔮 Modo de selección de objetivo para hechizo');
+        
+        // Verificar si hay una entidad en la posición clickeada
+        const clickedEntity = getEntityAtPosition(worldCoords.x, worldCoords.y);
+        
+        if (clickedEntity) {
+            // Si hay una entidad, intentar lanzar el hechizo sobre ella
+            const success = handleTargetSelection(clickedEntity.entity);
+            if (success) {
+                console.log('✨ Hechizo lanzado con éxito sobre objetivo');
+                return; // Salir si el hechizo se lanzó con éxito
+            }
+        } else {
+            // Si no hay entidad, intentar usar las coordenadas como objetivo
+            // (útil para hechizos de área o de terreno)
+            const success = handleTargetSelection(worldCoords);
+            if (success) {
+                console.log('✨ Hechizo lanzado con éxito en ubicación');
+                return; // Salir si el hechizo se lanzó con éxito
+            }
+        }
+        
+        // Si llegamos aquí, el objetivo no era válido para el hechizo
+        console.log('❌ Objetivo no válido para el hechizo seleccionado');
+        addChatMessage('system', '❌ Objetivo no válido para este hechizo.');
+        return; // No continuar con la lógica normal de clic
+    }
 
     // Debug detallado
     console.log(`🖱️ Clic Debug:`);
