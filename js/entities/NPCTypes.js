@@ -235,6 +235,22 @@ export const NPC_DEFINITIONS = {
             { itemType: 'SCROLL_POISON', quantity: 10, price: 250 },
             { itemType: 'POTION_BLUE', quantity: 100, price: 75 }  // Poción de maná más barata
         ]
+    },
+    
+    // Maestro meditador - NPC especial que siempre está meditando
+    meditation_master: {
+        name: 'Maestro Zennin',
+        type: NPC_TYPE.MAGE,
+        sprite: 'npc_mage',
+        meditating: true, // Este NPC siempre está meditando
+        dialogue: {
+            greeting: '¡Bienvenido joven aprendiz! *No abre los ojos* Como puedes ver, estoy reuniendo mi ki a través de la meditación.',
+            teach: 'La meditación es una técnica poderosa que te permite recuperar tu maná rápidamente mientras estás quieto.',
+            farewell: 'Continúa tu camino... y recuerda que puedes meditar presionando la tecla "M".'
+        },
+        inventory: [
+            { itemType: 'POTION_BLUE', quantity: 100, price: 50 }  // Vende pociones de maná a buen precio
+        ]
     }
 };
 
@@ -246,7 +262,8 @@ export const NPC_SPAWN_POSITIONS = {
         { npcType: 'guard_city', x: 15, y: 10 },
         { npcType: 'guard_city', x: 35, y: 25 },
         { npcType: 'healer_city', x: 30, y: 10 },
-        { npcType: 'mage_city', x: 10, y: 15 }
+        { npcType: 'mage_city', x: 10, y: 15 },
+        { npcType: 'meditation_master', x: 20, y: 25 } // Añadimos al maestro de meditación
     ],
     market: [
         { npcType: 'merchant_general', x: 10, y: 10 },
@@ -254,6 +271,7 @@ export const NPC_SPAWN_POSITIONS = {
     ],
     field: [
         { npcType: 'trainer_skills', x: 30, y: 30 },
-        { npcType: 'healer_city', x: 15, y: 20 }
+        { npcType: 'healer_city', x: 15, y: 20 },
+        { npcType: 'meditation_master', x: 20, y: 25 } // Añadimos al maestro de meditación
     ]
 };

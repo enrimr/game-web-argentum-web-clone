@@ -16,7 +16,7 @@ import { addChatMessage, updateUI } from '../ui/UI.js';
 import { showDialogue, isDialogueOpen } from '../ui/Dialogue.js';
 import { updatePlayerAnimation, setPlayerAnimationState, setPlayerFacing } from './Renderer.js';
 import { updateAutoMovement, isPlayerAutoMoving, getAutoMoveTarget } from './MouseControls.js';
-import { updateSpellEffects, recoverMana } from '../systems/MagicSystem.js';
+import { updateSpellEffects, recoverMana, toggleMeditation } from '../systems/MagicSystem.js';
 import { getSpellsUIState } from '../ui/SpellsUI.js';
 
 let lastMoveTime = 0;
@@ -93,6 +93,15 @@ function handleMovement(timestamp) {
         moved = true;
     }
 
+    // Comprobar si el jugador está intentando moverse mientras medita - ANTES de cualquier otra verificación
+    // De esta manera, cualquier intento de movimiento (incluso hacia paredes) cancelará la meditación
+    if (moved && gameState.player.meditating) {
+        console.log("🏃 Movimiento detectado mientras meditaba - cancelando meditación");
+        gameState.player.meditating = false; // Cancelar meditación directamente
+        setPlayerAnimationState('idle'); // Restaurar animación normal
+        addChatMessage('system', '🧘 Has dejado de meditar para moverte.');
+    }
+
     // Update player direction
     setPlayerFacing(newDirection);
 
@@ -122,6 +131,9 @@ function handleMovement(timestamp) {
         if (npcInPosition) {
             console.log(`🚫 Bloqueado por NPC en posición (${newX}, ${newY})`);
         }
+
+        // Ya no necesitamos esta verificación aquí porque la comprobación de meditación 
+        // ahora se realiza al principio de la función para cualquier intento de movimiento
 
         if (!enemyInPosition && !npcInPosition) {
             gameState.player.x = newX;

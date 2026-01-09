@@ -9,6 +9,7 @@ import { isWalkable } from '../world/MapGenerator.js';
 import { addChatMessage } from '../ui/UI.js';
 import { toggleDoor } from '../systems/BuildingSystem.js';
 import { updatePlayerFacingTowardsTarget } from './CoordinateUtils.js';
+import { setPlayerAnimationState } from './Renderer.js';
 
 const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT } = CONFIG;
 
@@ -43,6 +44,14 @@ export function setAutoMoveTarget(x, y, type, target) {
 export function updateAutoMovement(timestamp) {
     if (!isAutoMoving || !autoMoveTarget) {
         return false;
+    }
+
+    // Verificar si el jugador está meditando y cancelar la meditación si es así
+    if (gameState.player.meditating) {
+        console.log("🖱️ Movimiento automático detectado mientras meditaba - cancelando meditación");
+        gameState.player.meditating = false; // Cancelar meditación directamente
+        setPlayerAnimationState('idle'); // Restaurar animación normal
+        addChatMessage('system', '🧘 Has dejado de meditar para moverte.');
     }
 
     // Aplicar el mismo delay que el movimiento manual

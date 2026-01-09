@@ -496,14 +496,41 @@ export function updateSpellEffects() {
  * Recuperación de maná por meditación (llamar periódicamente)
  */
 export function recoverMana() {
+    console.log("🔄 recoverMana - Estado meditación:", gameState.player.meditating, 
+                "Maná:", gameState.player.mana, "/", gameState.player.maxMana);
+                
+    // Si el maná está lleno y aún sigue meditando (por alguna razón), 
+    // forzar la detención de la meditación
+    if (gameState.player.meditating && gameState.player.mana >= gameState.player.maxMana) {
+        console.log("⚠️ Maná completo mientras medita, forzando fin de meditación");
+        gameState.player.meditating = false; // Detener meditación directamente
+        setPlayerAnimationState('idle'); // Restaurar animación normal
+        addChatMessage('system', '✨ Tu maná se ha recuperado completamente. Has dejado de meditar.');
+        updateUI();
+        return;
+    }
+    
+    // Proceso normal de recuperación de maná
     if (gameState.player.meditating && gameState.player.mana < gameState.player.maxMana) {
+        console.log("📈 Recuperando maná por meditación");
         const meditationSkill = gameState.player.skills?.MEDITATE || 0;
         const recoveryRate = 0.05 + (meditationSkill / 100) * 0.15; // 5% base + hasta 15% adicional
         
         const manaToRecover = Math.ceil(gameState.player.maxMana * recoveryRate);
-        gameState.player.mana = Math.min(gameState.player.maxMana, gameState.player.mana + manaToRecover);
+        const newMana = Math.min(gameState.player.maxMana, gameState.player.mana + manaToRecover);
+        
+        console.log(`📊 Recuperación de maná: ${gameState.player.mana} → ${newMana} (recuperado: ${manaToRecover})`);
+        gameState.player.mana = newMana;
         
         updateUI();
+        
+        // Si el maná se recuperó completamente, detener la meditación automáticamente
+        if (gameState.player.mana >= gameState.player.maxMana) {
+            console.log("✅ Maná completo alcanzado, terminando meditación");
+            gameState.player.meditating = false; // Detener meditación directamente
+            setPlayerAnimationState('idle'); // Restaurar animación normal
+            addChatMessage('system', '✨ Tu maná se ha recuperado completamente. Has dejado de meditar.');
+        }
     }
 }
 
@@ -512,16 +539,31 @@ export function recoverMana() {
  * @returns {boolean} Nuevo estado de meditación
  */
 export function toggleMeditation() {
-    gameState.player.meditating = !gameState.player.meditating;
+    console.log("🔍 toggleMeditation - Estado actual:", gameState.player.meditating, 
+                "Maná:", gameState.player.mana, "/", gameState.player.maxMana);
+    
+    // Si es un intento de EMPEZAR a meditar y el maná ya está completo, bloqueamos la acción
+    if (!gameState.player.meditating && gameState.player.mana >= gameState.player.maxMana) {
+        console.log("⛔ Bloqueando meditación: maná ya está completo");
+        addChatMessage('system', '✨ No puedes meditar con el maná completo.');
+        return false;
+    }
+    
+    // Cambiar estado de meditación
+    const newMeditationState = !gameState.player.meditating;
+    gameState.player.meditating = newMeditationState;
     
     if (gameState.player.meditating) {
+        console.log("🧘 Iniciando meditación");
         addChatMessage('player', '🧘 Has comenzado a meditar. Recuperarás maná gradualmente.');
         setPlayerAnimationState('meditating'); // Establecer animación de meditación
     } else {
+        console.log("🧘 Deteniendo meditación");
         addChatMessage('player', '🧘 Has dejado de meditar.');
         setPlayerAnimationState('idle'); // Volver a animación normal
     }
     
+    console.log("🔄 Nuevo estado de meditación:", gameState.player.meditating);
     return gameState.player.meditating;
 }
 

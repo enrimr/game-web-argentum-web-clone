@@ -9,7 +9,7 @@ import { isWalkable } from '../world/MapGenerator.js';
 import { addChatMessage } from '../ui/UI.js';
 import { isToggleableDoor } from '../world/TileTypes.js';
 import { toggleDoor } from '../systems/BuildingSystem.js';
-import { getCameraPosition } from './Renderer.js';
+import { getCameraPosition, setPlayerAnimationState } from './Renderer.js';
 import { getEntityAtPosition, getTargetDescription } from './EntityDetection.js';
 import { screenToWorld, updatePlayerFacingTowardsTarget, isPlayerFacingTarget } from './CoordinateUtils.js';
 import { setAutoMoveTarget } from './AutoMovement.js';
@@ -22,6 +22,14 @@ const { TILE_SIZE } = CONFIG;
  * @param {MouseEvent} event - Evento del clic
  */
 export function handleCanvasClick(event) {
+    // Verificar si el jugador está meditando y cancelar la meditación si es así
+    if (gameState.player.meditating) {
+        console.log("🖱️ Clic detectado mientras meditaba - cancelando meditación");
+        gameState.player.meditating = false; // Cancelar meditación directamente
+        setPlayerAnimationState('idle'); // Restaurar animación normal
+        addChatMessage('system', '🧘 Has dejado de meditar para moverte.');
+    }
+
     const canvas = document.getElementById('gameCanvas');
     const rect = canvas.getBoundingClientRect();
 

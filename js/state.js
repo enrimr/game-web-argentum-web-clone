@@ -21,8 +21,9 @@ export const gameState = {
         gold: 0,
         facing: 'down', // Dirección del jugador: 'up', 'down', 'left', 'right'
         isGhost: false, // Si el jugador está en modo fantasma (muerto)
+        meditating: false, // Si el jugador está meditando
         animation: {
-            state: 'idle', // 'idle', 'walking', 'attacking', 'talking'
+            state: 'idle', // 'idle', 'walking', 'attacking', 'talking', 'meditating'
             frame: 0, // Frame actual de animación
             frameTime: 0, // Tiempo acumulado para el frame
             frameDelay: 150 // Milisegundos entre frames
@@ -84,6 +85,7 @@ export function resetGameState() {
         exp: CONFIG.LEVEL.STARTING_EXP,
         expToNextLevel: CONFIG.LEVEL.BASE_EXP_TO_LEVEL,
         isGhost: false,
+        meditating: false,
         facing: 'down',
         animation: {
             state: 'idle',

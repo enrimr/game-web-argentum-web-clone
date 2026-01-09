@@ -17,7 +17,7 @@ import { initWorldMap } from '../ui/WorldMap.js';
 import { initDialogue } from '../ui/Dialogue.js';
 import { initTrading } from '../ui/Trading.js';
 import { initSpellsUI, updateSpellsList, handleTargetSelection } from '../ui/SpellsUI.js';
-import { initMagicSystem, updateSpellEffects, recoverMana } from '../systems/MagicSystem.js';
+import { initMagicSystem, updateSpellEffects, recoverMana, toggleMeditation } from '../systems/MagicSystem.js';
 import { isPlayerAlive } from '../systems/Combat.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 import { getStaticMap } from '../world/StaticWorldMaps.js';

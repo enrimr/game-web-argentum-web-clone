@@ -23,6 +23,7 @@ export class NPC extends Character {
         this.sprite = definition.sprite;
         this.x = x;
         this.y = y;
+        this.meditating = definition.meditating || false; // Añadimos propiedad de meditación
         
         // Dialogue
         this.dialogue = definition.dialogue || {};

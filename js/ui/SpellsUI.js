@@ -140,24 +140,30 @@ function selectSpell(index) {
  * @param {KeyboardEvent} event - Evento de teclado
  */
 function handleSpellHotkeys(event) {
-    // No procesar si el panel no está visible
+    // Tecla M para meditar (funciona siempre, incluso sin panel visible)
+    if (event.key.toLowerCase() === 'm') {
+        const isMeditating = toggleMeditation();
+        // Actualizar el texto del botón si existe
+        const meditateBtn = document.getElementById('meditateBtn');
+        if (meditateBtn) {
+            meditateBtn.textContent = isMeditating ? 'Dejar de Meditar' : 'Meditar';
+        }
+        return;
+    }
+
+    // No procesar si el panel no está visible (excepto meditación que ya se manejó arriba)
     if (!uiState.visible) return;
-    
+
     // Verificar si se presionó un número del 1 al 9
     const keyNum = parseInt(event.key);
     if (keyNum >= 1 && keyNum <= 9) {
         // Seleccionar hechizo correspondiente (índices comienzan en 0)
         selectSpell(keyNum - 1);
     }
-    
+
     // Tecla C para lanzar hechizo seleccionado
     if (event.key.toLowerCase() === 'c') {
         handleCastButtonClick();
-    }
-    
-    // Tecla M para meditar
-    if (event.key.toLowerCase() === 'm') {
-        toggleMeditation();
     }
 }
 
