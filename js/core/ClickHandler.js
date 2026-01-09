@@ -44,23 +44,35 @@ export function handleCanvasClick(event) {
     if (spellsUIState && spellsUIState.waitingForTarget) {
         console.log('🔮 Modo de selección de objetivo para hechizo');
         
-        // Verificar si hay una entidad en la posición clickeada
-        const clickedEntity = getEntityAtPosition(worldCoords.x, worldCoords.y);
-        
-        if (clickedEntity) {
-            // Si hay una entidad, intentar lanzar el hechizo sobre ella
-            const success = handleTargetSelection(clickedEntity.entity);
+        // Verificar si estamos haciendo clic en la posición del jugador
+        if (worldCoords.x === gameState.player.x && worldCoords.y === gameState.player.y) {
+            // Si es el jugador, pasar directamente el objeto gameState.player
+            const success = handleTargetSelection(gameState.player);
             if (success) {
-                console.log('✨ Hechizo lanzado con éxito sobre objetivo');
-                return; // Salir si el hechizo se lanzó con éxito
+                console.log('✨ Hechizo lanzado con éxito sobre el jugador');
+                return;
             }
-        } else {
-            // Si no hay entidad, intentar usar las coordenadas como objetivo
-            // (útil para hechizos de área o de terreno)
-            const success = handleTargetSelection(worldCoords);
-            if (success) {
-                console.log('✨ Hechizo lanzado con éxito en ubicación');
-                return; // Salir si el hechizo se lanzó con éxito
+        }
+        // Si no es el jugador, verificar si hay otra entidad
+        else {
+            const clickedEntity = getEntityAtPosition(worldCoords.x, worldCoords.y);
+            
+            if (clickedEntity) {
+                // Si hay una entidad, intentar lanzar el hechizo sobre ella
+                const success = handleTargetSelection(clickedEntity.entity);
+                if (success) {
+                    console.log('✨ Hechizo lanzado con éxito sobre objetivo');
+                    return; // Salir si el hechizo se lanzó con éxito
+                }
+            } 
+            else {
+                // Si no hay entidad, intentar usar las coordenadas como objetivo
+                // (útil para hechizos de área o de terreno)
+                const success = handleTargetSelection(worldCoords);
+                if (success) {
+                    console.log('✨ Hechizo lanzado con éxito en ubicación');
+                    return; // Salir si el hechizo se lanzó con éxito
+                }
             }
         }
         
