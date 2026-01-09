@@ -114,7 +114,7 @@ const AUTH_PROTOCOL = {
 export class LoginScreen {
     constructor() {
         this.isInitialized = false;
-        this.serverUrl = "https://api.argentum-online.com"; // URL mockup
+        this.serverUrl = "https://api.calima-online.com"; // URL mockup
         this.isServerOnline = true;
         this.token = localStorage.getItem('auth_token');
         this.user = null;
@@ -170,8 +170,8 @@ export class LoginScreen {
     getLoginScreenHTML() {
         return `
             <div class="login-logo">
-                <h1>🗡️ Argentum Online Web</h1>
-                <p>¡Explora un mundo fantástico lleno de aventuras!</p>
+                <h1>🏝️ Calima Online</h1>
+                <p>¡Explora un mundo fantástico inspirado en las Islas Canarias!</p>
             </div>
             
             <div class="login-container">
@@ -270,7 +270,7 @@ export class LoginScreen {
             </div>
             
             <div class="login-footer">
-                &copy; 2026 Argentum Online Web - Versión Demo
+                &copy; 2026 Calima Online - Versión Demo
             </div>
         `;
     }
