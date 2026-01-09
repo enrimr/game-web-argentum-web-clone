@@ -274,6 +274,110 @@ export function generateCharacterSprites(TILE_SIZE) {
             ctx.beginPath();
             ctx.arc(w/2, h/2, w/2.5, 0, Math.PI * 2);
             ctx.fill();
+        }),
+        
+        // Sprite para meditación - posición 1 (ligeramente inclinado)
+        playerMeditating1: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Piernas cruzadas (posición de loto)
+            ctx.fillStyle = '#3b82f6';  // Azul para el traje
+            // Pierna izquierda
+            ctx.beginPath();
+            ctx.ellipse(w/2 - w/8, h*3/4, w/6, h/12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Pierna derecha
+            ctx.beginPath();
+            ctx.ellipse(w/2 + w/8, h*3/4, w/6, h/12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Torso ligeramente inclinado hacia adelante
+            ctx.fillStyle = '#3b82f6';  // Azul
+            ctx.fillRect(w/3, h/3, w/3, h/3);
+            
+            // Brazos en posición de meditación (manos sobre rodillas)
+            ctx.fillStyle = '#9ca3af';  // Gris
+            // Brazo izquierdo
+            ctx.beginPath();
+            ctx.moveTo(w/3, h/2);
+            ctx.lineTo(w/2 - w/8, h*3/4 - h/12);
+            ctx.lineTo(w/2 - w/8 - w/20, h*3/4);
+            ctx.fill();
+            // Brazo derecho
+            ctx.beginPath();
+            ctx.moveTo(w*2/3, h/2);
+            ctx.lineTo(w/2 + w/8, h*3/4 - h/12);
+            ctx.lineTo(w/2 + w/8 + w/20, h*3/4);
+            ctx.fill();
+            
+            // Cabeza
+            ctx.fillStyle = '#fbbf24';  // Amarillo
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ojos cerrados (líneas horizontales)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2 - w/8, h/4, w/12, 1);
+            ctx.fillRect(w/2 + w/16, h/4, w/12, 1);
+            
+            // Expresión de paz (ligera sonrisa)
+            ctx.beginPath();
+            ctx.arc(w/2, h/4 + h/16, w/16, 0, Math.PI);
+            ctx.stroke();
+        }),
+        
+        // Sprite para meditación - posición 2 (completamente erguido)
+        playerMeditating2: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Piernas cruzadas (posición de loto)
+            ctx.fillStyle = '#3b82f6';  // Azul para el traje
+            // Pierna izquierda
+            ctx.beginPath();
+            ctx.ellipse(w/2 - w/8, h*3/4, w/6, h/12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Pierna derecha
+            ctx.beginPath();
+            ctx.ellipse(w/2 + w/8, h*3/4, w/6, h/12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Torso completamente erguido
+            ctx.fillStyle = '#3b82f6';  // Azul
+            ctx.fillRect(w/3, h/3 - h/20, w/3, h/3 + h/20);
+            
+            // Brazos en posición de meditación (mudra - dedos tocándose)
+            ctx.fillStyle = '#9ca3af';  // Gris
+            // Brazo izquierdo
+            ctx.beginPath();
+            ctx.moveTo(w/3, h/2 - h/10);
+            ctx.lineTo(w/2 - w/6, h*2/3);
+            ctx.lineTo(w/2 - w/6 - w/20, h*2/3 + h/20);
+            ctx.fill();
+            // Brazo derecho
+            ctx.beginPath();
+            ctx.moveTo(w*2/3, h/2 - h/10);
+            ctx.lineTo(w/2 + w/6, h*2/3);
+            ctx.lineTo(w/2 + w/6 + w/20, h*2/3 + h/20);
+            ctx.fill();
+            
+            // Manos unidas (mudra)
+            ctx.fillStyle = '#fbbf24';  // Color piel
+            ctx.beginPath();
+            ctx.arc(w/2, h*2/3, w/10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cabeza
+            ctx.fillStyle = '#fbbf24';  // Amarillo
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ojos cerrados (líneas horizontales)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2 - w/8, h/4, w/12, 1);
+            ctx.fillRect(w/2 + w/16, h/4, w/12, 1);
+            
+            // Expresión de paz (ligera sonrisa)
+            ctx.beginPath();
+            ctx.arc(w/2, h/4 + h/16, w/16, 0, Math.PI);
+            ctx.stroke();
         })
     };
 }
