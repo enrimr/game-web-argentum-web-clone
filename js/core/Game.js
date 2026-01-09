@@ -4,6 +4,7 @@
  */
 
 import { gameState, resetGameState } from '../state.js';
+import { loginScreen } from '../ui/LoginScreen.js';
 import { CONFIG } from '../config.js';
 import { initInput } from './Input.js';
 import { generateMap, isWalkable } from '../world/MapGenerator.js';
@@ -74,6 +75,40 @@ function findNearestWalkableTile(map, startX, startY) {
 export async function init() {
     console.log('Initializing game...');
     
+    // Mostrar la pantalla de login/inicio antes de cargar el juego
+    await loginScreen.init();
+    
+    // Configurar eventos para cuando se complete el login
+    setupLoginEvents();
+}
+
+/**
+ * Configurar eventos de la pantalla de login
+ */
+function setupLoginEvents() {
+    // Evento que se dispara cuando el login está completo (ya sea modo local o online)
+    window.addEventListener('login-complete', async (event) => {
+        console.log('Login completado, iniciando juego...');
+        
+        // Comprobar si hay datos de usuario en el evento (modo online)
+        if (event.detail && event.detail.online) {
+            console.log('Iniciando en modo online con usuario:', event.detail.user.username);
+            gameState.isOnline = true;
+            gameState.onlineUser = event.detail.user;
+        } else {
+            console.log('Iniciando en modo local');
+            gameState.isOnline = false;
+        }
+        
+        // Iniciar el juego después del login
+        await initGame();
+    });
+}
+
+/**
+ * Inicializa el juego después de la pantalla de login
+ */
+async function initGame() {
     // Precargar todos los mapas JSON antes de inicializar el juego
     try {
         console.log('🗺️ Iniciando precarga de mapas JSON...');

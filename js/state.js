@@ -6,7 +6,27 @@
 import { CONFIG } from './config.js';
 import { MAP_DEFINITIONS } from './world/MapDefinitions.js';
 
+// Estados de conexión para modo multijugador
+export const CONNECTION_STATUS = {
+    DISCONNECTED: 'disconnected',
+    CONNECTING: 'connecting',
+    CONNECTED: 'connected',
+    RECONNECTING: 'reconnecting',
+    ERROR: 'error'
+};
+
 export const gameState = {
+    // Propiedades para modo multijugador
+    isOnline: false, // Indica si el juego está en modo online
+    onlineUser: null, // Información del usuario online (si está en ese modo)
+    connectionStatus: CONNECTION_STATUS.DISCONNECTED, // Estado de la conexión
+    otherPlayers: {}, // Mapa de otros jugadores en el mundo por ID
+    serverTime: 0, // Tiempo del servidor para sincronización
+    ping: 0, // Ping actual con el servidor
+    pendingInputs: [], // Inputs pendientes de confirmación por el servidor
+    lastProcessedInputId: 0, // ID del último input procesado por el servidor
+    chatMessages: [], // Mensajes de chat (global, cercano, grupo, privado)
+    
     currentMap: 'newbie_city', // Current map type (using static map system)
     player: {
         x: CONFIG.PLAYER.STARTING_X,
@@ -33,7 +53,12 @@ export const gameState = {
             weapon: null,
             shield: null,
             ammunition: null
-        }
+        },
+        // Propiedades exclusivas para jugador online
+        id: null, // ID único del jugador en el servidor
+        username: null, // Nombre de usuario
+        clan: null, // Clan al que pertenece
+        lastSyncTime: 0 // Último tiempo de sincronización
     },
     // Estado de visibilidad de los edificios (para depuración)
     // Un valor false significa que el edificio está oculto
