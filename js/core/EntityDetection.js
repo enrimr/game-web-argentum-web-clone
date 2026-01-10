@@ -5,6 +5,7 @@
 
 import { gameState } from '../state.js';
 import { isToggleableDoor } from '../world/TileTypes.js';
+import { CONFIG } from '../config.js';
 
 /**
  * Obtener entidad en una posición específica
@@ -74,7 +75,55 @@ export function getTargetDescription(entityInfo) {
             return 'Puerta';
         case 'portal':
             return 'Portal';
+        case 'player':
+            return `Jugador ${entityInfo.entity.username || 'Desconocido'}`;
         default:
             return 'Posición';
     }
+}
+
+/**
+ * Encuentra jugadores dentro de un rango visible alrededor del jugador principal
+ * @param {number} range - Radio de visibilidad en tiles (por defecto: 10)
+ * @returns {Array} Lista de jugadores visibles, con sus IDs y nombres
+ */
+export function getPlayersInVisibleRange(range = 10) {
+    const visiblePlayers = [];
+    
+    // Si el juego está en modo online, revisa los jugadores reales
+    if (gameState.isOnline) {
+        Object.values(gameState.otherPlayers).forEach(player => {
+            const dx = Math.abs(player.x - gameState.player.x);
+            const dy = Math.abs(player.y - gameState.player.y);
+            
+            // Comprobar que está dentro del rango visible
+            if (dx <= range && dy <= range) {
+                visiblePlayers.push({
+                    id: player.id,
+                    username: player.username,
+                    x: player.x,
+                    y: player.y
+                });
+            }
+        });
+    } 
+    // En modo offline, simular algunos jugadores para pruebas
+    else {
+        // Crear algunos jugadores simulados cerca del jugador
+        visiblePlayers.push({
+            id: "player1",
+            username: "Jugador1",
+            x: gameState.player.x + 2,
+            y: gameState.player.y
+        });
+        
+        visiblePlayers.push({
+            id: "player2", 
+            username: "Jugador2",
+            x: gameState.player.x,
+            y: gameState.player.y + 2
+        });
+    }
+    
+    return visiblePlayers;
 }

@@ -18,6 +18,7 @@ import { updatePlayerAnimation, setPlayerAnimationState, setPlayerFacing } from 
 import { updateAutoMovement, isPlayerAutoMoving, getAutoMoveTarget } from './MouseControls.js';
 import { updateSpellEffects, recoverMana, toggleMeditation } from '../systems/MagicSystem.js';
 import { getSpellsUIState } from '../ui/SpellsUI.js';
+import { updateOverheadMessages } from '../ui/Chat.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -58,6 +59,9 @@ export function gameLoop(timestamp) {
             recoverMana();
             gameLoop.lastManaRecovery = timestamp;
         }
+        
+        // Update overhead messages (remove expired ones)
+        updateOverheadMessages();
     }
 
     // Render will be called separately

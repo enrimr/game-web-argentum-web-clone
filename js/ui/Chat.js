@@ -1,0 +1,554 @@
+/**
+ * Chat.js
+ * Sistema de chat con opciones de mensajes para diferentes destinatarios
+ */
+
+import { gameState } from '../state.js';
+import { addChatMessage } from './UI.js';
+
+// Tipos de destinatarios para mensajes
+export const MESSAGE_TARGETS = {
+    ALL: 'all',           // Mensaje global (a todos los jugadores)
+    VISIBLE: 'visible',   // Jugadores en campo de visión
+    GROUP: 'group',       // Jugadores en el grupo
+    PLAYER: 'player'      // Jugador específico
+};
+
+// Tiempo de duración de mensajes sobre la cabeza del jugador (en ms)
+const MESSAGE_DISPLAY_TIME = 5000;
+
+// Estructura para mantener los mensajes activos sobre los jugadores
+const activeOverheadMessages = {
+    player: [],  // Mensajes sobre el jugador principal
+    others: {}   // Mensajes sobre otros jugadores, indexados por ID
+};
+
+/**
+ * Inicializa el sistema de chat
+ */
+export function initChat() {
+    console.log("🔄 Inicializando sistema de chat...");
+
+    // Esperar a que el DOM esté completamente cargado
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initChatInternal());
+        return;
+    }
+
+    initChatInternal();
+}
+
+/**
+ * Función interna de inicialización del chat
+ */
+function initChatInternal() {
+    console.log("🎯 Iniciando configuración interna del chat...");
+
+    const chatInput = document.getElementById('chatInput');
+    const chatForm = document.getElementById('chatForm');
+    const targetSelector = document.getElementById('chatTargetSelector');
+
+    if (!chatInput) {
+        console.error("❌ Error: No se encontró el elemento chatInput. Elementos disponibles:");
+        console.log("Elementos con ID que contienen 'chat':", Array.from(document.querySelectorAll('[id*="chat"]')).map(el => el.id));
+        return;
+    }
+
+    if (!chatForm) {
+        console.error("❌ Error: No se encontró el elemento chatForm");
+        return;
+    }
+
+    console.log("✅ Elementos del chat encontrados:", { chatInput: !!chatInput, chatForm: !!chatForm, targetSelector: !!targetSelector });
+
+    // Añadir listener global para teclas Enter y Escape
+    const keyHandler = function(e) {
+        // Manejar tecla Escape para quitar foco del chat
+        if (e.key === 'Escape' && document.activeElement === chatInput) {
+            console.log("🚪 Tecla Escape presionada - quitando foco del chat");
+            e.preventDefault();
+            e.stopPropagation();
+            chatInput.blur();
+            return;
+        }
+
+        // Manejar tecla Enter
+        if (e.key === 'Enter') {
+            console.log("🔑 Tecla Enter presionada, elemento activo:", document.activeElement?.id || document.activeElement?.tagName);
+
+            // Si ya estamos en el chat input
+            if (document.activeElement === chatInput) {
+                // Si no hay texto, quitar foco en lugar de enviar
+                if (!chatInput.value.trim()) {
+                    console.log("📝 Chat vacío - quitando foco del chat");
+                    e.preventDefault();
+                    e.stopPropagation();
+                    chatInput.blur();
+                    return;
+                } else {
+                    // Hay texto, dejar que funcione el submit del form normalmente
+                    console.log("📝 Enviando mensaje de chat");
+                    return;
+                }
+            }
+
+            // Si no estamos en el chat, intentar enfocarlo
+            // Verificar que no haya menús móviles o pantallas de login abiertas
+            // Permitir chat incluso con diálogos de NPC abiertos
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const loginScreen = document.querySelector('.login-screen');
+            const isBlockingModalOpen = (mobileMenu && mobileMenu.style.display !== 'none') ||
+                                       (loginScreen && loginScreen.style.display !== 'none');
+
+            console.log("🔍 Estado de modales bloqueantes:", {
+                mobileMenuVisible: mobileMenu?.style.display,
+                loginScreenVisible: loginScreen?.style.display,
+                isBlockingModalOpen
+            });
+
+            // Solo enfocamos si no hay modales bloqueantes (menús móviles, login) y el chat está disponible
+            // Permitir chat incluso cuando hay diálogos de NPC abiertos
+            if (!isBlockingModalOpen && chatInput && !chatInput.disabled) {
+                console.log("🎯 Condiciones cumplidas - enfocando chat input");
+                e.preventDefault();
+                e.stopPropagation();
+                chatInput.focus();
+                return;
+            } else {
+                console.log("🚫 No se puede enfocar chat - hay modales abiertos o chat no disponible");
+            }
+        }
+    };
+
+    // Agregar el listener con captura para asegurar prioridad
+    document.addEventListener('keydown', keyHandler, true);
+
+    console.log("✅ Listener de teclas Enter/Escape registrado con éxito");
+
+    console.log("🎉 Sistema de chat inicializado correctamente");
+
+    // Manejar envío de mensaje
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (message) {
+            const target = targetSelector.value;
+            const targetPlayer = target === MESSAGE_TARGETS.PLAYER ? 
+                document.getElementById('chatPlayerSelector').value : null;
+            
+            sendChatMessage(message, target, targetPlayer);
+            chatInput.value = '';
+        }
+    });
+
+    // Actualizar visibilidad del selector de jugador específico
+    targetSelector.addEventListener('change', () => {
+        const playerSelectorContainer = document.getElementById('chatPlayerSelectorContainer');
+        playerSelectorContainer.style.display = 
+            targetSelector.value === MESSAGE_TARGETS.PLAYER ? 'block' : 'none';
+        
+        // Si se selecciona PLAYER pero no hay jugadores, mostrar mensaje
+        if (targetSelector.value === MESSAGE_TARGETS.PLAYER && 
+            Object.keys(gameState.otherPlayers).length === 0) {
+            addChatMessage('system', 'No hay otros jugadores para enviar mensaje privado.');
+            targetSelector.value = MESSAGE_TARGETS.ALL;
+            playerSelectorContainer.style.display = 'none';
+        }
+        
+        // Actualizar la lista de jugadores si es necesario
+        if (targetSelector.value === MESSAGE_TARGETS.PLAYER) {
+            updatePlayerSelector();
+        }
+    });
+}
+
+/**
+ * Actualiza la lista de jugadores disponibles para mensaje privado
+ */
+function updatePlayerSelector() {
+    const playerSelector = document.getElementById('chatPlayerSelector');
+    playerSelector.innerHTML = '';
+    
+    // Simular jugadores si estamos en modo offline (para testing)
+    const players = gameState.isOnline ? 
+        gameState.otherPlayers : 
+        { 
+            "player1": { id: "player1", username: "Jugador1" },
+            "player2": { id: "player2", username: "Jugador2" }
+        };
+    
+    Object.values(players).forEach(player => {
+        const option = document.createElement('option');
+        option.value = player.id;
+        option.textContent = player.username;
+        playerSelector.appendChild(option);
+    });
+}
+
+/**
+ * Envía un mensaje de chat
+ * @param {string} message - Contenido del mensaje
+ * @param {string} target - Tipo de destinatario (MESSAGE_TARGETS)
+ * @param {string} targetPlayerId - ID del jugador destinatario (si target es PLAYER)
+ */
+export function sendChatMessage(message, target = MESSAGE_TARGETS.ALL, targetPlayerId = null) {
+    // Obtener nombre del jugador (o "Tú" en modo single player)
+    const playerName = gameState.isOnline ? gameState.player.username : "Tú";
+    
+    // Generar prefijo según el tipo de destinatario
+    let prefix = '';
+    switch (target) {
+        case MESSAGE_TARGETS.ALL:
+            prefix = `[Global] ${playerName}:`;
+            break;
+        case MESSAGE_TARGETS.VISIBLE:
+            prefix = `[Cercanos] ${playerName}:`;
+            break;
+        case MESSAGE_TARGETS.GROUP:
+            prefix = `[Grupo] ${playerName}:`;
+            break;
+        case MESSAGE_TARGETS.PLAYER:
+            // Obtener nombre del jugador destinatario
+            const targetPlayerName = gameState.isOnline ? 
+                gameState.otherPlayers[targetPlayerId]?.username : 
+                (targetPlayerId === "player1" ? "Jugador1" : "Jugador2");
+            
+            prefix = `[Privado a ${targetPlayerName}] ${playerName}:`;
+            break;
+    }
+    
+    // Mostrar mensaje en el chat
+    addMessageToChat('player', prefix, message, target);
+    
+    // Agregar mensaje sobre la cabeza del jugador
+    addOverheadMessage(gameState.player, message);
+    
+    // En modo online, enviaríamos el mensaje al servidor aquí
+    if (gameState.isOnline) {
+        // sendMessageToServer(message, target, targetPlayerId);
+        console.log("Mensaje enviado al servidor:", message, target, targetPlayerId);
+    } else {
+        // Simular recepción de mensajes en modo single player
+        simulateMessageReception(message, target, targetPlayerId);
+    }
+}
+
+/**
+ * Simula la recepción de mensajes de otros jugadores en modo offline
+ * @param {string} message - Mensaje enviado
+ * @param {string} target - Tipo de destinatario
+ * @param {string} targetPlayerId - ID del jugador destinatario
+ */
+function simulateMessageReception(message, target, targetPlayerId) {
+    // Solo simular respuestas para mensajes a todos o cercanos
+    if (target === MESSAGE_TARGETS.ALL || target === MESSAGE_TARGETS.VISIBLE) {
+        setTimeout(() => {
+            // Simular respuesta de otro jugador
+            const responsePrefix = target === MESSAGE_TARGETS.ALL ? 
+                '[Global] Jugador1:' : 
+                '[Cercanos] Jugador1:';
+            
+            const responses = [
+                '¡Hola!',
+                '¿Cómo estás?',
+                'Gracias por el mensaje',
+                'Estoy buscando una party',
+                '¿Alguien para dungeon?'
+            ];
+            
+            const response = responses[Math.floor(Math.random() * responses.length)];
+            addMessageToChat('player', responsePrefix, response, target);
+            
+            // Simular mensaje sobre la cabeza
+            const mockPlayer = { id: "player1", x: gameState.player.x + 2, y: gameState.player.y };
+            addOverheadMessage(mockPlayer, response);
+        }, 1000 + Math.random() * 2000);
+    }
+}
+
+/**
+ * Agrega un mensaje al chat con el formato adecuado
+ * @param {string} type - Tipo de mensaje ('system', 'player', 'npc')
+ * @param {string} prefix - Prefijo del mensaje
+ * @param {string} message - Contenido del mensaje
+ * @param {string} target - Tipo de destinatario
+ */
+export function addMessageToChat(type, prefix, message, target) {
+    const chatLog = document.getElementById('chatLog');
+    if (!chatLog) return;
+
+    const messageElement = document.createElement('p');
+    messageElement.classList.add('chat-message');
+    
+    // Añadir clase según el tipo de destinatario
+    if (target) {
+        messageElement.classList.add(`msg-${target}`);
+    }
+    
+    messageElement.innerHTML = `<span class="${type}">${prefix}</span> ${message}`;
+    chatLog.appendChild(messageElement);
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+/**
+ * Agrega un mensaje sobre la cabeza de un jugador
+ * @param {Object} entity - Jugador o entidad
+ * @param {string} message - Mensaje a mostrar
+ */
+export function addOverheadMessage(entity, message) {
+    const messageObj = {
+        text: message,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + MESSAGE_DISPLAY_TIME
+    };
+    
+    // Si es el jugador principal
+    if (!entity.id || entity === gameState.player) {
+        activeOverheadMessages.player.push(messageObj);
+    } 
+    // Si es otro jugador
+    else {
+        if (!activeOverheadMessages.others[entity.id]) {
+            activeOverheadMessages.others[entity.id] = [];
+        }
+        activeOverheadMessages.others[entity.id].push(messageObj);
+    }
+}
+
+/**
+ * Actualiza los mensajes sobre la cabeza (elimina expirados)
+ */
+export function updateOverheadMessages() {
+    const currentTime = Date.now();
+    
+    // Actualizar mensajes del jugador principal
+    activeOverheadMessages.player = activeOverheadMessages.player.filter(
+        msg => msg.expiresAt > currentTime
+    );
+    
+    // Actualizar mensajes de otros jugadores
+    Object.keys(activeOverheadMessages.others).forEach(playerId => {
+        activeOverheadMessages.others[playerId] = activeOverheadMessages.others[playerId].filter(
+            msg => msg.expiresAt > currentTime
+        );
+        
+        // Eliminar jugadores sin mensajes
+        if (activeOverheadMessages.others[playerId].length === 0) {
+            delete activeOverheadMessages.others[playerId];
+        }
+    });
+}
+
+/**
+ * Renderiza los mensajes sobre la cabeza de los jugadores
+ * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
+ */
+export function renderOverheadMessages(ctx) {
+    const currentTime = Date.now();
+    
+    // Renderizar mensajes del jugador principal
+    if (activeOverheadMessages.player.length > 0) {
+        const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
+        renderEntityMessages(ctx, playerScreenPos, activeOverheadMessages.player, currentTime);
+    }
+    
+    // Renderizar mensajes de otros jugadores
+    Object.entries(activeOverheadMessages.others).forEach(([playerId, messages]) => {
+        const player = gameState.otherPlayers[playerId] || findSimulatedPlayer(playerId);
+        if (player) {
+            const playerScreenPos = worldToScreen(player.x, player.y);
+            renderEntityMessages(ctx, playerScreenPos, messages, currentTime);
+        }
+    });
+}
+
+/**
+ * Encuentra un jugador simulado para testing
+ * @param {string} playerId - ID del jugador simulado
+ * @returns {Object|null} Jugador simulado o null si no se encuentra
+ */
+function findSimulatedPlayer(playerId) {
+    // Para testing, crear un jugador simulado cerca del jugador principal
+    if (playerId === "player1") {
+        return { id: "player1", x: gameState.player.x + 2, y: gameState.player.y };
+    } else if (playerId === "player2") {
+        return { id: "player2", x: gameState.player.x, y: gameState.player.y + 2 };
+    }
+    return null;
+}
+
+/**
+ * Renderiza los mensajes sobre una entidad
+ * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
+ * @param {Object} screenPos - Posición en pantalla {x, y}
+ * @param {Array} messages - Mensajes a renderizar
+ * @param {number} currentTime - Tiempo actual
+ */
+function renderEntityMessages(ctx, screenPos, messages, currentTime) {
+    // Configuración de estilo
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    
+    // Empezar a dibujar desde arriba de la entidad
+    let yOffset = -15;
+    
+    // Dibujar cada mensaje, los más recientes primero
+    messages.slice().reverse().forEach(msg => {
+        // Calcular opacidad basada en tiempo restante
+        const timeLeft = msg.expiresAt - currentTime;
+        const opacity = Math.min(1, timeLeft / 1000); // Fadeout en el último segundo
+        
+        if (opacity > 0) {
+            ctx.globalAlpha = opacity;
+            
+            // Texto con borde
+            ctx.strokeText(msg.text, screenPos.x + 16, screenPos.y + yOffset);
+            ctx.fillText(msg.text, screenPos.x + 16, screenPos.y + yOffset);
+            
+            // Avanzar posición para el siguiente mensaje
+            yOffset -= 12;
+        }
+        
+        ctx.globalAlpha = 1.0;
+    });
+}
+
+/**
+ * Helper: convierte coordenadas del mundo a coordenadas de pantalla
+ * @param {number} worldX - Coordenada X del mundo
+ * @param {number} worldY - Coordenada Y del mundo
+ * @returns {Object} Posición en pantalla {x, y}
+ */
+function worldToScreen(worldX, worldY) {
+    // Importamos esta función de manera simplificada para evitar dependencias circulares
+    const TILE_SIZE = 32; // Debe coincidir con el tamaño de tile en el renderer
+    
+    const viewportWidth = 640; // Ancho del canvas
+    const viewportHeight = 416; // Alto del canvas
+    
+    const centerX = Math.floor(viewportWidth / 2 / TILE_SIZE);
+    const centerY = Math.floor(viewportHeight / 2 / TILE_SIZE);
+    
+    const screenX = (worldX - gameState.player.x + centerX) * TILE_SIZE;
+    const screenY = (worldY - gameState.player.y + centerY) * TILE_SIZE;
+    
+    return { x: screenX, y: screenY };
+}
+
+/**
+ * Obtiene los jugadores que están dentro del rango de visión
+ * @returns {Array} Lista de IDs de jugadores visibles
+ */
+export function getVisiblePlayers() {
+    // En un juego real, esto verificaría qué jugadores están en el campo de visión
+    // Para simplificar, devolvemos todos los jugadores cercanos en un rango específico
+    const visibilityRange = 10; // Tiles
+    const visiblePlayers = [];
+    
+    if (gameState.isOnline) {
+        Object.values(gameState.otherPlayers).forEach(player => {
+            const dx = Math.abs(player.x - gameState.player.x);
+            const dy = Math.abs(player.y - gameState.player.y);
+            
+            if (dx <= visibilityRange && dy <= visibilityRange) {
+                visiblePlayers.push(player.id);
+            }
+        });
+    } else {
+        // En modo offline, simular jugadores visibles
+        visiblePlayers.push("player1", "player2");
+    }
+    
+    return visiblePlayers;
+}
+
+/**
+ * Obtiene los jugadores que están en el mismo grupo
+ * @returns {Array} Lista de IDs de jugadores en el grupo
+ */
+export function getGroupPlayers() {
+    // En un juego real, consultaría la lista de jugadores en el grupo
+    // Para simplificar, simulamos un grupo
+    if (gameState.isOnline && gameState.player.group) {
+        return gameState.player.group.members.map(member => member.id);
+    } else {
+        // Simular grupo en modo offline
+        return ["player2"];
+    }
+}
+
+/**
+ * Función de prueba para verificar que el foco del chat funciona
+ * Puede ser llamada desde la consola del navegador: testChatFocus()
+ */
+export function testChatFocus() {
+    console.log("🧪 Probando funcionalidad completa del chat...");
+
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput) {
+        console.error("❌ No se encontró el elemento chatInput");
+        return "Error: chatInput no encontrado";
+    }
+
+    console.log("📝 Probando foco con Enter...");
+
+    // Simular que se presiona Enter
+    const enterEvent = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        keyCode: 13,
+        which: 13,
+        bubbles: true,
+        cancelable: true
+    });
+
+    // Disparar el evento
+    document.dispatchEvent(enterEvent);
+
+    // Verificar foco después de un delay
+    setTimeout(() => {
+        const activeElement = document.activeElement;
+        console.log("🎯 Elemento activo después de Enter:", activeElement?.id || activeElement?.tagName);
+
+        if (activeElement === chatInput) {
+            console.log("✅ ¡ÉXITO! El foco se movió al chat input");
+
+            // Ahora probar quitar foco con Escape
+            console.log("🚪 Probando quitar foco con Escape...");
+            setTimeout(() => {
+                const escapeEvent = new KeyboardEvent('keydown', {
+                    key: 'Escape',
+                    keyCode: 27,
+                    which: 27,
+                    bubbles: true,
+                    cancelable: true
+                });
+
+                document.dispatchEvent(escapeEvent);
+
+                setTimeout(() => {
+                    const activeElementAfterEscape = document.activeElement;
+                    console.log("🎯 Elemento activo después de Escape:", activeElementAfterEscape?.id || activeElementAfterEscape?.tagName);
+
+                    if (activeElementAfterEscape !== chatInput) {
+                        console.log("✅ ¡ÉXITO! El foco se quitó del chat input");
+                    } else {
+                        console.log("❌ FALLO: El foco no se quitó del chat input");
+                    }
+                }, 100);
+            }, 500);
+        } else {
+            console.log("❌ FALLO: El foco no se movió al chat input");
+        }
+    }, 100);
+
+    return "Test de chat iniciado - revisa la consola para ver los resultados";
+}
+
+// Hacer la función disponible globalmente para pruebas
+if (typeof window !== 'undefined') {
+    window.testChatFocus = testChatFocus;
+    console.log("🧪 Función testChatFocus() disponible en la consola del navegador");
+}

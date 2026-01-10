@@ -17,6 +17,7 @@ import { updateMinimap, isMinimapVisible } from '../ui/Minimap.js';
 import { initWorldMap } from '../ui/WorldMap.js';
 import { initDialogue } from '../ui/Dialogue.js';
 import { initTrading } from '../ui/Trading.js';
+import { initChat } from '../ui/Chat.js';
 import { initSpellsUI, updateSpellsList, handleTargetSelection } from '../ui/SpellsUI.js';
 import { initMagicSystem, updateSpellEffects, recoverMana, toggleMeditation } from '../systems/MagicSystem.js';
 import { isPlayerAlive } from '../systems/Combat.js';
@@ -142,6 +143,10 @@ async function initGame() {
 
     // Initialize world map
     initWorldMap();
+
+    // Initialize chat system FIRST (needs to be before other systems that might interfere)
+    console.log("🎯 Inicializando chat system antes que otros sistemas...");
+    initChat();
     
     // Initialize magic system
     initMagicSystem();
