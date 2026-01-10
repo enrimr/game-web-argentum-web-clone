@@ -187,6 +187,7 @@
                             <div id="worldMapDetails" class="world-map-details"></div>
                         </div>
                     </div>
+                    <button id="toggleMapEditor" onclick="toggleMapEditor()" class="minimap-toggle" style="margin-top: 8px; background: #4a5568;">🗺️ Editor de Mapas</button>
                 </div>
             </div>
         </div>
@@ -244,6 +245,7 @@
         import { init, toggleQuests } from './js/core/Game.js';
         import { toggleMinimap } from './js/ui/Minimap.js';
         import { toggleWorldMap } from './js/ui/WorldMap.js';
+        import { toggleMapEditor } from './js/ui/MapEditor.js';
         import { toggleSpellsPanel } from './js/ui/SpellsUI.js';
 
         // Initialize the game when the page loads
@@ -256,6 +258,7 @@
         // Make functions globally available for HTML buttons
         window.toggleMinimap = toggleMinimap;
         window.toggleWorldMap = toggleWorldMap;
+        window.toggleMapEditor = toggleMapEditor;
         window.toggleQuests = toggleQuests;
         window.toggleSpellsPanel = toggleSpellsPanel;
 
