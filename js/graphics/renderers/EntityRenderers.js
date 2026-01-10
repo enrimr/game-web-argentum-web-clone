@@ -29,6 +29,11 @@ export function renderPlayer(camera, ctx) {
 
     // Draw the sprite
     ctx.drawImage(playerSprite, playerScreenPos.x, playerScreenPos.y);
+    
+    // Si el jugador está meditando, mostrar el efecto de DBZ
+    if (gameState.player.meditating) {
+        drawDBZMeditationEffects(playerScreenPos, ctx);
+    }
 }
 
 /**
