@@ -75,11 +75,18 @@ function findNearestWalkableTile(map, startX, startY) {
 export async function init() {
     console.log('Initializing game...');
     
+    // Configurar eventos para cuando se complete el login (primero, para evitar problemas de timing)
+    setupLoginEvents();
+    
     // Mostrar la pantalla de login/inicio antes de cargar el juego
     await loginScreen.init();
     
-    // Configurar eventos para cuando se complete el login
-    setupLoginEvents();
+    // Si se detectó parámetro de URL para saltar la pantalla de login
+    if (loginScreen.skipLoginScreen) {
+        console.log('Starting game directly in local mode due to URL parameter');
+        // Simular el evento login-complete para iniciar el juego directamente
+        window.dispatchEvent(new Event('login-complete'));
+    }
 }
 
 /**

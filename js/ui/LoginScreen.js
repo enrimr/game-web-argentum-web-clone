@@ -151,7 +151,10 @@ export class LoginScreen {
         // Verificar si hay que saltar la pantalla de login e iniciar en modo local
         if (this.checkUrlParams()) {
             console.log('URL parameter detected: skipping login screen and starting in local mode');
-            this.startLocalGame();
+            // No iniciamos el juego aquí, solo marcamos que se debe saltar la pantalla
+            // El juego se iniciará desde Game.js cuando esté listo
+            this.skipLoginScreen = true;
+            this.isInitialized = true;
             return;
         }
         
