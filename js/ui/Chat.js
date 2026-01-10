@@ -221,7 +221,7 @@ export function sendChatMessage(message, target = MESSAGE_TARGETS.ALL, targetPla
     addMessageToChat('player', prefix, message, target);
     
     // Agregar mensaje sobre la cabeza del jugador
-    addOverheadMessage(gameState.player, message);
+    addOverheadMessage(gameState.player, message, target);
     
     // En modo online, enviaríamos el mensaje al servidor aquí
     if (gameState.isOnline) {
@@ -261,7 +261,7 @@ function simulateMessageReception(message, target, targetPlayerId) {
             
             // Simular mensaje sobre la cabeza
             const mockPlayer = { id: "player1", x: gameState.player.x + 2, y: gameState.player.y };
-            addOverheadMessage(mockPlayer, response);
+            addOverheadMessage(mockPlayer, response, target);
         }, 1000 + Math.random() * 2000);
     }
 }
@@ -294,12 +294,14 @@ export function addMessageToChat(type, prefix, message, target) {
  * Agrega un mensaje sobre la cabeza de un jugador
  * @param {Object} entity - Jugador o entidad
  * @param {string} message - Mensaje a mostrar
+ * @param {string} target - Tipo de destinatario (MESSAGE_TARGETS)
  */
-export function addOverheadMessage(entity, message) {
+export function addOverheadMessage(entity, message, target = MESSAGE_TARGETS.ALL) {
     const messageObj = {
         text: message,
         timestamp: Date.now(),
-        expiresAt: Date.now() + MESSAGE_DISPLAY_TIME
+        expiresAt: Date.now() + MESSAGE_DISPLAY_TIME,
+        target: target
     };
     
     // Si es el jugador principal
@@ -385,33 +387,55 @@ function findSimulatedPlayer(playerId) {
  * @param {number} currentTime - Tiempo actual
  */
 function renderEntityMessages(ctx, screenPos, messages, currentTime) {
-    // Configuración de estilo
+    // Configuración de estilo base
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
-    
+
     // Empezar a dibujar desde arriba de la entidad
     let yOffset = -15;
-    
+
     // Dibujar cada mensaje, los más recientes primero
     messages.slice().reverse().forEach(msg => {
         // Calcular opacidad basada en tiempo restante
         const timeLeft = msg.expiresAt - currentTime;
         const opacity = Math.min(1, timeLeft / 1000); // Fadeout en el último segundo
-        
+
         if (opacity > 0) {
+            // Establecer colores según el tipo de mensaje
+            switch (msg.target) {
+                case MESSAGE_TARGETS.ALL:
+                    ctx.fillStyle = '#ffffff'; // Blanco para mensajes globales
+                    ctx.strokeStyle = '#000000';
+                    break;
+                case MESSAGE_TARGETS.VISIBLE:
+                    ctx.fillStyle = '#00ff00'; // Verde para mensajes cercanos
+                    ctx.strokeStyle = '#008000';
+                    break;
+                case MESSAGE_TARGETS.GROUP:
+                    ctx.fillStyle = '#0080ff'; // Azul para mensajes de grupo
+                    ctx.strokeStyle = '#004080';
+                    break;
+                case MESSAGE_TARGETS.PLAYER:
+                    ctx.fillStyle = '#ffff00'; // Amarillo para mensajes privados
+                    ctx.strokeStyle = '#808000';
+                    break;
+                default:
+                    ctx.fillStyle = '#ffffff'; // Blanco por defecto
+                    ctx.strokeStyle = '#000000';
+                    break;
+            }
+
             ctx.globalAlpha = opacity;
-            
+
             // Texto con borde
             ctx.strokeText(msg.text, screenPos.x + 16, screenPos.y + yOffset);
             ctx.fillText(msg.text, screenPos.x + 16, screenPos.y + yOffset);
-            
+
             // Avanzar posición para el siguiente mensaje
             yOffset -= 12;
         }
-        
+
         ctx.globalAlpha = 1.0;
     });
 }
