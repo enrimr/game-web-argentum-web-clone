@@ -9,6 +9,7 @@ import { generateAllSprites } from '../SpriteGenerator.js';
 import { renderMap, renderTreeLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
 import { renderPlayer, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
+import { renderOverheadMessages } from '../../ui/Chat.js';
 
 const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
@@ -72,6 +73,9 @@ export function render() {
         // Usar los efectos Dragon Ball Z para el jugador también
         drawDBZMeditationEffects(playerScreenPos, ctx);
     }
+
+    // Draw chat overhead messages above everything
+    renderOverheadMessages(ctx);
 }
 
 /**
