@@ -177,10 +177,13 @@ export class LoginScreen {
         
         // Inicializar eventos
         this.initEvents();
-        
+
+        // Inicializar carousel del hero banner
+        this.initHeroCarousel();
+
         // Comprobar estado del servidor
         await this.checkServerStatus();
-        
+
         this.isInitialized = true;
     }
     
@@ -190,8 +193,35 @@ export class LoginScreen {
      */
     getLoginScreenHTML() {
         return `
+            <!-- Hero Banner Carousel -->
+            <div class="hero-banner">
+                <div class="hero-carousel">
+                    <div class="hero-slide active">
+                        <img src="img/landing/hero_banner_image1_calimaonlineworld.png" alt="Calima Online World">
+                    </div>
+                    <div class="hero-slide">
+                        <img src="img/landing/hero_banner_image2_city.png" alt="City View">
+                    </div>
+                    <div class="hero-slide">
+                        <img src="img/landing/hero_banner_image3_fieldwithenemies.png" alt="Field with Enemies">
+                    </div>
+                </div>
+                <div class="hero-overlay">
+                    <div class="hero-content">
+                        <img src="img/landing/calima_online_logo.png" alt="Calima Online Logo" class="hero-logo">
+                        <p class="hero-description">
+                            ¡Explora un mundo fantástico inspirado en las Islas Canarias!
+                        </p>
+                    </div>
+                </div>
+                <div class="hero-indicators">
+                    <span class="indicator active" data-slide="0"></span>
+                    <span class="indicator" data-slide="1"></span>
+                    <span class="indicator" data-slide="2"></span>
+                </div>
+            </div>
+
             <div class="login-logo">
-                <h1>🏝️ Calima Online</h1>
                 <p>¡Explora un mundo fantástico inspirado en las Islas Canarias!</p>
             </div>
             
@@ -304,11 +334,11 @@ export class LoginScreen {
         document.getElementById('homeTab').addEventListener('click', () => this.showPanel('home'));
         document.getElementById('loginTab').addEventListener('click', () => this.showPanel('login'));
         document.getElementById('registerTab').addEventListener('click', () => this.showPanel('register'));
-        
+
         // Enlaces entre formularios
         document.getElementById('goToRegister').addEventListener('click', () => this.showPanel('register'));
         document.getElementById('goToLogin').addEventListener('click', () => this.showPanel('login'));
-        
+
         // Botones principales
         document.getElementById('playLocalButton').addEventListener('click', () => this.startLocalGame());
         document.getElementById('playOnlineButton').addEventListener('click', () => {
@@ -318,18 +348,77 @@ export class LoginScreen {
                 this.showPanel('login');
             }
         });
-        
+
         // Formulario de login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleLogin();
         });
-        
+
         // Formulario de registro
         document.getElementById('registerForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleRegister();
         });
+    }
+
+    /**
+     * Inicializar el carousel del hero banner
+     */
+    initHeroCarousel() {
+        this.currentSlide = 0;
+        this.slides = document.querySelectorAll('.hero-slide');
+        this.indicators = document.querySelectorAll('.indicator');
+
+        // Auto-rotate every 4 seconds
+        this.carouselInterval = setInterval(() => {
+            this.nextSlide();
+        }, 4000);
+
+        // Click events for indicators
+        this.indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                this.goToSlide(index);
+            });
+        });
+
+        // Pause on hover
+        const heroBanner = document.querySelector('.hero-banner');
+        if (heroBanner) {
+            heroBanner.addEventListener('mouseenter', () => {
+                clearInterval(this.carouselInterval);
+            });
+
+            heroBanner.addEventListener('mouseleave', () => {
+                this.carouselInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 4000);
+            });
+        }
+    }
+
+    /**
+     * Ir al siguiente slide
+     */
+    nextSlide() {
+        this.goToSlide((this.currentSlide + 1) % this.slides.length);
+    }
+
+    /**
+     * Ir a un slide específico
+     * @param {number} slideIndex - Índice del slide
+     */
+    goToSlide(slideIndex) {
+        // Remove active class from current slide and indicator
+        this.slides[this.currentSlide].classList.remove('active');
+        this.indicators[this.currentSlide].classList.remove('active');
+
+        // Set new current slide
+        this.currentSlide = slideIndex;
+
+        // Add active class to new slide and indicator
+        this.slides[this.currentSlide].classList.add('active');
+        this.indicators[this.currentSlide].classList.add('active');
     }
     
     /**

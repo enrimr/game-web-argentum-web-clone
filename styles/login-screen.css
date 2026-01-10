@@ -47,15 +47,17 @@
 }
 
 .login-container {
-    background: rgba(30, 41, 59, 0.7);
+    position: relative;
+    background: rgba(30, 41, 59, 0.9);
     border-radius: 12px;
     padding: 30px;
     width: 100%;
     max-width: 500px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 10;
 }
 
 .login-tabs {
@@ -267,23 +269,42 @@
     .login-logo h1 {
         font-size: 36px;
     }
-    
+
     .login-logo p {
         font-size: 16px;
     }
-    
+
     .login-container {
         padding: 20px;
     }
-    
+
     .login-button {
         padding: 12px 15px;
         font-size: 16px;
     }
-    
+
     .auth-input, .submit-button {
         padding: 12px 15px 12px 40px;
         font-size: 16px;
+    }
+
+    /* Hero banner is now fullscreen, no specific mobile overrides needed */
+
+    .hero-overlay {
+        padding-top: 40px;
+    }
+
+    .hero-logo {
+        max-width: 250px;
+    }
+
+    .hero-description {
+        font-size: 16px;
+        max-width: 90%;
+    }
+
+    .game-logo {
+        max-width: 250px;
     }
 }
 
@@ -301,4 +322,114 @@
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Hero Banner Carousel */
+.hero-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.hero-carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.3) 100%);
+    z-index: 2;
+}
+
+.hero-logo {
+    max-width: 400px;
+    height: auto;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 20px rgba(252, 211, 77, 0.5));
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.hero-description {
+    font-size: 18px;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 600px;
+}
+
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.hero-slide.active {
+    opacity: 1;
+}
+
+.hero-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.hero-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.indicator.active {
+    background: #fcd34d;
+    transform: scale(1.2);
+}
+
+.indicator:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Game Logo */
+.game-logo {
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(252, 211, 77, 0.3));
 }

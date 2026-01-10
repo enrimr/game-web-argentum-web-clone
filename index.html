@@ -86,6 +86,21 @@
                 <p><span class="system">Sistema:</span> Usa las flechas o WASD para moverte por el mapa.</p>
                 <p><span class="system">Sistema:</span> Presiona ESPACIO para interactuar con objetos o atacar enemigos.</p>
             </div>
+            <form id="chatForm" class="chat-form">
+                <div class="chat-input-row">
+                    <select id="chatTargetSelector" class="chat-target-selector">
+                        <option value="all">Global</option>
+                        <option value="visible">Cercanos</option>
+                        <option value="group">Grupo</option>
+                        <option value="player">Jugador</option>
+                    </select>
+                    <div id="chatPlayerSelectorContainer" style="display: none;">
+                        <select id="chatPlayerSelector" class="chat-player-selector"></select>
+                    </div>
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." autocomplete="off">
+                    <button type="submit" class="chat-send-btn">Enviar</button>
+                </div>
+            </form>
         </div>
         
         <!-- Main game area with canvas and sidebar -->
@@ -233,6 +248,7 @@
 
         // Initialize the game when the page loads
         window.addEventListener('load', () => {
+            console.log("🚀 Página cargada completamente, iniciando aplicación...");
             init();
             setupMobileUI();
         });

@@ -4,6 +4,112 @@
     box-sizing: border-box;
 }
 
+/* Chat system enhancements */
+.chat-form {
+    margin-top: 8px;
+}
+
+.chat-input-row {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.chat-target-selector,
+.chat-player-selector {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    min-width: 70px;
+    height: 30px;
+}
+
+.chat-target-selector:hover,
+.chat-player-selector:hover {
+    border-color: #ffd700;
+}
+
+.chat-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    height: 30px;
+    box-sizing: border-box;
+}
+
+.chat-input:focus {
+    border-color: #ffd700;
+    outline: none;
+}
+
+.chat-send-btn {
+    background: rgba(255, 215, 0, 0.2);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    color: #ffd700;
+    padding: 5px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    height: 30px;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.chat-send-btn:hover {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: #ffd700;
+}
+
+/* Estilos para mensajes según tipo de destinatario */
+.chat-message.msg-all {
+    color: #fff; /* Global: blanco */
+}
+
+.chat-message.msg-visible {
+    color: #8bc34a; /* Cercanos: verde claro */
+}
+
+.chat-message.msg-group {
+    color: #2196f3; /* Grupo: azul */
+}
+
+.chat-message.msg-player {
+    color: #e91e63; /* Privado: rosa */
+}
+
+@media (max-width: 768px) {
+    .chat-input-row {
+        flex-wrap: wrap;
+    }
+
+    .chat-target-selector,
+    .chat-player-selector {
+        min-width: 60px;
+        font-size: 10px;
+    }
+
+    .chat-input {
+        font-size: 10px;
+        min-width: 150px;
+    }
+
+    .chat-send-btn {
+        padding: 4px 6px;
+        font-size: 10px;
+        min-width: 50px;
+    }
+}
+
 body {
     font-family: 'Courier New', monospace;
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
