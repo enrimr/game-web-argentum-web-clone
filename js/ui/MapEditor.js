@@ -13,6 +13,7 @@ import { generateItemSprites } from '../graphics/sprites/ItemSprites.js';
 import { generateNPCSprites } from '../graphics/sprites/NPCSprites.js';
 import { generateEnemySprites } from '../graphics/sprites/EnemySprites.js';
 import { NPC_DEFINITIONS } from '../entities/NPCTypes.js';
+import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 
 // Map Editor variables
 let mapEditorVisible = false;
@@ -525,6 +526,60 @@ function createMapEditorUI() {
     npcSection.appendChild(npcList);
     npcSection.appendChild(npcControls);
 
+    // Portal management section
+    const portalSection = document.createElement('div');
+    portalSection.style.cssText = `
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 10px;
+    `;
+
+    const portalTitle = document.createElement('h3');
+    portalTitle.textContent = 'Portales en el Mapa';
+    portalTitle.style.margin = '0 0 10px 0';
+
+    const portalList = document.createElement('div');
+    portalList.id = 'portalList';
+    portalList.style.cssText = `
+        flex: 1;
+        overflow: auto;
+        border: 1px solid #555;
+        background: #111;
+        padding: 5px;
+        font-size: 11px;
+    `;
+
+    const portalControls = document.createElement('div');
+    portalControls.style.cssText = `
+        margin-top: 10px;
+        display: flex;
+        gap: 5px;
+    `;
+
+    const addPortalBtn = document.createElement('button');
+    addPortalBtn.textContent = '+ Portal';
+    addPortalBtn.title = 'Añadir nuevo portal';
+    addPortalBtn.addEventListener('click', showAddPortalDialog);
+
+    const clearPortalsBtn = document.createElement('button');
+    clearPortalsBtn.textContent = '🗑️';
+    clearPortalsBtn.title = 'Eliminar todos los portales';
+    clearPortalsBtn.addEventListener('click', () => {
+        if (confirm('¿Eliminar todos los portales del mapa?')) {
+            currentMapData.portals = [];
+            updatePortalList();
+            renderEditor();
+        }
+    });
+
+    portalControls.appendChild(addPortalBtn);
+    portalControls.appendChild(clearPortalsBtn);
+
+    portalSection.appendChild(portalTitle);
+    portalSection.appendChild(portalList);
+    portalSection.appendChild(portalControls);
+
     // Palette section
     const paletteSection = document.createElement('div');
     paletteSection.style.cssText = `
@@ -562,6 +617,7 @@ function createMapEditorUI() {
     paletteSection.appendChild(selectedInfo);
 
     sidebar.appendChild(npcSection);
+    sidebar.appendChild(portalSection);
     sidebar.appendChild(paletteSection);
 
     content.appendChild(editorArea);
@@ -704,6 +760,56 @@ function renderEditor() {
                     editorCtx.strokeText(npc.name, (npc.x + 0.5) * TILE_SIZE, npc.y * TILE_SIZE - 5);
                     editorCtx.fillText(npc.name, (npc.x + 0.5) * TILE_SIZE, npc.y * TILE_SIZE - 5);
                 }
+            }
+        });
+    }
+
+    // Render portals
+    if (currentMapData.portals) {
+        currentMapData.portals.forEach(portal => {
+            // Draw portal circle
+            editorCtx.fillStyle = 'rgba(59, 130, 246, 0.7)'; // Blue with transparency
+            editorCtx.beginPath();
+            editorCtx.arc((portal.x + 0.5) * TILE_SIZE, (portal.y + 0.5) * TILE_SIZE, TILE_SIZE * 0.6, 0, Math.PI * 2);
+            editorCtx.fill();
+
+            // Draw portal border
+            editorCtx.strokeStyle = '#3b82f6';
+            editorCtx.lineWidth = 2 / zoomLevel;
+            editorCtx.stroke();
+
+            // Draw portal inner effect
+            editorCtx.fillStyle = 'rgba(147, 197, 253, 0.8)'; // Lighter blue
+            editorCtx.beginPath();
+            editorCtx.arc((portal.x + 0.5) * TILE_SIZE, (portal.y + 0.5) * TILE_SIZE, TILE_SIZE * 0.4, 0, Math.PI * 2);
+            editorCtx.fill();
+
+            // Draw portal name
+            editorCtx.fillStyle = '#fff';
+            editorCtx.font = `${10 / zoomLevel}px monospace`;
+            editorCtx.textAlign = 'center';
+            editorCtx.strokeStyle = '#000';
+            editorCtx.lineWidth = 1 / zoomLevel;
+            const mapDef = MAP_DEFINITIONS[portal.targetMap];
+            const displayName = mapDef ? mapDef.name.split(' ')[1] || portal.targetMap : portal.targetMap;
+            editorCtx.strokeText(displayName, (portal.x + 0.5) * TILE_SIZE, portal.y * TILE_SIZE - 3);
+            editorCtx.fillText(displayName, (portal.x + 0.5) * TILE_SIZE, portal.y * TILE_SIZE - 3);
+
+            // Draw direction arrow if target coordinates are available
+            if (portal.targetX !== undefined && portal.targetY !== undefined) {
+                const arrowLength = TILE_SIZE * 0.3;
+                const arrowX = (portal.x + 0.5) * TILE_SIZE;
+                const arrowY = (portal.y + 0.5) * TILE_SIZE;
+
+                editorCtx.strokeStyle = '#fff';
+                editorCtx.lineWidth = 2 / zoomLevel;
+                editorCtx.beginPath();
+                editorCtx.moveTo(arrowX - arrowLength, arrowY);
+                editorCtx.lineTo(arrowX + arrowLength, arrowY);
+                editorCtx.moveTo(arrowX + arrowLength * 0.7, arrowY - arrowLength * 0.3);
+                editorCtx.lineTo(arrowX + arrowLength, arrowY);
+                editorCtx.lineTo(arrowX + arrowLength * 0.7, arrowY + arrowLength * 0.3);
+                editorCtx.stroke();
             }
         });
     }
@@ -1269,6 +1375,282 @@ function updateNpcList() {
         npcItem.appendChild(npcInfo);
         npcItem.appendChild(removeBtn);
         npcList.appendChild(npcItem);
+    });
+}
+
+/**
+ * Show dialog to add new portal
+ */
+function showAddPortalDialog() {
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 450px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '🏞️ Añadir Portal al Mapa';
+    title.style.margin = '0 0 15px 0';
+
+    // Target map selector
+    const mapLabel = document.createElement('label');
+    mapLabel.textContent = 'Mapa destino:';
+    mapLabel.style.display = 'block';
+    mapLabel.style.marginBottom = '5px';
+
+    const mapSelect = document.createElement('select');
+    mapSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(MAP_DEFINITIONS).forEach(mapKey => {
+        const mapDef = MAP_DEFINITIONS[mapKey];
+        const option = document.createElement('option');
+        option.value = mapKey;
+        option.textContent = mapDef.name;
+        mapSelect.appendChild(option);
+    });
+
+    // Portal position inputs
+    const portalPosContainer = document.createElement('div');
+    portalPosContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    const portalXLabel = document.createElement('label');
+    portalXLabel.textContent = 'Portal X:';
+    const portalXInput = document.createElement('input');
+    portalXInput.type = 'number';
+    portalXInput.min = '0';
+    portalXInput.max = currentMapData.layers.base[0].length - 1;
+    portalXInput.value = '5';
+    portalXInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const portalYLabel = document.createElement('label');
+    portalYLabel.textContent = 'Portal Y:';
+    const portalYInput = document.createElement('input');
+    portalYInput.type = 'number';
+    portalYInput.min = '0';
+    portalYInput.max = currentMapData.layers.base.length - 1;
+    portalYInput.value = '5';
+    portalYInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    portalPosContainer.appendChild(portalXLabel);
+    portalPosContainer.appendChild(portalXInput);
+    portalPosContainer.appendChild(portalYLabel);
+    portalPosContainer.appendChild(portalYInput);
+
+    // Target position inputs (optional)
+    const targetPosContainer = document.createElement('div');
+    targetPosContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        align-items: center;
+    `;
+
+    const targetLabel = document.createElement('span');
+    targetLabel.textContent = 'Posición destino (opcional):';
+    targetLabel.style.fontSize = '12px';
+    targetLabel.style.marginRight = '10px';
+
+    const targetXLabel = document.createElement('label');
+    targetXLabel.textContent = 'Destino X:';
+    const targetXInput = document.createElement('input');
+    targetXInput.type = 'number';
+    targetXInput.placeholder = 'auto';
+    targetXInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const targetYLabel = document.createElement('label');
+    targetYLabel.textContent = 'Destino Y:';
+    const targetYInput = document.createElement('input');
+    targetYInput.type = 'number';
+    targetYInput.placeholder = 'auto';
+    targetYInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    targetPosContainer.appendChild(targetLabel);
+    targetPosContainer.appendChild(targetXLabel);
+    targetPosContainer.appendChild(targetXInput);
+    targetPosContainer.appendChild(targetYLabel);
+    targetPosContainer.appendChild(targetYInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir Portal';
+    addBtn.style.background = '#3b82f6';
+    addBtn.addEventListener('click', () => {
+        const targetMap = mapSelect.value;
+        const x = parseInt(portalXInput.value);
+        const y = parseInt(portalYInput.value);
+        const targetX = targetXInput.value ? parseInt(targetXInput.value) : undefined;
+        const targetY = targetYInput.value ? parseInt(targetYInput.value) : undefined;
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length) {
+            addPortal(targetMap, x, y, targetX, targetY);
+            document.body.removeChild(modal);
+        } else {
+            alert('Posición del portal fuera de los límites del mapa');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(addBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(mapLabel);
+    dialog.appendChild(mapSelect);
+    dialog.appendChild(portalPosContainer);
+    dialog.appendChild(targetPosContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Add portal to the map
+ * @param {string} targetMap - Target map key
+ * @param {number} x - Portal X coordinate
+ * @param {number} y - Portal Y coordinate
+ * @param {number} targetX - Target X coordinate (optional)
+ * @param {number} targetY - Target Y coordinate (optional)
+ */
+function addPortal(targetMap, x, y, targetX, targetY) {
+    const mapDef = MAP_DEFINITIONS[targetMap];
+    if (!mapDef) return;
+
+    const portal = {
+        x: x,
+        y: y,
+        targetMap: targetMap,
+        targetX: targetX,
+        targetY: targetY,
+        name: mapDef.name.split(' ')[1] || targetMap // Extract short name
+    };
+
+    currentMapData.portals.push(portal);
+    updatePortalList();
+    renderEditor();
+
+    console.log(`Portal añadido hacia ${mapDef.name} en (${x}, ${y})`);
+}
+
+/**
+ * Update the portal list display
+ */
+function updatePortalList() {
+    const portalList = document.getElementById('portalList');
+    if (!portalList) return;
+
+    portalList.innerHTML = '';
+
+    if (!currentMapData.portals || currentMapData.portals.length === 0) {
+        portalList.textContent = 'No hay portales en el mapa';
+        return;
+    }
+
+    currentMapData.portals.forEach((portal, index) => {
+        const portalItem = document.createElement('div');
+        portalItem.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 5px;
+            margin: 2px 0;
+            background: #1e40af;
+            border-radius: 3px;
+            font-size: 10px;
+        `;
+
+        const portalInfo = document.createElement('span');
+        const mapDef = MAP_DEFINITIONS[portal.targetMap];
+        const displayName = mapDef ? mapDef.name.split(' ')[1] || portal.targetMap : portal.targetMap;
+        portalInfo.textContent = `${displayName} (${portal.x},${portal.y})`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '❌';
+        removeBtn.title = 'Eliminar portal';
+        removeBtn.style.cssText = `
+            background: #c00;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        removeBtn.addEventListener('click', () => {
+            currentMapData.portals.splice(index, 1);
+            updatePortalList();
+            renderEditor();
+        });
+
+        portalItem.appendChild(portalInfo);
+        portalItem.appendChild(removeBtn);
+        portalList.appendChild(portalItem);
     });
 }
 
