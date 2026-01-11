@@ -634,6 +634,8 @@ function createMapEditorUI() {
 
     // Load current map and show editor
     loadCurrentMap();
+    updateNpcList();
+    updatePortalList();
     renderEditor();
     renderPalette();
 }
@@ -1103,6 +1105,7 @@ function handleFileLoad(event) {
 
             console.log('Mapa cargado:', currentMapData);
             updateNpcList();
+            updatePortalList();
             renderEditor();
             renderPalette();
         } catch (error) {
