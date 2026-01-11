@@ -12,6 +12,7 @@ import { generateObjectSprites } from '../graphics/sprites/ObjectSprites.js';
 import { generateItemSprites } from '../graphics/sprites/ItemSprites.js';
 import { generateNPCSprites } from '../graphics/sprites/NPCSprites.js';
 import { generateEnemySprites } from '../graphics/sprites/EnemySprites.js';
+import { NPC_DEFINITIONS } from '../entities/NPCTypes.js';
 
 // Map Editor variables
 let mapEditorVisible = false;
@@ -470,6 +471,60 @@ function createMapEditorUI() {
         padding: 10px;
     `;
 
+    // NPC management section
+    const npcSection = document.createElement('div');
+    npcSection.style.cssText = `
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 10px;
+    `;
+
+    const npcTitle = document.createElement('h3');
+    npcTitle.textContent = 'NPCs en el Mapa';
+    npcTitle.style.margin = '0 0 10px 0';
+
+    const npcList = document.createElement('div');
+    npcList.id = 'npcList';
+    npcList.style.cssText = `
+        flex: 1;
+        overflow: auto;
+        border: 1px solid #555;
+        background: #111;
+        padding: 5px;
+        font-size: 11px;
+    `;
+
+    const npcControls = document.createElement('div');
+    npcControls.style.cssText = `
+        margin-top: 10px;
+        display: flex;
+        gap: 5px;
+    `;
+
+    const addNpcBtn = document.createElement('button');
+    addNpcBtn.textContent = '+ NPC';
+    addNpcBtn.title = 'Añadir nuevo NPC';
+    addNpcBtn.addEventListener('click', showAddNpcDialog);
+
+    const clearNpcsBtn = document.createElement('button');
+    clearNpcsBtn.textContent = '🗑️';
+    clearNpcsBtn.title = 'Eliminar todos los NPCs';
+    clearNpcsBtn.addEventListener('click', () => {
+        if (confirm('¿Eliminar todos los NPCs del mapa?')) {
+            currentMapData.npcs = [];
+            updateNpcList();
+            renderEditor();
+        }
+    });
+
+    npcControls.appendChild(addNpcBtn);
+    npcControls.appendChild(clearNpcsBtn);
+
+    npcSection.appendChild(npcTitle);
+    npcSection.appendChild(npcList);
+    npcSection.appendChild(npcControls);
+
     // Palette section
     const paletteSection = document.createElement('div');
     paletteSection.style.cssText = `
@@ -506,6 +561,7 @@ function createMapEditorUI() {
     paletteSection.appendChild(paletteContainer);
     paletteSection.appendChild(selectedInfo);
 
+    sidebar.appendChild(npcSection);
     sidebar.appendChild(paletteSection);
 
     content.appendChild(editorArea);
@@ -623,6 +679,33 @@ function renderEditor() {
         editorCtx.strokeStyle = '#ff0';
         editorCtx.lineWidth = 2 / zoomLevel;
         editorCtx.strokeRect(0, 0, mapWidth * TILE_SIZE, mapHeight * TILE_SIZE);
+    }
+
+    // Render NPCs
+    if (currentMapData.npcs) {
+        currentMapData.npcs.forEach(npc => {
+            const npcDefinition = NPC_DEFINITIONS[npc.type];
+            if (npcDefinition && npcSprites[npcDefinition.sprite]) {
+                const sprite = npcSprites[npcDefinition.sprite];
+                if (sprite) {
+                    // Draw NPC shadow
+                    editorCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    editorCtx.fillRect(npc.x * TILE_SIZE + 2, (npc.y + 1) * TILE_SIZE - 2, TILE_SIZE - 4, 4);
+
+                    // Draw NPC sprite
+                    editorCtx.drawImage(sprite, npc.x * TILE_SIZE, npc.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+                    // Draw NPC name
+                    editorCtx.fillStyle = '#fff';
+                    editorCtx.font = `${12 / zoomLevel}px monospace`;
+                    editorCtx.textAlign = 'center';
+                    editorCtx.strokeStyle = '#000';
+                    editorCtx.lineWidth = 2 / zoomLevel;
+                    editorCtx.strokeText(npc.name, (npc.x + 0.5) * TILE_SIZE, npc.y * TILE_SIZE - 5);
+                    editorCtx.fillText(npc.name, (npc.x + 0.5) * TILE_SIZE, npc.y * TILE_SIZE - 5);
+                }
+            }
+        });
     }
 
     editorCtx.restore();
@@ -913,6 +996,7 @@ function handleFileLoad(event) {
             }
 
             console.log('Mapa cargado:', currentMapData);
+            updateNpcList();
             renderEditor();
             renderPalette();
         } catch (error) {
@@ -966,6 +1050,226 @@ function resizeMap(newWidth, newHeight) {
     renderEditor();
 
     console.log('Mapa redimensionado exitosamente');
+}
+
+/**
+ * Show dialog to add new NPC
+ */
+function showAddNpcDialog() {
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 400px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '🧙‍♂️ Añadir NPC al Mapa';
+    title.style.margin = '0 0 15px 0';
+
+    // NPC Type selector
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = 'Tipo de NPC:';
+    typeLabel.style.display = 'block';
+    typeLabel.style.marginBottom = '5px';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(NPC_DEFINITIONS).forEach(npcType => {
+        const option = document.createElement('option');
+        option.value = npcType;
+        option.textContent = `${NPC_DEFINITIONS[npcType].name} (${npcType})`;
+        typeSelect.appendChild(option);
+    });
+
+    // Position inputs
+    const posContainer = document.createElement('div');
+    posContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    const xLabel = document.createElement('label');
+    xLabel.textContent = 'X:';
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.min = '0';
+    xInput.max = currentMapData.layers.base[0].length - 1;
+    xInput.value = '5';
+    xInput.style.cssText = `
+        width: 60px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const yLabel = document.createElement('label');
+    yLabel.textContent = 'Y:';
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.min = '0';
+    yInput.max = currentMapData.layers.base.length - 1;
+    yInput.value = '5';
+    yInput.style.cssText = `
+        width: 60px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    posContainer.appendChild(xLabel);
+    posContainer.appendChild(xInput);
+    posContainer.appendChild(yLabel);
+    posContainer.appendChild(yInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir NPC';
+    addBtn.style.background = '#4a5568';
+    addBtn.addEventListener('click', () => {
+        const npcType = typeSelect.value;
+        const x = parseInt(xInput.value);
+        const y = parseInt(yInput.value);
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length) {
+            addNpc(npcType, x, y);
+            document.body.removeChild(modal);
+        } else {
+            alert('Posición fuera de los límites del mapa');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(addBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(typeLabel);
+    dialog.appendChild(typeSelect);
+    dialog.appendChild(posContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Add NPC to the map
+ * @param {string} npcType - NPC type key
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ */
+function addNpc(npcType, x, y) {
+    const npcDefinition = NPC_DEFINITIONS[npcType];
+    if (!npcDefinition) return;
+
+    const npc = {
+        type: npcType,
+        x: x,
+        y: y,
+        name: npcDefinition.name
+    };
+
+    currentMapData.npcs.push(npc);
+    updateNpcList();
+    renderEditor();
+
+    console.log(`NPC añadido: ${npc.name} en (${x}, ${y})`);
+}
+
+/**
+ * Update the NPC list display
+ */
+function updateNpcList() {
+    const npcList = document.getElementById('npcList');
+    if (!npcList) return;
+
+    npcList.innerHTML = '';
+
+    if (!currentMapData.npcs || currentMapData.npcs.length === 0) {
+        npcList.textContent = 'No hay NPCs en el mapa';
+        return;
+    }
+
+    currentMapData.npcs.forEach((npc, index) => {
+        const npcItem = document.createElement('div');
+        npcItem.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 5px;
+            margin: 2px 0;
+            background: #444;
+            border-radius: 3px;
+            font-size: 10px;
+        `;
+
+        const npcInfo = document.createElement('span');
+        npcInfo.textContent = `${npc.name} (${npc.x},${npc.y})`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '❌';
+        removeBtn.title = 'Eliminar NPC';
+        removeBtn.style.cssText = `
+            background: #c00;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        removeBtn.addEventListener('click', () => {
+            currentMapData.npcs.splice(index, 1);
+            updateNpcList();
+            renderEditor();
+        });
+
+        npcItem.appendChild(npcInfo);
+        npcItem.appendChild(removeBtn);
+        npcList.appendChild(npcItem);
+    });
 }
 
 /**
