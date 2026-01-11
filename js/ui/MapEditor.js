@@ -46,6 +46,7 @@ const PALETTE_PAGE_SIZE = 64;
 // Layer definitions
 const LAYERS = {
     base: { name: 'Base', visible: true, opacity: 1.0 },
+    props: { name: 'Props', visible: true, opacity: 1.0 },
     roofs: { name: 'Techos', visible: true, opacity: 1.0 },
     doors: { name: 'Puertas', visible: true, opacity: 1.0 },
     windows: { name: 'Ventanas', visible: true, opacity: 1.0 }
@@ -449,6 +450,7 @@ function loadCurrentMap() {
             worldPosition: { x: 0, y: 0 },
             layers: {
                 base: Array(20).fill().map(() => Array(30).fill(0)),
+                props: Array(20).fill().map(() => Array(30).fill(0)),
                 roofs: Array(20).fill().map(() => Array(30).fill(0)),
                 doors: Array(20).fill().map(() => Array(30).fill(0)),
                 windows: Array(20).fill().map(() => Array(30).fill(0))
@@ -484,7 +486,7 @@ function renderEditor() {
     editorCtx.scale(zoomLevel, zoomLevel);
 
     // Render layers in order
-    const layersToRender = ['base', 'doors', 'windows', 'roofs'];
+    const layersToRender = ['base', 'props', 'doors', 'windows', 'roofs'];
 
     layersToRender.forEach(layerName => {
         if (!LAYERS[layerName].visible) return;
@@ -804,6 +806,7 @@ function handleFileLoad(event) {
                 worldPosition: loadedMap.worldPosition || { x: 0, y: 0 },
                 layers: {
                     base: loadedMap.layers?.base || loadedMap.map || Array(20).fill().map(() => Array(30).fill(0)),
+                    props: loadedMap.layers?.props || Array(20).fill().map(() => Array(30).fill(0)),
                     roofs: loadedMap.layers?.roofs || Array(20).fill().map(() => Array(30).fill(0)),
                     doors: loadedMap.layers?.doors || Array(20).fill().map(() => Array(30).fill(0)),
                     windows: loadedMap.layers?.windows || Array(20).fill().map(() => Array(30).fill(0))
