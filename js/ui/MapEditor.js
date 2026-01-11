@@ -793,11 +793,38 @@ function handleFileLoad(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
-            currentMapData = JSON.parse(e.target.result);
+            const loadedMap = JSON.parse(e.target.result);
+
+            // Ensure the loaded map has the correct structure
+            currentMapData = {
+                name: loadedMap.name || "Mapa cargado",
+                description: loadedMap.description || "Mapa cargado desde archivo",
+                type: loadedMap.type || "custom",
+                safeZone: loadedMap.safeZone || false,
+                worldPosition: loadedMap.worldPosition || { x: 0, y: 0 },
+                layers: {
+                    base: loadedMap.layers?.base || loadedMap.map || Array(20).fill().map(() => Array(30).fill(0)),
+                    roofs: loadedMap.layers?.roofs || Array(20).fill().map(() => Array(30).fill(0)),
+                    doors: loadedMap.layers?.doors || Array(20).fill().map(() => Array(30).fill(0)),
+                    windows: loadedMap.layers?.windows || Array(20).fill().map(() => Array(30).fill(0))
+                },
+                portals: loadedMap.portals || [],
+                npcs: loadedMap.npcs || [],
+                playerSpawn: loadedMap.playerSpawn || { x: 5, y: 5 }
+            };
+
+            // If the loaded map uses the old format (direct map array), convert it
+            if (!loadedMap.layers && loadedMap.map) {
+                console.log('Convirtiendo mapa del formato antiguo al nuevo...');
+                currentMapData.layers.base = loadedMap.map;
+            }
+
+            console.log('Mapa cargado:', currentMapData);
             renderEditor();
+            renderPalette();
         } catch (error) {
             console.error('Error loading map file:', error);
-            alert('Error al cargar el archivo de mapa');
+            alert('Error al cargar el archivo de mapa: ' + error.message);
         }
     };
     reader.readAsText(file);
