@@ -497,12 +497,12 @@ function renderEditor() {
         for (let y = 0; y < layerData.length; y++) {
             for (let x = 0; x < layerData[y].length; x++) {
                 const tileType = layerData[y][x];
-                if (tileType === 0) continue; // Skip empty tiles
 
                 const sprite = getSpriteForTile(tileType, layerName);
                 if (sprite) {
                     editorCtx.drawImage(sprite, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                 }
+                // Note: tileType 0 (GRASS) is rendered above, other empty tiles (null/undefined) are skipped
             }
         }
     });
