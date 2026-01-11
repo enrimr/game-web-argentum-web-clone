@@ -160,6 +160,82 @@ export function generateNPCSprites(TILE_SIZE) {
             ctx.fillStyle = '#fff';
             ctx.fillRect(w/4+w/2+3, h/2+3, 4, 2);
             ctx.fillRect(w/4+w/2+4, h/2+2, 2, 4);
+        }),
+
+        npc_mage: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Túnica azul/morada de mago
+            ctx.fillStyle = '#7c3aed';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Cara (piel clara)
+            ctx.fillStyle = '#fef3c7';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            // Barba blanca
+            ctx.fillStyle = '#f9fafb';
+            ctx.fillRect(w/2-2, h/4+4, 4, 4);
+            // Capucha/Sombrero de mago
+            ctx.fillStyle = '#4c1d95';
+            ctx.beginPath();
+            ctx.moveTo(w/2-8, h/4-2);
+            ctx.lineTo(w/2+8, h/4-2);
+            ctx.lineTo(w/2+6, h/4-8);
+            ctx.lineTo(w/2-6, h/4-8);
+            ctx.closePath();
+            ctx.fill();
+            // Bastón mágico
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(w/4-4, h/2, 2, h/3);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/4-3, h/2-2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            // Aura mágica (círculo tenue)
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(w/2, h/2, w/2-2, 0, Math.PI * 2);
+            ctx.stroke();
+        }),
+
+        npc_carpenter: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Ropa de trabajo marrón
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(w/4, h/3, w/2, h/2);
+            // Cara (piel)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+            ctx.fill();
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.fillRect(w/2-4, h/4-2, 2, 2);
+            ctx.fillRect(w/2+2, h/4-2, 2, 2);
+            // Bigote
+            ctx.fillStyle = '#4b5563';
+            ctx.fillRect(w/2-3, h/4+3, 6, 2);
+            // Gorra de trabajo
+            ctx.fillStyle = '#4b5563';
+            ctx.fillRect(w/2-6, h/4-6, 12, 4);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(w/2-4, h/4-4, 8, 2);
+            // Herramientas (martillo)
+            ctx.fillStyle = '#6b7280';
+            ctx.fillRect(w/4-6, h/2, 4, 2);
+            ctx.fillRect(w/4-4, h/2+2, 2, 6);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(w/4-5, h/2-2, 3, 2);
+            // Cinturón de herramientas
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(w/4, h/3-2, w/2, 3);
+            // Bolsillos con clavos
+            ctx.fillStyle = '#374151';
+            ctx.fillRect(w/4+2, h/3-1, 2, 2);
+            ctx.fillRect(w/4+w/2-4, h/3-1, 2, 2);
         })
     };
 }
