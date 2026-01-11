@@ -267,6 +267,70 @@ function createMapEditorUI() {
     const controls = document.createElement('div');
     controls.style.display = 'flex';
     controls.style.gap = '10px';
+    controls.style.alignItems = 'center';
+
+    // Map size controls
+    const sizeControls = document.createElement('div');
+    sizeControls.style.display = 'flex';
+    sizeControls.style.gap = '5px';
+    sizeControls.style.alignItems = 'center';
+
+    const sizeLabel = document.createElement('span');
+    sizeLabel.textContent = 'Tamaño:';
+    sizeLabel.style.fontSize = '12px';
+    sizeLabel.style.color = '#fff';
+
+    const widthInput = document.createElement('input');
+    widthInput.type = 'number';
+    widthInput.id = 'mapWidth';
+    widthInput.value = currentMapData ? currentMapData.layers.base[0].length : 30;
+    widthInput.min = '5';
+    widthInput.max = '100';
+    widthInput.style.width = '50px';
+    widthInput.style.fontSize = '11px';
+
+    const xLabel = document.createElement('span');
+    xLabel.textContent = '×';
+    xLabel.style.color = '#fff';
+
+    const heightInput = document.createElement('input');
+    heightInput.type = 'number';
+    heightInput.id = 'mapHeight';
+    heightInput.value = currentMapData ? currentMapData.layers.base.length : 20;
+    heightInput.min = '5';
+    heightInput.max = '100';
+    heightInput.style.width = '50px';
+    heightInput.style.fontSize = '11px';
+
+    const resizeBtn = document.createElement('button');
+    resizeBtn.textContent = '📏';
+    resizeBtn.title = 'Cambiar tamaño del mapa';
+    resizeBtn.addEventListener('click', () => {
+        const newWidth = parseInt(widthInput.value);
+        const newHeight = parseInt(heightInput.value);
+        if (newWidth >= 5 && newWidth <= 100 && newHeight >= 5 && newHeight <= 100) {
+            resizeMap(newWidth, newHeight);
+        } else {
+            alert('El tamaño debe estar entre 5x5 y 100x100');
+        }
+    });
+
+    sizeControls.appendChild(sizeLabel);
+    sizeControls.appendChild(widthInput);
+    sizeControls.appendChild(xLabel);
+    sizeControls.appendChild(heightInput);
+    sizeControls.appendChild(resizeBtn);
+
+    // Layer controls
+    const layerControls = document.createElement('div');
+    layerControls.style.display = 'flex';
+    layerControls.style.gap = '5px';
+    layerControls.style.alignItems = 'center';
+
+    const layerLabel = document.createElement('span');
+    layerLabel.textContent = 'Capa:';
+    layerLabel.style.fontSize = '12px';
+    layerLabel.style.color = '#fff';
 
     // Layer selector
     const layerSelect = document.createElement('select');
@@ -282,6 +346,31 @@ function createMapEditorUI() {
         currentLayer = e.target.value;
         renderEditor();
     });
+
+    // Layer visibility toggles
+    const visibilityControls = document.createElement('div');
+    visibilityControls.style.display = 'flex';
+    visibilityControls.style.gap = '2px';
+
+    Object.keys(LAYERS).forEach(layer => {
+        const toggle = document.createElement('button');
+        toggle.textContent = LAYERS[layer].name[0]; // First letter
+        toggle.title = `Toggle ${LAYERS[layer].name} visibility`;
+        toggle.style.fontSize = '10px';
+        toggle.style.padding = '2px 4px';
+        toggle.style.minWidth = '20px';
+        toggle.style.background = LAYERS[layer].visible ? '#4a5568' : '#2d3748';
+        toggle.addEventListener('click', () => {
+            LAYERS[layer].visible = !LAYERS[layer].visible;
+            toggle.style.background = LAYERS[layer].visible ? '#4a5568' : '#2d3748';
+            renderEditor();
+        });
+        visibilityControls.appendChild(toggle);
+    });
+
+    layerControls.appendChild(layerLabel);
+    layerControls.appendChild(layerSelect);
+    layerControls.appendChild(visibilityControls);
 
     // Tool selector
     const toolSelect = document.createElement('select');
@@ -317,7 +406,8 @@ function createMapEditorUI() {
     closeBtn.style.background = '#c00';
     closeBtn.addEventListener('click', toggleMapEditor);
 
-    controls.appendChild(layerSelect);
+    controls.appendChild(sizeControls);
+    controls.appendChild(layerControls);
     controls.appendChild(toolSelect);
     controls.appendChild(saveBtn);
     controls.appendChild(loadBtn);
@@ -831,6 +921,51 @@ function handleFileLoad(event) {
         }
     };
     reader.readAsText(file);
+}
+
+/**
+ * Resize the current map to new dimensions
+ * @param {number} newWidth - New width in tiles
+ * @param {number} newHeight - New height in tiles
+ */
+function resizeMap(newWidth, newHeight) {
+    if (!currentMapData) return;
+
+    console.log(`Redimensionando mapa de ${currentMapData.layers.base.length}x${currentMapData.layers.base[0].length} a ${newHeight}x${newWidth}`);
+
+    // Create new layer arrays with the new dimensions
+    const newLayers = {};
+
+    Object.keys(LAYERS).forEach(layerName => {
+        const oldLayer = currentMapData.layers[layerName] || [];
+        const newLayer = Array(newHeight).fill().map(() => Array(newWidth).fill(0));
+
+        // Copy existing data where possible
+        const copyHeight = Math.min(oldLayer.length || 0, newHeight);
+        const copyWidth = Math.min((oldLayer[0] && oldLayer[0].length) || 0, newWidth);
+
+        for (let y = 0; y < copyHeight; y++) {
+            for (let x = 0; x < copyWidth; x++) {
+                newLayer[y][x] = oldLayer[y][x] || 0;
+            }
+        }
+
+        newLayers[layerName] = newLayer;
+    });
+
+    // Update the map data with new dimensions
+    currentMapData.layers = newLayers;
+
+    // Update input fields to reflect new size
+    const widthInput = document.getElementById('mapWidth');
+    const heightInput = document.getElementById('mapHeight');
+    if (widthInput) widthInput.value = newWidth;
+    if (heightInput) heightInput.value = newHeight;
+
+    // Re-render the editor
+    renderEditor();
+
+    console.log('Mapa redimensionado exitosamente');
 }
 
 /**
