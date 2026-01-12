@@ -14,6 +14,7 @@ import { generateNPCSprites } from '../graphics/sprites/NPCSprites.js';
 import { generateEnemySprites } from '../graphics/sprites/EnemySprites.js';
 import { NPC_DEFINITIONS } from '../entities/NPCTypes.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
+import { ENEMY_STATS } from '../entities/EnemyTypes.js';
 
 // Map Editor variables
 let mapEditorVisible = false;
@@ -580,6 +581,70 @@ function createMapEditorUI() {
     portalSection.appendChild(portalList);
     portalSection.appendChild(portalControls);
 
+    // Enemy management section
+    const enemySection = document.createElement('div');
+    enemySection.style.cssText = `
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 10px;
+    `;
+
+    const enemyTitle = document.createElement('h3');
+    enemyTitle.textContent = '👹 Enemigos en el Mapa';
+    enemyTitle.style.margin = '0 0 10px 0';
+
+    const enemyList = document.createElement('div');
+    enemyList.id = 'enemyList';
+    enemyList.style.cssText = `
+        flex: 1;
+        overflow: auto;
+        border: 1px solid #555;
+        background: #111;
+        padding: 5px;
+        font-size: 11px;
+    `;
+
+    const enemyControls = document.createElement('div');
+    enemyControls.style.cssText = `
+        margin-top: 10px;
+        display: flex;
+        gap: 5px;
+    `;
+
+    const addSpawnBtn = document.createElement('button');
+    addSpawnBtn.textContent = '+ Spawn';
+    addSpawnBtn.title = 'Añadir tipo de spawn automático';
+    addSpawnBtn.addEventListener('click', showAddSpawnDialog);
+
+    const addSpecificBtn = document.createElement('button');
+    addSpecificBtn.textContent = '+ Específico';
+    addSpecificBtn.title = 'Añadir enemigo en posición específica';
+    addSpecificBtn.addEventListener('click', showAddSpecificEnemyDialog);
+
+    const clearEnemiesBtn = document.createElement('button');
+    clearEnemiesBtn.textContent = '🗑️';
+    clearEnemiesBtn.title = 'Eliminar todos los enemigos';
+    clearEnemiesBtn.addEventListener('click', () => {
+        if (confirm('¿Eliminar todos los enemigos del mapa?')) {
+            if (currentMapData.enemies) {
+                currentMapData.enemies.types = [];
+                // Note: Specific enemies are in the types array with x,y,level
+                currentMapData.enemies.types = currentMapData.enemies.types.filter(e => !e.x && !e.y);
+            }
+            updateEnemyList();
+            renderEditor();
+        }
+    });
+
+    enemyControls.appendChild(addSpawnBtn);
+    enemyControls.appendChild(addSpecificBtn);
+    enemyControls.appendChild(clearEnemiesBtn);
+
+    enemySection.appendChild(enemyTitle);
+    enemySection.appendChild(enemyList);
+    enemySection.appendChild(enemyControls);
+
     // Palette section
     const paletteSection = document.createElement('div');
     paletteSection.style.cssText = `
@@ -618,6 +683,7 @@ function createMapEditorUI() {
 
     sidebar.appendChild(npcSection);
     sidebar.appendChild(portalSection);
+    sidebar.appendChild(enemySection);
     sidebar.appendChild(paletteSection);
 
     content.appendChild(editorArea);
@@ -636,6 +702,7 @@ function createMapEditorUI() {
     loadCurrentMap();
     updateNpcList();
     updatePortalList();
+    updateEnemyList();
     renderEditor();
     renderPalette();
 }
@@ -812,6 +879,43 @@ function renderEditor() {
                 editorCtx.lineTo(arrowX + arrowLength, arrowY);
                 editorCtx.lineTo(arrowX + arrowLength * 0.7, arrowY + arrowLength * 0.3);
                 editorCtx.stroke();
+            }
+        });
+    }
+
+    // Render enemies
+    if (currentMapData.enemies && currentMapData.enemies.types) {
+        currentMapData.enemies.types.forEach(enemy => {
+            if (enemy.x !== undefined && enemy.y !== undefined) {
+                // Specific enemy with position
+                const enemySprite = enemySprites[enemy.type];
+                if (enemySprite) {
+                    // Draw enemy shadow
+                    editorCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    editorCtx.fillRect(enemy.x * TILE_SIZE + 2, (enemy.y + 1) * TILE_SIZE - 2, TILE_SIZE - 4, 4);
+
+                    // Draw enemy sprite
+                    editorCtx.drawImage(enemySprite, enemy.x * TILE_SIZE, enemy.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+                    // Draw enemy name and level
+                    editorCtx.fillStyle = '#ff0000';
+                    editorCtx.font = `${10 / zoomLevel}px monospace`;
+                    editorCtx.textAlign = 'center';
+                    editorCtx.strokeStyle = '#000';
+                    editorCtx.lineWidth = 1 / zoomLevel;
+                    const enemyName = `${enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1)} L${enemy.level}`;
+                    editorCtx.strokeText(enemyName, (enemy.x + 0.5) * TILE_SIZE, enemy.y * TILE_SIZE - 3);
+                    editorCtx.fillText(enemyName, (enemy.x + 0.5) * TILE_SIZE, enemy.y * TILE_SIZE - 3);
+                }
+            } else {
+                // Spawn type - draw a red indicator in the corner of the map
+                editorCtx.fillStyle = 'rgba(220, 38, 38, 0.8)'; // Red with transparency
+                editorCtx.fillRect(mapWidth * TILE_SIZE - 20, 10, 10, 10);
+
+                editorCtx.fillStyle = '#fff';
+                editorCtx.font = `${8 / zoomLevel}px monospace`;
+                editorCtx.textAlign = 'right';
+                editorCtx.fillText(`${enemy.count}x ${enemy.type}`, mapWidth * TILE_SIZE - 25, 18);
             }
         });
     }
@@ -1106,6 +1210,7 @@ function handleFileLoad(event) {
             console.log('Mapa cargado:', currentMapData);
             updateNpcList();
             updatePortalList();
+            updateEnemyList();
             renderEditor();
             renderPalette();
         } catch (error) {
@@ -1654,6 +1759,470 @@ function updatePortalList() {
         portalItem.appendChild(portalInfo);
         portalItem.appendChild(removeBtn);
         portalList.appendChild(portalItem);
+    });
+}
+
+/**
+ * Show dialog to add spawn type
+ */
+function showAddSpawnDialog() {
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 500px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '⚔️ Añadir Tipo de Spawn Automático';
+    title.style.margin = '0 0 15px 0';
+
+    // Enemy type selector
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = 'Tipo de enemigo:';
+    typeLabel.style.display = 'block';
+    typeLabel.style.marginBottom = '5px';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(ENEMY_STATS).forEach(enemyType => {
+        const option = document.createElement('option');
+        option.value = enemyType;
+        option.textContent = `${enemyType.charAt(0).toUpperCase() + enemyType.slice(1)} (HP: ${ENEMY_STATS[enemyType].hp}, Dmg: ${ENEMY_STATS[enemyType].damage.min}-${ENEMY_STATS[enemyType].damage.max})`;
+        typeSelect.appendChild(option);
+    });
+
+    // Spawn parameters
+    const paramsContainer = document.createElement('div');
+    paramsContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    // Count
+    const countLabel = document.createElement('label');
+    countLabel.textContent = 'Cantidad:';
+    const countInput = document.createElement('input');
+    countInput.type = 'number';
+    countInput.min = '1';
+    countInput.max = '50';
+    countInput.value = '5';
+    countInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Min level
+    const minLevelLabel = document.createElement('label');
+    minLevelLabel.textContent = 'Nivel mínimo:';
+    const minLevelInput = document.createElement('input');
+    minLevelInput.type = 'number';
+    minLevelInput.min = '1';
+    minLevelInput.max = '100';
+    minLevelInput.value = '1';
+    minLevelInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Max level
+    const maxLevelLabel = document.createElement('label');
+    maxLevelLabel.textContent = 'Nivel máximo:';
+    const maxLevelInput = document.createElement('input');
+    maxLevelInput.type = 'number';
+    maxLevelInput.min = '1';
+    maxLevelInput.max = '100';
+    maxLevelInput.value = '3';
+    maxLevelInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    paramsContainer.appendChild(countLabel);
+    paramsContainer.appendChild(countInput);
+    paramsContainer.appendChild(minLevelLabel);
+    paramsContainer.appendChild(minLevelInput);
+    paramsContainer.appendChild(maxLevelLabel);
+    paramsContainer.appendChild(maxLevelInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir Spawn';
+    addBtn.style.background = '#dc2626';
+    addBtn.addEventListener('click', () => {
+        const enemyType = typeSelect.value;
+        const count = parseInt(countInput.value);
+        const minLevel = parseInt(minLevelInput.value);
+        const maxLevel = parseInt(maxLevelInput.value);
+
+        if (minLevel <= maxLevel && count > 0) {
+            addEnemySpawn(enemyType, count, minLevel, maxLevel);
+            document.body.removeChild(modal);
+        } else {
+            alert('Configuración inválida');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(addBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(typeLabel);
+    dialog.appendChild(typeSelect);
+    dialog.appendChild(paramsContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Show dialog to add specific enemy
+ */
+function showAddSpecificEnemyDialog() {
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 450px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '👹 Añadir Enemigo Específico';
+    title.style.margin = '0 0 15px 0';
+
+    // Enemy type selector
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = 'Tipo de enemigo:';
+    typeLabel.style.display = 'block';
+    typeLabel.style.marginBottom = '5px';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(ENEMY_STATS).forEach(enemyType => {
+        const option = document.createElement('option');
+        option.value = enemyType;
+        option.textContent = `${enemyType.charAt(0).toUpperCase() + enemyType.slice(1)} (HP: ${ENEMY_STATS[enemyType].hp})`;
+        typeSelect.appendChild(option);
+    });
+
+    // Position and level inputs
+    const paramsContainer = document.createElement('div');
+    paramsContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    // X position
+    const xLabel = document.createElement('label');
+    xLabel.textContent = 'Posición X:';
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.min = '0';
+    xInput.max = currentMapData.layers.base[0].length - 1;
+    xInput.value = '5';
+    xInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Y position
+    const yLabel = document.createElement('label');
+    yLabel.textContent = 'Posición Y:';
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.min = '0';
+    yInput.max = currentMapData.layers.base.length - 1;
+    yInput.value = '5';
+    yInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Level
+    const levelLabel = document.createElement('label');
+    levelLabel.textContent = 'Nivel:';
+    const levelInput = document.createElement('input');
+    levelInput.type = 'number';
+    levelInput.min = '1';
+    levelInput.max = '100';
+    levelInput.value = '5';
+    levelInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    paramsContainer.appendChild(xLabel);
+    paramsContainer.appendChild(xInput);
+    paramsContainer.appendChild(yLabel);
+    paramsContainer.appendChild(yInput);
+    paramsContainer.appendChild(levelLabel);
+    paramsContainer.appendChild(levelInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir Enemigo';
+    addBtn.style.background = '#dc2626';
+    addBtn.addEventListener('click', () => {
+        const enemyType = typeSelect.value;
+        const x = parseInt(xInput.value);
+        const y = parseInt(yInput.value);
+        const level = parseInt(levelInput.value);
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length &&
+            level > 0) {
+            addSpecificEnemy(enemyType, x, y, level);
+            document.body.removeChild(modal);
+        } else {
+            alert('Posición fuera de los límites del mapa o nivel inválido');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(addBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(typeLabel);
+    dialog.appendChild(typeSelect);
+    dialog.appendChild(paramsContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Add enemy spawn type to the map
+ * @param {string} enemyType - Enemy type
+ * @param {number} count - Number of enemies to spawn
+ * @param {number} minLevel - Minimum level
+ * @param {number} maxLevel - Maximum level
+ */
+function addEnemySpawn(enemyType, count, minLevel, maxLevel) {
+    // Initialize enemies object if it doesn't exist
+    if (!currentMapData.enemies) {
+        currentMapData.enemies = {
+            enabled: true,
+            types: [],
+            spawnAreas: "field",
+            respawnTime: 300000
+        };
+    }
+
+    // Ensure types array exists
+    if (!currentMapData.enemies.types) {
+        currentMapData.enemies.types = [];
+    }
+
+    const spawnType = {
+        type: enemyType,
+        count: count,
+        minLevel: minLevel,
+        maxLevel: maxLevel
+    };
+
+    currentMapData.enemies.types.push(spawnType);
+    updateEnemyList();
+    renderEditor();
+
+    console.log(`Spawn type añadido: ${count}x ${enemyType} (lvl ${minLevel}-${maxLevel})`);
+}
+
+/**
+ * Add specific enemy to the map
+ * @param {string} enemyType - Enemy type
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ * @param {number} level - Enemy level
+ */
+function addSpecificEnemy(enemyType, x, y, level) {
+    // Initialize enemies object if it doesn't exist
+    if (!currentMapData.enemies) {
+        currentMapData.enemies = {
+            enabled: true,
+            types: [],
+            spawnAreas: "field",
+            respawnTime: 300000
+        };
+    }
+
+    // Ensure types array exists
+    if (!currentMapData.enemies.types) {
+        currentMapData.enemies.types = [];
+    }
+
+    const specificEnemy = {
+        type: enemyType,
+        x: x,
+        y: y,
+        level: level
+    };
+
+    currentMapData.enemies.types.push(specificEnemy);
+    updateEnemyList();
+    renderEditor();
+
+    console.log(`Enemigo específico añadido: ${enemyType} en (${x}, ${y}) nivel ${level}`);
+}
+
+/**
+ * Update the enemy list display
+ */
+function updateEnemyList() {
+    const enemyList = document.getElementById('enemyList');
+    if (!enemyList) return;
+
+    enemyList.innerHTML = '';
+
+    if (!currentMapData.enemies || !currentMapData.enemies.types || currentMapData.enemies.types.length === 0) {
+        enemyList.textContent = 'No hay enemigos configurados';
+        return;
+    }
+
+    currentMapData.enemies.types.forEach((enemy, index) => {
+        const enemyItem = document.createElement('div');
+        enemyItem.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 5px;
+            margin: 2px 0;
+            background: #7f1d1d;
+            border-radius: 3px;
+            font-size: 10px;
+        `;
+
+        let enemyInfo;
+        if (enemy.x !== undefined && enemy.y !== undefined) {
+            // Specific enemy
+            enemyInfo = document.createElement('span');
+            enemyInfo.textContent = `${enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1)} (${enemy.x},${enemy.y}) Lvl:${enemy.level}`;
+        } else {
+            // Spawn type
+            enemyInfo = document.createElement('span');
+            enemyInfo.textContent = `${enemy.count}x ${enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1)} (Lvl:${enemy.minLevel}-${enemy.maxLevel})`;
+        }
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '❌';
+        removeBtn.title = 'Eliminar enemigo';
+        removeBtn.style.cssText = `
+            background: #c00;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        removeBtn.addEventListener('click', () => {
+            currentMapData.enemies.types.splice(index, 1);
+            updateEnemyList();
+            renderEditor();
+        });
+
+        enemyItem.appendChild(enemyInfo);
+        enemyItem.appendChild(removeBtn);
+        enemyList.appendChild(enemyItem);
     });
 }
 
