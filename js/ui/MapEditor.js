@@ -55,6 +55,11 @@ const LAYERS = {
     windows: { name: 'Ventanas', visible: true, opacity: 1.0 }
 };
 
+// Entity layer visibility
+let showNPCs = true;
+let showEnemies = true;
+let showPortals = true;
+
 /**
  * Initialize the map editor
  */
@@ -371,9 +376,61 @@ function createMapEditorUI() {
         visibilityControls.appendChild(toggle);
     });
 
+    // Entity layer visibility toggles
+    const entityControls = document.createElement('div');
+    entityControls.style.display = 'flex';
+    entityControls.style.gap = '2px';
+    entityControls.style.marginLeft = '10px';
+
+    // NPCs toggle
+    const npcToggle = document.createElement('button');
+    npcToggle.textContent = '👥';
+    npcToggle.title = 'Toggle NPCs visibility';
+    npcToggle.style.fontSize = '10px';
+    npcToggle.style.padding = '2px 4px';
+    npcToggle.style.minWidth = '20px';
+    npcToggle.style.background = showNPCs ? '#4a5568' : '#2d3748';
+    npcToggle.addEventListener('click', () => {
+        showNPCs = !showNPCs;
+        npcToggle.style.background = showNPCs ? '#4a5568' : '#2d3748';
+        renderEditor();
+    });
+    entityControls.appendChild(npcToggle);
+
+    // Portals toggle
+    const portalToggle = document.createElement('button');
+    portalToggle.textContent = '🏞️';
+    portalToggle.title = 'Toggle Portals visibility';
+    portalToggle.style.fontSize = '10px';
+    portalToggle.style.padding = '2px 4px';
+    portalToggle.style.minWidth = '20px';
+    portalToggle.style.background = showPortals ? '#4a5568' : '#2d3748';
+    portalToggle.addEventListener('click', () => {
+        showPortals = !showPortals;
+        portalToggle.style.background = showPortals ? '#4a5568' : '#2d3748';
+        renderEditor();
+    });
+    entityControls.appendChild(portalToggle);
+
+    // Enemies toggle
+    const enemyToggle = document.createElement('button');
+    enemyToggle.textContent = '👹';
+    enemyToggle.title = 'Toggle Enemies visibility';
+    enemyToggle.style.fontSize = '10px';
+    enemyToggle.style.padding = '2px 4px';
+    enemyToggle.style.minWidth = '20px';
+    enemyToggle.style.background = showEnemies ? '#4a5568' : '#2d3748';
+    enemyToggle.addEventListener('click', () => {
+        showEnemies = !showEnemies;
+        enemyToggle.style.background = showEnemies ? '#4a5568' : '#2d3748';
+        renderEditor();
+    });
+    entityControls.appendChild(enemyToggle);
+
     layerControls.appendChild(layerLabel);
     layerControls.appendChild(layerSelect);
     layerControls.appendChild(visibilityControls);
+    layerControls.appendChild(entityControls);
 
     // Tool selector
     const toolSelect = document.createElement('select');
@@ -806,8 +863,8 @@ function renderEditor() {
         editorCtx.strokeRect(0, 0, mapWidth * TILE_SIZE, mapHeight * TILE_SIZE);
     }
 
-    // Render NPCs
-    if (currentMapData.npcs) {
+    // Render NPCs (if visibility is enabled)
+    if (showNPCs && currentMapData.npcs) {
         currentMapData.npcs.forEach(npc => {
             const npcDefinition = NPC_DEFINITIONS[npc.type];
             if (npcDefinition && npcSprites[npcDefinition.sprite]) {
@@ -833,8 +890,8 @@ function renderEditor() {
         });
     }
 
-    // Render portals
-    if (currentMapData.portals) {
+    // Render portals (if visibility is enabled)
+    if (showPortals && currentMapData.portals) {
         currentMapData.portals.forEach(portal => {
             // Draw portal circle
             editorCtx.fillStyle = 'rgba(59, 130, 246, 0.7)'; // Blue with transparency
@@ -883,8 +940,8 @@ function renderEditor() {
         });
     }
 
-    // Render enemies (only specific enemies with fixed positions)
-    if (currentMapData.enemies && currentMapData.enemies.types) {
+    // Render enemies (if visibility is enabled and only specific enemies with fixed positions)
+    if (showEnemies && currentMapData.enemies && currentMapData.enemies.types) {
         currentMapData.enemies.types.forEach(enemy => {
             // Only render enemies with specific positions (x, y coordinates)
             if (enemy.x !== undefined && enemy.y !== undefined) {
