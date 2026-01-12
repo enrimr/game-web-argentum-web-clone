@@ -1625,6 +1625,26 @@ function updateNpcList() {
         const npcInfo = document.createElement('span');
         npcInfo.textContent = `${npc.name} (${npc.x},${npc.y})`;
 
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 2px;
+        `;
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️';
+        editBtn.title = 'Editar NPC';
+        editBtn.style.cssText = `
+            background: #4a5568;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        editBtn.addEventListener('click', () => showEditNpcDialog(index));
+
         const removeBtn = document.createElement('button');
         removeBtn.textContent = '❌';
         removeBtn.title = 'Eliminar NPC';
@@ -1643,8 +1663,10 @@ function updateNpcList() {
             renderEditor();
         });
 
+        buttonContainer.appendChild(editBtn);
+        buttonContainer.appendChild(removeBtn);
         npcItem.appendChild(npcInfo);
-        npcItem.appendChild(removeBtn);
+        npcItem.appendChild(buttonContainer);
         npcList.appendChild(npcItem);
     });
 }
@@ -1901,6 +1923,26 @@ function updatePortalList() {
         const displayName = mapDef ? mapDef.name.split(' ')[1] || portal.targetMap : portal.targetMap;
         portalInfo.textContent = `${displayName} (${portal.x},${portal.y})`;
 
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 2px;
+        `;
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️';
+        editBtn.title = 'Editar portal';
+        editBtn.style.cssText = `
+            background: #4a5568;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        editBtn.addEventListener('click', () => showEditPortalDialog(index));
+
         const removeBtn = document.createElement('button');
         removeBtn.textContent = '❌';
         removeBtn.title = 'Eliminar portal';
@@ -1919,8 +1961,10 @@ function updatePortalList() {
             renderEditor();
         });
 
+        buttonContainer.appendChild(editBtn);
+        buttonContainer.appendChild(removeBtn);
         portalItem.appendChild(portalInfo);
-        portalItem.appendChild(removeBtn);
+        portalItem.appendChild(buttonContainer);
         portalList.appendChild(portalItem);
     });
 }
@@ -2365,6 +2409,31 @@ function updateEnemyList() {
             enemyInfo.textContent = `${enemy.count}x ${enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1)} (Lvl:${enemy.minLevel}-${enemy.maxLevel})`;
         }
 
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 2px;
+        `;
+
+        // Only show edit button for specific enemies (not spawn types)
+        if (enemy.x !== undefined && enemy.y !== undefined) {
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '✏️';
+            editBtn.title = 'Editar enemigo';
+            editBtn.style.cssText = `
+                background: #4a5568;
+                border: none;
+                color: white;
+                cursor: pointer;
+                padding: 2px 4px;
+                border-radius: 2px;
+                font-size: 8px;
+            `;
+            editBtn.addEventListener('click', () => showEditSpecificEnemyDialog(index));
+
+            buttonContainer.appendChild(editBtn);
+        }
+
         const removeBtn = document.createElement('button');
         removeBtn.textContent = '❌';
         removeBtn.title = 'Eliminar enemigo';
@@ -2383,8 +2452,9 @@ function updateEnemyList() {
             renderEditor();
         });
 
+        buttonContainer.appendChild(removeBtn);
         enemyItem.appendChild(enemyInfo);
-        enemyItem.appendChild(removeBtn);
+        enemyItem.appendChild(buttonContainer);
         enemyList.appendChild(enemyItem);
     });
 }
@@ -2873,6 +2943,26 @@ function updateTreasureList() {
         const treasureInfo = document.createElement('span');
         treasureInfo.textContent = `Cofre (${treasure.x},${treasure.y}) - ${contentCount} items`;
 
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 2px;
+        `;
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️';
+        editBtn.title = 'Editar cofre';
+        editBtn.style.cssText = `
+            background: #4a5568;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        editBtn.addEventListener('click', () => showEditTreasureDialog(index));
+
         const removeBtn = document.createElement('button');
         removeBtn.textContent = '❌';
         removeBtn.title = 'Eliminar cofre';
@@ -2891,10 +2981,731 @@ function updateTreasureList() {
             renderEditor();
         });
 
+        buttonContainer.appendChild(editBtn);
+        buttonContainer.appendChild(removeBtn);
         treasureItem.appendChild(treasureInfo);
-        treasureItem.appendChild(removeBtn);
+        treasureItem.appendChild(buttonContainer);
         treasureList.appendChild(treasureItem);
     });
+}
+
+/**
+ * Show dialog to edit existing NPC
+ */
+function showEditNpcDialog(index) {
+    const npc = currentMapData.npcs[index];
+    if (!npc) return;
+
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 400px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '✏️ Editar NPC';
+    title.style.margin = '0 0 15px 0';
+
+    // NPC Type selector
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = 'Tipo de NPC:';
+    typeLabel.style.display = 'block';
+    typeLabel.style.marginBottom = '5px';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(NPC_DEFINITIONS).forEach(npcType => {
+        const option = document.createElement('option');
+        option.value = npcType;
+        option.textContent = `${NPC_DEFINITIONS[npcType].name} (${npcType})`;
+        if (npcType === npc.type) option.selected = true;
+        typeSelect.appendChild(option);
+    });
+
+    // Position inputs
+    const posContainer = document.createElement('div');
+    posContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    const xLabel = document.createElement('label');
+    xLabel.textContent = 'X:';
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.min = '0';
+    xInput.max = currentMapData.layers.base[0].length - 1;
+    xInput.value = npc.x;
+    xInput.style.cssText = `
+        width: 60px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const yLabel = document.createElement('label');
+    yLabel.textContent = 'Y:';
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.min = '0';
+    yInput.max = currentMapData.layers.base.length - 1;
+    yInput.value = npc.y;
+    yInput.style.cssText = `
+        width: 60px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    posContainer.appendChild(xLabel);
+    posContainer.appendChild(xInput);
+    posContainer.appendChild(yLabel);
+    posContainer.appendChild(yInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Guardar Cambios';
+    saveBtn.style.background = '#4a5568';
+    saveBtn.addEventListener('click', () => {
+        const npcType = typeSelect.value;
+        const x = parseInt(xInput.value);
+        const y = parseInt(yInput.value);
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length) {
+            // Update existing NPC
+            const npcDefinition = NPC_DEFINITIONS[npcType];
+            if (npcDefinition) {
+                currentMapData.npcs[index] = {
+                    type: npcType,
+                    x: x,
+                    y: y,
+                    name: npcDefinition.name
+                };
+                updateNpcList();
+                renderEditor();
+                document.body.removeChild(modal);
+            }
+        } else {
+            alert('Posición fuera de los límites del mapa');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(typeLabel);
+    dialog.appendChild(typeSelect);
+    dialog.appendChild(posContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Show dialog to edit existing portal
+ */
+function showEditPortalDialog(index) {
+    const portal = currentMapData.portals[index];
+    if (!portal) return;
+
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 450px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '✏️ Editar Portal';
+    title.style.margin = '0 0 15px 0';
+
+    // Target map selector
+    const mapLabel = document.createElement('label');
+    mapLabel.textContent = 'Mapa destino:';
+    mapLabel.style.display = 'block';
+    mapLabel.style.marginBottom = '5px';
+
+    const mapSelect = document.createElement('select');
+    mapSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(MAP_DEFINITIONS).forEach(mapKey => {
+        const mapDef = MAP_DEFINITIONS[mapKey];
+        const option = document.createElement('option');
+        option.value = mapKey;
+        option.textContent = mapDef.name;
+        if (mapKey === portal.targetMap) option.selected = true;
+        mapSelect.appendChild(option);
+    });
+
+    // Portal position inputs
+    const portalPosContainer = document.createElement('div');
+    portalPosContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    const portalXLabel = document.createElement('label');
+    portalXLabel.textContent = 'Portal X:';
+    const portalXInput = document.createElement('input');
+    portalXInput.type = 'number';
+    portalXInput.min = '0';
+    portalXInput.max = currentMapData.layers.base[0].length - 1;
+    portalXInput.value = portal.x;
+    portalXInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const portalYLabel = document.createElement('label');
+    portalYLabel.textContent = 'Portal Y:';
+    const portalYInput = document.createElement('input');
+    portalYInput.type = 'number';
+    portalYInput.min = '0';
+    portalYInput.max = currentMapData.layers.base.length - 1;
+    portalYInput.value = portal.y;
+    portalYInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    portalPosContainer.appendChild(portalXLabel);
+    portalPosContainer.appendChild(portalXInput);
+    portalPosContainer.appendChild(portalYLabel);
+    portalPosContainer.appendChild(portalYInput);
+
+    // Target position inputs (optional)
+    const targetPosContainer = document.createElement('div');
+    targetPosContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        align-items: center;
+    `;
+
+    const targetLabel = document.createElement('span');
+    targetLabel.textContent = 'Posición destino (opcional):';
+    targetLabel.style.fontSize = '12px';
+    targetLabel.style.marginRight = '10px';
+
+    const targetXLabel = document.createElement('label');
+    targetXLabel.textContent = 'Destino X:';
+    const targetXInput = document.createElement('input');
+    targetXInput.type = 'number';
+    targetXInput.placeholder = 'auto';
+    targetXInput.value = portal.targetX || '';
+    targetXInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const targetYLabel = document.createElement('label');
+    targetYLabel.textContent = 'Destino Y:';
+    const targetYInput = document.createElement('input');
+    targetYInput.type = 'number';
+    targetYInput.placeholder = 'auto';
+    targetYInput.value = portal.targetY || '';
+    targetYInput.style.cssText = `
+        width: 70px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    targetPosContainer.appendChild(targetLabel);
+    targetPosContainer.appendChild(targetXLabel);
+    targetPosContainer.appendChild(targetXInput);
+    targetPosContainer.appendChild(targetYLabel);
+    targetPosContainer.appendChild(targetYInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Guardar Cambios';
+    saveBtn.style.background = '#3b82f6';
+    saveBtn.addEventListener('click', () => {
+        const targetMap = mapSelect.value;
+        const x = parseInt(portalXInput.value);
+        const y = parseInt(portalYInput.value);
+        const targetX = targetXInput.value ? parseInt(targetXInput.value) : undefined;
+        const targetY = targetYInput.value ? parseInt(targetYInput.value) : undefined;
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length) {
+            // Update existing portal
+            const mapDef = MAP_DEFINITIONS[targetMap];
+            if (mapDef) {
+                currentMapData.portals[index] = {
+                    x: x,
+                    y: y,
+                    targetMap: targetMap,
+                    targetX: targetX,
+                    targetY: targetY,
+                    name: mapDef.name.split(' ')[1] || targetMap
+                };
+                updatePortalList();
+                renderEditor();
+                document.body.removeChild(modal);
+            }
+        } else {
+            alert('Posición del portal fuera de los límites del mapa');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(mapLabel);
+    dialog.appendChild(mapSelect);
+    dialog.appendChild(portalPosContainer);
+    dialog.appendChild(targetPosContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Show dialog to edit existing treasure chest
+ */
+function showEditTreasureDialog(index) {
+    const treasure = currentMapData.treasures[index];
+    if (!treasure) return;
+
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 500px;
+        max-width: 600px;
+        color: white;
+        font-family: monospace;
+        max-height: 80vh;
+        overflow-y: auto;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '✏️ Editar Cofre con Tesoro';
+    title.style.margin = '0 0 15px 0';
+
+    // Chest position inputs
+    const posContainer = document.createElement('div');
+    posContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    const xLabel = document.createElement('label');
+    xLabel.textContent = 'Posición X:';
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.min = '0';
+    xInput.max = currentMapData.layers.base[0].length - 1;
+    xInput.value = treasure.x;
+    xInput.style.cssText = `
+        width: 80px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const yLabel = document.createElement('label');
+    yLabel.textContent = 'Posición Y:';
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.min = '0';
+    yInput.max = currentMapData.layers.base.length - 1;
+    yInput.value = treasure.y;
+    yInput.style.cssText = `
+        width: 80px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    posContainer.appendChild(xLabel);
+    posContainer.appendChild(xInput);
+    posContainer.appendChild(yLabel);
+    posContainer.appendChild(yInput);
+
+    // Treasure contents
+    const contentsLabel = document.createElement('label');
+    contentsLabel.textContent = 'Contenido del cofre:';
+    contentsLabel.style.display = 'block';
+    contentsLabel.style.marginBottom = '10px';
+
+    const contentsList = document.createElement('div');
+    contentsList.id = 'editTreasureContents';
+    contentsList.style.cssText = `
+        border: 1px solid #555;
+        background: #111;
+        padding: 10px;
+        margin-bottom: 15px;
+        min-height: 100px;
+        max-height: 200px;
+        overflow-y: auto;
+    `;
+
+    // Pre-populate with existing contents
+    if (treasure.contents && treasure.contents.length > 0) {
+        treasure.contents.forEach(content => {
+            addItemToTreasure(contentsList, content.type, content.id || content.type, content.quantity);
+        });
+    } else {
+        contentsList.textContent = 'No hay items añadidos';
+    }
+
+    const addItemBtn = document.createElement('button');
+    addItemBtn.textContent = '+ Añadir Item';
+    addItemBtn.style.cssText = `
+        margin-bottom: 15px;
+        background: #fbbf24;
+        color: #000;
+    `;
+    addItemBtn.addEventListener('click', () => showAddItemDialog(contentsList));
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Guardar Cambios';
+    saveBtn.style.background = '#fbbf24';
+    saveBtn.style.color = '#000';
+    saveBtn.addEventListener('click', () => {
+        const x = parseInt(xInput.value);
+        const y = parseInt(yInput.value);
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length) {
+            // Get contents from the contents list
+            const contents = getTreasureContents(contentsList);
+
+            // Update existing treasure
+            currentMapData.treasures[index] = {
+                x: x,
+                y: y,
+                type: 'chest',
+                contents: contents
+            };
+
+            updateTreasureList();
+            renderEditor();
+            document.body.removeChild(modal);
+        } else {
+            alert('Posición del cofre fuera de los límites del mapa');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(posContainer);
+    dialog.appendChild(contentsLabel);
+    dialog.appendChild(addItemBtn);
+    dialog.appendChild(contentsList);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Show dialog to edit existing specific enemy
+ */
+function showEditSpecificEnemyDialog(index) {
+    const enemy = currentMapData.enemies.types[index];
+    if (!enemy || !enemy.x || !enemy.y) return;
+
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 450px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '✏️ Editar Enemigo Específico';
+    title.style.margin = '0 0 15px 0';
+
+    // Enemy type selector
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = 'Tipo de enemigo:';
+    typeLabel.style.display = 'block';
+    typeLabel.style.marginBottom = '5px';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    Object.keys(ENEMY_STATS).forEach(enemyType => {
+        const option = document.createElement('option');
+        option.value = enemyType;
+        option.textContent = `${enemyType.charAt(0).toUpperCase() + enemyType.slice(1)} (HP: ${ENEMY_STATS[enemyType].hp})`;
+        if (enemyType === enemy.type) option.selected = true;
+        typeSelect.appendChild(option);
+    });
+
+    // Position and level inputs
+    const paramsContainer = document.createElement('div');
+    paramsContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    // X position
+    const xLabel = document.createElement('label');
+    xLabel.textContent = 'Posición X:';
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.min = '0';
+    xInput.max = currentMapData.layers.base[0].length - 1;
+    xInput.value = enemy.x;
+    xInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Y position
+    const yLabel = document.createElement('label');
+    yLabel.textContent = 'Posición Y:';
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.min = '0';
+    yInput.max = currentMapData.layers.base.length - 1;
+    yInput.value = enemy.y;
+    yInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Level
+    const levelLabel = document.createElement('label');
+    levelLabel.textContent = 'Nivel:';
+    const levelInput = document.createElement('input');
+    levelInput.type = 'number';
+    levelInput.min = '1';
+    levelInput.max = '100';
+    levelInput.value = enemy.level;
+    levelInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    paramsContainer.appendChild(xLabel);
+    paramsContainer.appendChild(xInput);
+    paramsContainer.appendChild(yLabel);
+    paramsContainer.appendChild(yInput);
+    paramsContainer.appendChild(levelLabel);
+    paramsContainer.appendChild(levelInput);
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Guardar Cambios';
+    saveBtn.style.background = '#dc2626';
+    saveBtn.addEventListener('click', () => {
+        const enemyType = typeSelect.value;
+        const x = parseInt(xInput.value);
+        const y = parseInt(yInput.value);
+        const level = parseInt(levelInput.value);
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length &&
+            level > 0) {
+            // Update existing specific enemy
+            currentMapData.enemies.types[index] = {
+                type: enemyType,
+                x: x,
+                y: y,
+                level: level
+            };
+            updateEnemyList();
+            renderEditor();
+            document.body.removeChild(modal);
+        } else {
+            alert('Posición fuera de los límites del mapa o nivel inválido');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(typeLabel);
+    dialog.appendChild(typeSelect);
+    dialog.appendChild(paramsContainer);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
 }
 
 /**
