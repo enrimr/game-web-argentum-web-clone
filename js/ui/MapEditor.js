@@ -15,6 +15,7 @@ import { generateEnemySprites } from '../graphics/sprites/EnemySprites.js';
 import { NPC_DEFINITIONS } from '../entities/NPCTypes.js';
 import { MAP_DEFINITIONS } from '../world/MapDefinitions.js';
 import { ENEMY_STATS } from '../entities/EnemyTypes.js';
+import { ITEM_TYPES } from '../systems/ItemTypes.js';
 
 // Map Editor variables
 let mapEditorVisible = false;
@@ -59,6 +60,7 @@ const LAYERS = {
 let showNPCs = true;
 let showEnemies = true;
 let showPortals = true;
+let showTreasures = true;
 
 /**
  * Initialize the map editor
@@ -427,6 +429,21 @@ function createMapEditorUI() {
     });
     entityControls.appendChild(enemyToggle);
 
+    // Treasures toggle
+    const treasureToggle = document.createElement('button');
+    treasureToggle.textContent = '💰';
+    treasureToggle.title = 'Toggle Treasures visibility';
+    treasureToggle.style.fontSize = '10px';
+    treasureToggle.style.padding = '2px 4px';
+    treasureToggle.style.minWidth = '20px';
+    treasureToggle.style.background = showTreasures ? '#4a5568' : '#2d3748';
+    treasureToggle.addEventListener('click', () => {
+        showTreasures = !showTreasures;
+        treasureToggle.style.background = showTreasures ? '#4a5568' : '#2d3748';
+        renderEditor();
+    });
+    entityControls.appendChild(treasureToggle);
+
     layerControls.appendChild(layerLabel);
     layerControls.appendChild(layerSelect);
     layerControls.appendChild(visibilityControls);
@@ -702,6 +719,60 @@ function createMapEditorUI() {
     enemySection.appendChild(enemyList);
     enemySection.appendChild(enemyControls);
 
+    // Treasure management section
+    const treasureSection = document.createElement('div');
+    treasureSection.style.cssText = `
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 10px;
+    `;
+
+    const treasureTitle = document.createElement('h3');
+    treasureTitle.textContent = '💰 Tesoros en el Mapa';
+    treasureTitle.style.margin = '0 0 10px 0';
+
+    const treasureList = document.createElement('div');
+    treasureList.id = 'treasureList';
+    treasureList.style.cssText = `
+        flex: 1;
+        overflow: auto;
+        border: 1px solid #555;
+        background: #111;
+        padding: 5px;
+        font-size: 11px;
+    `;
+
+    const treasureControls = document.createElement('div');
+    treasureControls.style.cssText = `
+        margin-top: 10px;
+        display: flex;
+        gap: 5px;
+    `;
+
+    const addTreasureBtn = document.createElement('button');
+    addTreasureBtn.textContent = '+ Cofre';
+    addTreasureBtn.title = 'Añadir cofre con tesoro';
+    addTreasureBtn.addEventListener('click', showAddTreasureDialog);
+
+    const clearTreasuresBtn = document.createElement('button');
+    clearTreasuresBtn.textContent = '🗑️';
+    clearTreasuresBtn.title = 'Eliminar todos los tesoros';
+    clearTreasuresBtn.addEventListener('click', () => {
+        if (confirm('¿Eliminar todos los tesoros del mapa?')) {
+            currentMapData.treasures = [];
+            updateTreasureList();
+            renderEditor();
+        }
+    });
+
+    treasureControls.appendChild(addTreasureBtn);
+    treasureControls.appendChild(clearTreasuresBtn);
+
+    treasureSection.appendChild(treasureTitle);
+    treasureSection.appendChild(treasureList);
+    treasureSection.appendChild(treasureControls);
+
     // Palette section
     const paletteSection = document.createElement('div');
     paletteSection.style.cssText = `
@@ -760,6 +831,7 @@ function createMapEditorUI() {
     updateNpcList();
     updatePortalList();
     updateEnemyList();
+    updateTreasureList();
     renderEditor();
     renderPalette();
 }
@@ -973,6 +1045,39 @@ function renderEditor() {
                     editorCtx.fillText('?', (enemy.x + 0.5) * TILE_SIZE, (enemy.y + 0.5) * TILE_SIZE);
                 }
             }
+        });
+    }
+
+    // Render treasures (if visibility is enabled)
+    if (showTreasures && currentMapData.treasures) {
+        currentMapData.treasures.forEach(treasure => {
+            // Draw treasure chest
+            // Chest body
+            editorCtx.fillStyle = '#92400e'; // Brown
+            editorCtx.fillRect(treasure.x * TILE_SIZE + 2, treasure.y * TILE_SIZE + 8, TILE_SIZE - 4, TILE_SIZE - 12);
+
+            // Chest lid
+            editorCtx.fillStyle = '#a16207'; // Darker brown
+            editorCtx.fillRect(treasure.x * TILE_SIZE + 1, treasure.y * TILE_SIZE + 4, TILE_SIZE - 2, 6);
+
+            // Chest lock (gold)
+            editorCtx.fillStyle = '#fbbf24';
+            editorCtx.fillRect((treasure.x + 0.45) * TILE_SIZE, (treasure.y + 0.35) * TILE_SIZE, 4, 4);
+
+            // Chest shadow
+            editorCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            editorCtx.fillRect(treasure.x * TILE_SIZE + 4, (treasure.y + 1) * TILE_SIZE - 2, TILE_SIZE - 8, 4);
+
+            // Draw treasure name and contents count
+            editorCtx.fillStyle = '#fbbf24';
+            editorCtx.font = `${9 / zoomLevel}px monospace`;
+            editorCtx.textAlign = 'center';
+            editorCtx.strokeStyle = '#000';
+            editorCtx.lineWidth = 1 / zoomLevel;
+            const contentCount = treasure.contents ? treasure.contents.length : 0;
+            const treasureName = `Cofre (${contentCount} items)`;
+            editorCtx.strokeText(treasureName, (treasure.x + 0.5) * TILE_SIZE, treasure.y * TILE_SIZE - 2);
+            editorCtx.fillText(treasureName, (treasure.x + 0.5) * TILE_SIZE, treasure.y * TILE_SIZE - 2);
         });
     }
 
@@ -1267,6 +1372,7 @@ function handleFileLoad(event) {
             updateNpcList();
             updatePortalList();
             updateEnemyList();
+            updateTreasureList();
             renderEditor();
             renderPalette();
         } catch (error) {
@@ -2283,6 +2389,514 @@ function updateEnemyList() {
 }
 
 /**
+ * Show dialog to add treasure chest
+ */
+function showAddTreasureDialog() {
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 500px;
+        max-width: 600px;
+        color: white;
+        font-family: monospace;
+        max-height: 80vh;
+        overflow-y: auto;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = '💰 Añadir Cofre con Tesoro';
+    title.style.margin = '0 0 15px 0';
+
+    // Chest position inputs
+    const posContainer = document.createElement('div');
+    posContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    `;
+
+    const xLabel = document.createElement('label');
+    xLabel.textContent = 'Posición X:';
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.min = '0';
+    xInput.max = currentMapData.layers.base[0].length - 1;
+    xInput.value = '5';
+    xInput.style.cssText = `
+        width: 80px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    const yLabel = document.createElement('label');
+    yLabel.textContent = 'Posición Y:';
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.min = '0';
+    yInput.max = currentMapData.layers.base.length - 1;
+    yInput.value = '5';
+    yInput.style.cssText = `
+        width: 80px;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    posContainer.appendChild(xLabel);
+    posContainer.appendChild(xInput);
+    posContainer.appendChild(yLabel);
+    posContainer.appendChild(yInput);
+
+    // Treasure contents
+    const contentsLabel = document.createElement('label');
+    contentsLabel.textContent = 'Contenido del cofre:';
+    contentsLabel.style.display = 'block';
+    contentsLabel.style.marginBottom = '10px';
+
+    const contentsList = document.createElement('div');
+    contentsList.id = 'treasureContents';
+    contentsList.style.cssText = `
+        border: 1px solid #555;
+        background: #111;
+        padding: 10px;
+        margin-bottom: 15px;
+        min-height: 100px;
+        max-height: 200px;
+        overflow-y: auto;
+    `;
+    contentsList.textContent = 'No hay items añadidos';
+
+    const addItemBtn = document.createElement('button');
+    addItemBtn.textContent = '+ Añadir Item';
+    addItemBtn.style.cssText = `
+        margin-bottom: 15px;
+        background: #fbbf24;
+        color: #000;
+    `;
+    addItemBtn.addEventListener('click', () => showAddItemDialog(contentsList));
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir Cofre';
+    addBtn.style.background = '#fbbf24';
+    addBtn.style.color = '#000';
+    addBtn.addEventListener('click', () => {
+        const x = parseInt(xInput.value);
+        const y = parseInt(yInput.value);
+
+        if (x >= 0 && x < currentMapData.layers.base[0].length &&
+            y >= 0 && y < currentMapData.layers.base.length) {
+            // Get contents from the contents list
+            const contents = getTreasureContents(contentsList);
+            addTreasure(x, y, contents);
+            document.body.removeChild(modal);
+        } else {
+            alert('Posición del cofre fuera de los límites del mapa');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(addBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(posContainer);
+    dialog.appendChild(contentsLabel);
+    dialog.appendChild(addItemBtn);
+    dialog.appendChild(contentsList);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Show dialog to add item to treasure
+ */
+function showAddItemDialog(contentsList) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3100;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: #333;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #555;
+        min-width: 400px;
+        color: white;
+        font-family: monospace;
+    `;
+
+    const title = document.createElement('h4');
+    title.textContent = '📦 Añadir Item al Cofre';
+    title.style.margin = '0 0 15px 0';
+
+    // Item type selector
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = 'Tipo de item:';
+    typeLabel.style.display = 'block';
+    typeLabel.style.marginBottom = '5px';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Add item types
+    const itemTypes = [
+        { value: 'weapon', label: '⚔️ Arma' },
+        { value: 'armor', label: '🛡️ Armadura' },
+        { value: 'consumable', label: '🧪 Consumible' },
+        { value: 'gold', label: '💰 Oro' }
+    ];
+
+    itemTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.value;
+        option.textContent = type.label;
+        typeSelect.appendChild(option);
+    });
+
+    // Item selector (dynamically populated)
+    const itemLabel = document.createElement('label');
+    itemLabel.textContent = 'Item específico:';
+    itemLabel.style.display = 'block';
+    itemLabel.style.marginBottom = '5px';
+
+    const itemSelect = document.createElement('select');
+    itemSelect.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Quantity input
+    const quantityLabel = document.createElement('label');
+    quantityLabel.textContent = 'Cantidad:';
+    quantityLabel.style.display = 'block';
+    quantityLabel.style.marginBottom = '5px';
+
+    const quantityInput = document.createElement('input');
+    quantityInput.type = 'number';
+    quantityInput.min = '1';
+    quantityInput.max = '1000';
+    quantityInput.value = '1';
+    quantityInput.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #555;
+    `;
+
+    // Update item selector when type changes
+    typeSelect.addEventListener('change', () => {
+        updateItemSelector(itemSelect, typeSelect.value);
+    });
+
+    // Initialize with weapon items
+    updateItemSelector(itemSelect, 'weapon');
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', () => document.body.removeChild(modal));
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir Item';
+    addBtn.style.background = '#4a5568';
+    addBtn.addEventListener('click', () => {
+        const itemType = typeSelect.value;
+        const itemId = itemSelect.value;
+        const quantity = parseInt(quantityInput.value);
+
+        if (quantity > 0) {
+            addItemToTreasure(contentsList, itemType, itemId, quantity);
+            document.body.removeChild(modal);
+        } else {
+            alert('Cantidad inválida');
+        }
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(addBtn);
+
+    dialog.appendChild(title);
+    dialog.appendChild(typeLabel);
+    dialog.appendChild(typeSelect);
+    dialog.appendChild(itemLabel);
+    dialog.appendChild(itemSelect);
+    dialog.appendChild(quantityLabel);
+    dialog.appendChild(quantityInput);
+    dialog.appendChild(buttonContainer);
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Update item selector based on type
+ */
+function updateItemSelector(itemSelect, type) {
+    itemSelect.innerHTML = '';
+
+    if (type === 'gold') {
+        const option = document.createElement('option');
+        option.value = 'gold';
+        option.textContent = '💰 Oro';
+        itemSelect.appendChild(option);
+        return;
+    }
+
+    Object.keys(ITEM_TYPES).forEach(itemKey => {
+        const item = ITEM_TYPES[itemKey];
+        if (item.type === type) {
+            const option = document.createElement('option');
+            option.value = itemKey;
+            option.textContent = `${item.icon} ${item.name}`;
+            itemSelect.appendChild(option);
+        }
+    });
+}
+
+/**
+ * Add item to treasure contents list
+ */
+function addItemToTreasure(contentsList, itemType, itemId, quantity) {
+    const itemDiv = document.createElement('div');
+    itemDiv.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px 5px;
+        margin: 2px 0;
+        background: #444;
+        border-radius: 3px;
+        font-size: 10px;
+    `;
+
+    let itemName = '';
+    if (itemType === 'gold') {
+        itemName = '💰 Oro';
+    } else {
+        const item = ITEM_TYPES[itemId];
+        itemName = item ? `${item.icon} ${item.name}` : itemId;
+    }
+
+    const itemInfo = document.createElement('span');
+    itemInfo.textContent = `${itemName} x${quantity}`;
+
+    // Store data for later retrieval
+    itemDiv.dataset.itemType = itemType;
+    itemDiv.dataset.itemId = itemId;
+    itemDiv.dataset.quantity = quantity;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '❌';
+    removeBtn.title = 'Eliminar item';
+    removeBtn.style.cssText = `
+        background: #c00;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 2px;
+        font-size: 8px;
+    `;
+    removeBtn.addEventListener('click', () => {
+        contentsList.removeChild(itemDiv);
+        updateTreasureContentsDisplay(contentsList);
+    });
+
+    itemDiv.appendChild(itemInfo);
+    itemDiv.appendChild(removeBtn);
+    contentsList.appendChild(itemDiv);
+
+    updateTreasureContentsDisplay(contentsList);
+}
+
+/**
+ * Update treasure contents display
+ */
+function updateTreasureContentsDisplay(contentsList) {
+    const items = contentsList.querySelectorAll('div[data-item-type]');
+    if (items.length === 0) {
+        contentsList.textContent = 'No hay items añadidos';
+    } else {
+        // Clear any text content and keep only item divs
+        const textNodes = Array.from(contentsList.childNodes).filter(node =>
+            node.nodeType === Node.TEXT_NODE
+        );
+        textNodes.forEach(node => contentsList.removeChild(node));
+    }
+}
+
+/**
+ * Get treasure contents from the contents list
+ */
+function getTreasureContents(contentsList) {
+    const contents = [];
+    const items = contentsList.querySelectorAll('div[data-item-type]');
+
+    items.forEach(item => {
+        const itemType = item.dataset.itemType;
+        const itemId = item.dataset.itemId;
+        const quantity = parseInt(item.dataset.quantity);
+
+        if (itemType === 'gold') {
+            contents.push({
+                type: 'gold',
+                quantity: quantity
+            });
+        } else {
+            contents.push({
+                type: itemType,
+                id: itemId,
+                quantity: quantity
+            });
+        }
+    });
+
+    return contents;
+}
+
+/**
+ * Add treasure chest to the map
+ */
+function addTreasure(x, y, contents) {
+    // Initialize treasures array if it doesn't exist
+    if (!currentMapData.treasures) {
+        currentMapData.treasures = [];
+    }
+
+    const treasure = {
+        x: x,
+        y: y,
+        type: 'chest',
+        contents: contents
+    };
+
+    currentMapData.treasures.push(treasure);
+    updateTreasureList();
+    renderEditor();
+
+    console.log(`Cofre añadido en (${x}, ${y}) con ${contents.length} items`);
+}
+
+/**
+ * Update the treasure list display
+ */
+function updateTreasureList() {
+    const treasureList = document.getElementById('treasureList');
+    if (!treasureList) return;
+
+    treasureList.innerHTML = '';
+
+    if (!currentMapData.treasures || currentMapData.treasures.length === 0) {
+        treasureList.textContent = 'No hay tesoros en el mapa';
+        return;
+    }
+
+    currentMapData.treasures.forEach((treasure, index) => {
+        const treasureItem = document.createElement('div');
+        treasureItem.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 5px;
+            margin: 2px 0;
+            background: #92400e;
+            border-radius: 3px;
+            font-size: 10px;
+        `;
+
+        const contentCount = treasure.contents ? treasure.contents.length : 0;
+        const treasureInfo = document.createElement('span');
+        treasureInfo.textContent = `Cofre (${treasure.x},${treasure.y}) - ${contentCount} items`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '❌';
+        removeBtn.title = 'Eliminar cofre';
+        removeBtn.style.cssText = `
+            background: #c00;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
+        `;
+        removeBtn.addEventListener('click', () => {
+            currentMapData.treasures.splice(index, 1);
+            updateTreasureList();
+            renderEditor();
+        });
+
+        treasureItem.appendChild(treasureInfo);
+        treasureItem.appendChild(removeBtn);
+        treasureList.appendChild(treasureItem);
+    });
+}
+
+/**
  * Check if map editor is visible
  */
 export function isMapEditorVisible() {
@@ -2290,4 +2904,4 @@ export function isMapEditorVisible() {
 }
 
 // Initialize when module loads
-initMapEditor();initMapEditor();
+initMapEditor();
