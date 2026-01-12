@@ -883,11 +883,11 @@ function renderEditor() {
         });
     }
 
-    // Render enemies
+    // Render enemies (only specific enemies with fixed positions)
     if (currentMapData.enemies && currentMapData.enemies.types) {
         currentMapData.enemies.types.forEach(enemy => {
+            // Only render enemies with specific positions (x, y coordinates)
             if (enemy.x !== undefined && enemy.y !== undefined) {
-                // Specific enemy with position
                 const enemySprite = enemySprites[enemy.type];
                 if (enemySprite) {
                     // Draw enemy shadow
@@ -906,16 +906,15 @@ function renderEditor() {
                     const enemyName = `${enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1)} L${enemy.level}`;
                     editorCtx.strokeText(enemyName, (enemy.x + 0.5) * TILE_SIZE, enemy.y * TILE_SIZE - 3);
                     editorCtx.fillText(enemyName, (enemy.x + 0.5) * TILE_SIZE, enemy.y * TILE_SIZE - 3);
+                } else {
+                    // Fallback: draw a red square if sprite not found
+                    editorCtx.fillStyle = '#dc2626';
+                    editorCtx.fillRect(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    editorCtx.fillStyle = '#fff';
+                    editorCtx.font = `${8 / zoomLevel}px monospace`;
+                    editorCtx.textAlign = 'center';
+                    editorCtx.fillText('?', (enemy.x + 0.5) * TILE_SIZE, (enemy.y + 0.5) * TILE_SIZE);
                 }
-            } else {
-                // Spawn type - draw a red indicator in the corner of the map
-                editorCtx.fillStyle = 'rgba(220, 38, 38, 0.8)'; // Red with transparency
-                editorCtx.fillRect(mapWidth * TILE_SIZE - 20, 10, 10, 10);
-
-                editorCtx.fillStyle = '#fff';
-                editorCtx.font = `${8 / zoomLevel}px monospace`;
-                editorCtx.textAlign = 'right';
-                editorCtx.fillText(`${enemy.count}x ${enemy.type}`, mapWidth * TILE_SIZE - 25, 18);
             }
         });
     }
@@ -2234,4 +2233,4 @@ export function isMapEditorVisible() {
 }
 
 // Initialize when module loads
-initMapEditor();
+initMapEditor();initMapEditor();
