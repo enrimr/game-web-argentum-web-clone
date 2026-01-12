@@ -812,6 +812,7 @@ function createMapEditorUI() {
     sidebar.appendChild(npcSection);
     sidebar.appendChild(portalSection);
     sidebar.appendChild(enemySection);
+    sidebar.appendChild(treasureSection);
     sidebar.appendChild(paletteSection);
 
     content.appendChild(editorArea);
