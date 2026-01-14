@@ -14,17 +14,48 @@ import { getCurrentMapData } from './MapEditorCore.js';
 export function createConnectionsSection() {
     const section = document.createElement('div');
     section.style.cssText = `
-        margin-bottom: 15px;
-        padding: 10px;
+        margin-bottom: 10px;
         background: #2d3748;
         border-radius: 5px;
     `;
 
+    // Collapsible header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        padding: 8px 10px;
+        background: #1a202c;
+        border-radius: 5px 5px 0 0;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+    `;
+
     const title = document.createElement('h3');
-    title.textContent = '🗺️ Conexiones del Mapa';
-    title.style.margin = '0 0 10px 0';
+    title.textContent = '🗺️ Conexiones';
+    title.style.margin = '0';
     title.style.color = '#fff';
-    title.style.fontSize = '14px';
+    title.style.fontSize = '13px';
+    
+    const toggleIcon = document.createElement('span');
+    toggleIcon.textContent = '▼';
+    toggleIcon.style.cssText = `
+        font-size: 10px;
+        color: #a0aec0;
+        transition: transform 0.2s;
+    `;
+    
+    header.appendChild(title);
+    header.appendChild(toggleIcon);
+    
+    // Collapsible content
+    const content = document.createElement('div');
+    content.id = 'connectionsContent';
+    content.style.cssText = `
+        padding: 10px;
+        display: block;
+    `;
 
     const description = document.createElement('p');
     description.textContent = 'Configura mapas adyacentes para transiciones continuas';
@@ -105,10 +136,21 @@ export function createConnectionsSection() {
     borderControls.appendChild(openBordersBtn);
     borderControls.appendChild(closeBordersBtn);
 
-    section.appendChild(title);
-    section.appendChild(description);
-    section.appendChild(connectionsGrid);
-    section.appendChild(borderControls);
+    // Assemble the content
+    content.appendChild(description);
+    content.appendChild(connectionsGrid);
+    content.appendChild(borderControls);
+
+    // Assemble the section
+    section.appendChild(header);
+    section.appendChild(content);
+    
+    // Add toggle functionality
+    header.addEventListener('click', () => {
+        const isCollapsed = content.style.display === 'none';
+        content.style.display = isCollapsed ? 'block' : 'none';
+        toggleIcon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(-90deg)';
+    });
 
     return section;
 }
