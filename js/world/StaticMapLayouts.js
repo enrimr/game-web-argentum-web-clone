@@ -442,15 +442,18 @@ export function generateNewbieCityWithBuildings() {
     const doorLayer = []; // Capa para las puertas
     const windowLayer = []; // Nueva capa para las ventanas
 
-    // Crear base con paredes
+    // Crear base con paredes (excepto el borde este que conecta con training_fields)
     for (let y = 0; y < MAP_HEIGHT; y++) {
         const row = [];
         const roofRow = [];
         const doorRow = [];
         const windowRow = [];
         for (let x = 0; x < MAP_WIDTH; x++) {
-            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+            // Dejar el borde este (x = MAP_WIDTH - 1) abierto para transición a training_fields
+            if (x === 0 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
+            } else if (x === MAP_WIDTH - 1) {
+                row.push(TILES.PATH); // Path para indicar salida al este
             } else {
                 row.push(TILES.GRASS);
             }
