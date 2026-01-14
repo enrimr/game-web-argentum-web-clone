@@ -1341,13 +1341,40 @@ function floodFill(layerData, x, y, oldType, newType) {
 }
 
 /**
- * Export map to JSON
+ * Export map to JSON with compact layer format
  */
 function exportMap() {
     if (!currentMapData) return;
 
-    const dataStr = JSON.stringify(currentMapData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    // Custom formatter for compact layer arrays
+    let jsonStr = '{\n';
+    
+    // Export non-layer properties first
+    const nonLayerProps = Object.keys(currentMapData).filter(k => k !== 'layers');
+    nonLayerProps.forEach((key, i) => {
+        jsonStr += `  "${key}": ${JSON.stringify(currentMapData[key], null, 2).replace(/\n/g, '\n  ')}`;
+        jsonStr += ',\n';
+    });
+    
+    // Export layers with compact format (each row on one line)
+    jsonStr += '  "layers": {\n';
+    const layerKeys = Object.keys(currentMapData.layers);
+    layerKeys.forEach((layerKey, layerIndex) => {
+        jsonStr += `    "${layerKey}": [\n`;
+        const layer = currentMapData.layers[layerKey];
+        layer.forEach((row, rowIndex) => {
+            jsonStr += `      [${row.join(',')}]`;
+            if (rowIndex < layer.length - 1) jsonStr += ',';
+            jsonStr += '\n';
+        });
+        jsonStr += '    ]';
+        if (layerIndex < layerKeys.length - 1) jsonStr += ',';
+        jsonStr += '\n';
+    });
+    jsonStr += '  }\n';
+    jsonStr += '}';
+
+    const dataBlob = new Blob([jsonStr], { type: 'application/json' });
 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(dataBlob);
