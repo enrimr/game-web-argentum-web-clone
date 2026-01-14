@@ -52,8 +52,18 @@ export function loadStaticMap(mapType) {
             }
             
             if (mapData && mapData.layers) {
-                // Combine layers into single map for compatibility
-                return combineMapLayers(mapData);
+                // Process layers and return complete multicapa object
+                const combinedMap = combineMapLayers(mapData);
+                if (combinedMap) {
+                    // Return the complete multicapa object
+                    return {
+                        map: combinedMap,
+                        roofLayer: gameState.roofLayer,
+                        doorLayer: gameState.doorLayer,
+                        windowLayer: gameState.windowLayer,
+                        propLayer: gameState.propLayer || []
+                    };
+                }
             }
         }
     } catch (error) {
@@ -68,39 +78,35 @@ export function loadStaticMap(mapType) {
  * @returns {Object|null} Map data object or null
  */
 function loadJSONMapByType(mapType) {
-    console.log(`Loading JSON map for: ${mapType}`);
+    console.log(`📂 Loading JSON map for: ${mapType}`);
     
     try {
-        // In a browser environment, we would use fetch
-        // But for now, we'll use a direct import approach for the demo
-        const staticMapConfig = getStaticMap(mapType);
+        // Check if the map was preloaded
+        const preloadedMap = window.__PRELOADED_MAPS__[mapType];
         
-        if (staticMapConfig && staticMapConfig.fileSource) {
-            // Since we can't directly load files at runtime in this demo,
-            // we'll use our predefined JSON maps that are already loaded
-            
-            // Check if the mapType is one of our canarias maps
-            if (mapType.startsWith('canarias_')) {
-                // Return the map data directly from the source
-                return {
-                    name: staticMapConfig.name,
-                    description: staticMapConfig.description,
-                    type: staticMapConfig.type,
-                    safeZone: staticMapConfig.safeZone,
-                    worldPosition: staticMapConfig.worldPosition,
-                    // For demo purposes, we'll load the map directly from the layers in the JSON files
-                    layers: {
-                        base: window.__PRELOADED_MAPS__[mapType]?.layers?.base || [],
-                        objects: window.__PRELOADED_MAPS__[mapType]?.layers?.objects || [],
-                        roofs: window.__PRELOADED_MAPS__[mapType]?.layers?.roofs || [],
-                        doors: window.__PRELOADED_MAPS__[mapType]?.layers?.doors || [],
-                        windows: window.__PRELOADED_MAPS__[mapType]?.layers?.windows || []
-                    }
-                };
-            }
+        if (preloadedMap) {
+            console.log(`✅ Found preloaded map for ${mapType}`);
+            // Return the preloaded map data with proper structure
+            return {
+                name: preloadedMap.name,
+                description: preloadedMap.description,
+                type: preloadedMap.type,
+                safeZone: preloadedMap.safeZone,
+                worldPosition: preloadedMap.worldPosition,
+                layers: {
+                    base: preloadedMap.layers?.base || [],
+                    props: preloadedMap.layers?.props || [],
+                    objects: preloadedMap.layers?.objects || [],
+                    roofs: preloadedMap.layers?.roofs || [],
+                    doors: preloadedMap.layers?.doors || [],
+                    windows: preloadedMap.layers?.windows || []
+                }
+            };
+        } else {
+            console.warn(`⚠️ No preloaded map found for ${mapType}`);
         }
     } catch (error) {
-        console.error(`Error loading JSON map: ${error}`);
+        console.error(`❌ Error loading JSON map: ${error}`);
     }
     
     return null;
