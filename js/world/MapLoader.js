@@ -29,9 +29,18 @@ export class MapLoader {
 
             // Try to load static map
             const staticMapData = loadStaticMap(mapType);
-            if (staticMapData && Array.isArray(staticMapData) && staticMapData.length > 0) {
-                console.log(`✅ Mapa estático ${mapType} cargado: ${staticMapData.length}x${staticMapData[0]?.length || 0}`);
-                return staticMapData;
+            
+            // Check if we got a multilayer object or simple array
+            if (staticMapData) {
+                if (staticMapData.map && Array.isArray(staticMapData.map)) {
+                    // Multilayer format
+                    console.log(`✅ Mapa estático multicapa ${mapType} cargado: ${staticMapData.map.length}x${staticMapData.map[0]?.length || 0}`);
+                    return staticMapData;
+                } else if (Array.isArray(staticMapData) && staticMapData.length > 0) {
+                    // Simple array format
+                    console.log(`✅ Mapa estático ${mapType} cargado: ${staticMapData.length}x${staticMapData[0]?.length || 0}`);
+                    return staticMapData;
+                }
             }
 
             console.warn(`⚠️ No se pudo cargar mapa estático para ${mapType}`);

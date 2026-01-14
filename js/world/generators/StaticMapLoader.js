@@ -210,6 +210,7 @@ export function combineMapLayers(mapData) {
     gameState.roofLayer = [];
     gameState.doorLayer = [];
     gameState.windowLayer = [];
+    gameState.propLayer = [];
 
     for (let y = 0; y < height; y++) {
         gameState.roofLayer[y] = [];
