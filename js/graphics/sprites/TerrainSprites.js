@@ -419,6 +419,178 @@ export function generateTerrainSprites(TILE_SIZE) {
             ctx.beginPath();
             ctx.arc(w/2 + 3, h/2 + 2, 1, 0, Math.PI * 2);
             ctx.fill();
+        }),
+        
+        // NEW SPRITES - Volcanic/Mountain (Canarias style)
+        obsidian: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Obsidiana negra brillante
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, w, h);
+            
+            // Reflejos brillantes
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(2, 2, w/3, h/3);
+            ctx.fillRect(w-w/3-2, h-h/3-2, w/3, h/3);
+            
+            // Brillos intensos
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(w/4, h/4, 3, 3);
+            ctx.fillRect(3*w/4, 3*h/4, 2, 2);
+        }),
+        
+        ash: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Ceniza volcánica gris
+            ctx.fillStyle = '#52525b';
+            ctx.fillRect(0, 0, w, h);
+            
+            // Textura de ceniza
+            ctx.fillStyle = '#71717a';
+            for (let i = 0; i < 15; i++) {
+                ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+            }
+        }),
+        
+        pumice: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Piedra pómez clara y porosa
+            ctx.fillStyle = '#d4d4d8';
+            ctx.fillRect(0, 0, w, h);
+            
+            // Poros
+            ctx.fillStyle = '#a1a1aa';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                const r = Math.random() * 1.5;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }),
+        
+        geyser: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Géiser de vapor
+            ctx.clearRect(0, 0, w, h);
+            
+            // Base rocosa
+            ctx.fillStyle = '#44403c';
+            ctx.fillRect(0, 2*h/3, w, h/3);
+            
+            // Vapor
+            ctx.fillStyle = 'rgba(229, 231, 235, 0.7)';
+            ctx.beginPath();
+            ctx.ellipse(w/2, h/2, w/4, h/3, 0, Math.PI, 2*Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(243, 244, 246, 0.5)';
+            ctx.beginPath();
+            ctx.ellipse(w/2, h/3, w/3, h/4, 0, Math.PI, 2*Math.PI);
+            ctx.fill();
+        }),
+        
+        // NEW SPRITES - Decoration
+        deadTree: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.clearRect(0, 0, w, h);
+            
+            // Tronco muerto
+            ctx.fillStyle = '#78716c';
+            ctx.fillRect(w/2-3, h/2, 6, h/2);
+            
+            // Ramas muertas
+            ctx.strokeStyle = '#78716c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(w/2, h/2);
+            ctx.lineTo(w/4, h/3);
+            ctx.moveTo(w/2, h/2);
+            ctx.lineTo(3*w/4, h/4);
+            ctx.stroke();
+        }),
+        
+        coral: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.clearRect(0, 0, w, h);
+            
+            // Coral rosa/naranja
+            ctx.fillStyle = '#fb923c';
+            ctx.beginPath();
+            ctx.moveTo(w/2, h);
+            ctx.lineTo(w/3, 2*h/3);
+            ctx.lineTo(w/4, h/2);
+            ctx.lineTo(w/3, h/3);
+            ctx.lineTo(w/2, h/4);
+            ctx.lineTo(2*w/3, h/3);
+            ctx.lineTo(3*w/4, h/2);
+            ctx.lineTo(2*w/3, 2*h/3);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Detalles más claros
+            ctx.fillStyle = '#fdba74';
+            ctx.fillRect(w/2-2, h/2, 4, h/4);
+        }),
+        
+        ruinsWall: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Muro derruido
+            ctx.fillStyle = '#a8a29e';
+            ctx.fillRect(0, h/3, w, 2*h/3);
+            
+            // Ladrillos visibles
+            ctx.strokeStyle = '#78716c';
+            ctx.lineWidth = 1;
+            for (let y = h/3; y < h; y += 6) {
+                for (let x = 0; x < w; x += 8) {
+                    ctx.strokeRect(x, y, 8, 6);
+                }
+            }
+            
+            // Partes rotas
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(w/4, h/3, w/8, h/6);
+            ctx.fillRect(2*w/3, h/2, w/6, h/4);
+        }),
+        
+        column: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            ctx.clearRect(0, 0, w, h);
+            
+            // Columna de ruinas
+            ctx.fillStyle = '#e7e5e4';
+            ctx.fillRect(w/3, 0, w/3, h);
+            
+            // Base y capitel
+            ctx.fillStyle = '#d6d3d1';
+            ctx.fillRect(w/4, 0, w/2, h/8);
+            ctx.fillRect(w/4, 7*h/8, w/2, h/8);
+            
+            // Detalles y grietas
+            ctx.strokeStyle = '#a8a29e';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                const y = h/4 + i * h/4;
+                ctx.beginPath();
+                ctx.moveTo(w/3, y);
+                ctx.lineTo(2*w/3, y);
+                ctx.stroke();
+            }
+        }),
+        
+        bridge: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
+            // Puente de madera
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(0, h/3, w, h/3);
+            
+            // Tablas
+            ctx.strokeStyle = '#78350f';
+            ctx.lineWidth = 2;
+            for (let x = 0; x < w; x += 6) {
+                ctx.beginPath();
+                ctx.moveTo(x, h/3);
+                ctx.lineTo(x, 2*h/3);
+                ctx.stroke();
+            }
+            
+            // Barandilla
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(0, h/3-2, w, 2);
+            ctx.fillRect(0, 2*h/3, w, 2);
         })
     };
 }

@@ -32,7 +32,20 @@ export const TILES = {
     PALM_TREE: 26,        // Palmera canaria - not walkable
     CACTUS: 27,           // Cactus de zonas áridas - not walkable
     SEASHELL: 28,         // Concha marina decorativa - walkable
-    VOLCANO: 29           // Cráter de volcán - not walkable
+    VOLCANO: 29,          // Cráter de volcán - not walkable
+    
+    // Volcanic/Mountain tiles (Canarias style)
+    OBSIDIAN: 30,         // Obsidiana negra brillante - not walkable
+    ASH: 31,              // Ceniza volcánica (suelo gris) - walkable
+    PUMICE: 32,           // Piedra pómez clara - walkable
+    GEYSER: 33,           // Géiser de vapor - not walkable
+    
+    // Decoration and ruins
+    DEAD_TREE: 34,        // Árbol muerto/seco - not walkable
+    CORAL: 35,            // Coral decorativo - not walkable
+    RUINS_WALL: 36,       // Muro derruido - not walkable
+    COLUMN: 37,           // Columna de ruinas - not walkable
+    BRIDGE: 38            // Puente de madera - walkable
 };
 
 // Por compatibilidad con el código existente
@@ -56,7 +69,10 @@ export function isTileWalkable(tile) {
            tile === TILES.WINDOW_WALKABLE ||
            tile === TILES.SAND ||
            tile === TILES.DUNE ||
-           tile === TILES.SEASHELL;      // Nuevos tiles canarios caminables
+           tile === TILES.SEASHELL ||
+           tile === TILES.ASH ||         // Ceniza volcánica
+           tile === TILES.PUMICE ||      // Piedra pómez
+           tile === TILES.BRIDGE;        // Puente de madera
 }
 
 /**
