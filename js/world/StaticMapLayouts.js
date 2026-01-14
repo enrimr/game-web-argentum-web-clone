@@ -9,6 +9,95 @@ import { CONFIG } from '../config.js';
 const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
 /**
+ * Genera el layout del bosque oscuro
+ */
+export function generateDarkForestLayout() {
+    const map = [];
+    const roofLayer = []; // Capa para techos (vacía para bosque)
+    const doorLayer = []; // Capa para puertas (vacía para bosque)
+    const windowLayer = []; // Capa para ventanas (vacía para bosque)
+    
+    // Base de hierba con muros perimetrales
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+        const row = [];
+        const roofRow = [];
+        const doorRow = [];
+        const windowRow = [];
+        
+        for (let x = 0; x < MAP_WIDTH; x++) {
+            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                row.push(TILES.WALL);
+            } else {
+                row.push(TILES.GRASS);
+            }
+            roofRow.push(0); // No hay techos en el bosque
+            doorRow.push(0);  // No hay puertas en el bosque
+            windowRow.push(0); // No hay ventanas en el bosque
+        }
+        map.push(row);
+        roofLayer.push(roofRow);
+        doorLayer.push(doorRow);
+        windowLayer.push(windowRow);
+    }
+    
+    // Muchos árboles (es un bosque denso)
+    for (let y = 1; y < MAP_HEIGHT - 1; y++) {
+        for (let x = 1; x < MAP_WIDTH - 1; x++) {
+            const rand = Math.random();
+            if (rand < 0.30) {
+                map[y][x] = TILES.TREE;
+            } else if (rand < 0.35) {
+                map[y][x] = TILES.STONE;
+            }
+        }
+    }
+    
+    // Caminos estrechos
+    for (let x = 5; x < MAP_WIDTH - 5; x++) {
+        if (x < MAP_WIDTH && 20 < MAP_HEIGHT) {
+            map[20][x] = TILES.PATH;
+        }
+    }
+    
+    // Pequeña cabaña en el bosque
+    const cabinX = Math.floor(MAP_WIDTH / 2) - 2;
+    const cabinY = Math.floor(MAP_HEIGHT / 2) - 2;
+    
+    // Estructura de la cabaña
+    for (let y = cabinY; y < cabinY + 5; y++) {
+        for (let x = cabinX; x < cabinX + 5; x++) {
+            if (y === cabinY || y === cabinY + 4 || x === cabinX || x === cabinX + 4) {
+                map[y][x] = TILES.BUILDING;
+            } else {
+                map[y][x] = TILES.FLOOR_INTERIOR;
+            }
+        }
+    }
+    
+    // Puerta
+    map[cabinY + 4][cabinX + 2] = TILES.FLOOR_INTERIOR;
+    doorLayer[cabinY + 4][cabinX + 2] = TILES.DOOR_CLOSED_LEFT;
+    
+    // Ventana
+    windowLayer[cabinY + 2][cabinX] = TILES.WINDOW;
+    
+    // Techo
+    for (let y = cabinY; y < cabinY + 5; y++) {
+        for (let x = cabinX; x < cabinX + 5; x++) {
+            roofLayer[y][x] = TILES.ROOF;
+        }
+    }
+    
+    // Devolver el formato multicapa
+    return {
+        map: map,
+        roofLayer: roofLayer,
+        doorLayer: doorLayer,
+        windowLayer: windowLayer
+    };
+}
+
+/**
  * Genera el layout de la ciudad inicial
  */
 export function generateNewbieCityLayout() {
@@ -126,59 +215,66 @@ export function generateNewbieFieldLayout() {
 }
 
 /**
- * Genera el layout del bosque oscuro
+ * Crear layout de edificio simple para ciudad
+ * @param {Array} map - Mapa para modificar
+ * @param {number} buildingX - Posición X del edificio (esquina superior izquierda)
+ * @param {number} buildingY - Posición Y del edificio (esquina superior izquierda)
+ * @param {number} width - Ancho del edificio
+ * @param {number} height - Alto del edificio
+ * @param {Object} layers - Capas adicionales (roofLayer, doorLayer, etc.)
  */
-export function generateDarkForestLayout() {
-    const map = [];
-    const roofLayer = []; // Capa para techos (vacía para bosque)
-    const doorLayer = []; // Capa para puertas (vacía para bosque)
-    const windowLayer = []; // Capa para ventanas (vacía para bosque)
+function createSimpleBuilding(map, buildingX, buildingY, width, height, layers) {
+    console.log(`🏠 Creando edificio simple en (${buildingX}, ${buildingY}) con dimensiones ${width}x${height}`);
     
-    // Base de hierba con muros perimetrales
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-        const row = [];
-        const roofRow = [];
-        const doorRow = [];
-        const windowRow = [];
-        
-        for (let x = 0; x < MAP_WIDTH; x++) {
-            if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
-                row.push(TILES.WALL);
+    // Paredes del edificio
+    for (let y = buildingY; y < buildingY + height; y++) {
+        for (let x = buildingX; x < buildingX + width; x++) {
+            if (y === buildingY || y === buildingY + height - 1 || 
+                x === buildingX || x === buildingX + width - 1) {
+                // Pared exterior
+                map[y][x] = TILES.BUILDING;
             } else {
-                const rand = Math.random();
-                if (rand < 0.35) {
-                    row.push(TILES.TREE);
-                } else if (rand < 0.38) {
-                    row.push(TILES.STONE);
-                } else {
-                    row.push(TILES.GRASS);
-                }
+                // Suelo interior
+                map[y][x] = TILES.FLOOR_INTERIOR;
             }
-            roofRow.push(0); // No hay techos en el bosque
-            doorRow.push(0);  // No hay puertas en el bosque
-            windowRow.push(0); // No hay ventanas en el bosque
-        }
-        map.push(row);
-        roofLayer.push(roofRow);
-        doorLayer.push(doorRow);
-        windowLayer.push(windowRow);
-    }
-    
-    // Crear camino central
-    for (let x = 5; x < MAP_WIDTH - 5; x++) {
-        if (x < MAP_WIDTH && 20 < MAP_HEIGHT) {
-            map[20][x] = TILES.PATH;
-            if (21 < MAP_HEIGHT) map[21][x] = TILES.PATH;
+            
+            // Techo para todo el edificio en la capa de techos
+            if (layers.roofLayer) {
+                layers.roofLayer[y][x] = TILES.ROOF;
+            }
         }
     }
     
-    // Devolver el mismo formato que generateNewbieCityWithBuildings para consistencia
-    return {
-        map: map,
-        roofLayer: roofLayer,
-        doorLayer: doorLayer,
-        windowLayer: windowLayer
-    };
+    // Puerta central en la pared inferior
+    const doorX = buildingX + Math.floor(width / 2);
+    const doorY = buildingY + height - 1;
+    
+    // IMPORTANTE: Usar los tipos DOOR_CLOSED_LEFT y WINDOW específicos
+    map[doorY][doorX] = TILES.DOOR_CLOSED_LEFT; // Tile de puerta en el mapa base
+    
+    // Agregar puerta a la capa de puertas si existe
+    if (layers.doorLayer) {
+        layers.doorLayer[doorY][doorX] = TILES.DOOR_CLOSED_LEFT;
+        console.log(`🚪 Puerta agregada en (${doorX}, ${doorY}) con tipo ${TILES.DOOR_CLOSED_LEFT}`);
+    }
+    
+    // Añadir ventana en el centro del muro frontal
+    const windowY = doorY - 1;
+    if (windowY > buildingY && layers.windowLayer) {
+        layers.windowLayer[windowY][doorX] = TILES.WINDOW;
+        console.log(`🪟 Ventana agregada en (${doorX}, ${windowY}) con tipo ${TILES.WINDOW}`);
+    }
+    
+    // Agregar "sombra" frente a la puerta
+    if (doorY + 1 < map.length) {
+        map[doorY + 1][doorX] = TILES.DOOR_SHADOW;
+    }
+    
+    // Verificar valores de techos en esta ubicación
+    if (layers.roofLayer) {
+        const roofValue = layers.roofLayer[buildingY + 1][buildingX + 1];
+        console.log(`🏠 Valor de techo en interior (${buildingX+1}, ${buildingY+1}): ${roofValue}`);
+    }
 }
 
 /**

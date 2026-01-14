@@ -6,7 +6,7 @@
 import { gameState } from '../../state.js';
 import { CONFIG } from '../../config.js';
 import { generateAllSprites } from '../SpriteGenerator.js';
-import { renderMap, renderTreeLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
+import { renderMap, renderTreeLayer, renderPropLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
 import { renderPlayer, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
 import { renderOverheadMessages } from '../../ui/Chat.js';
@@ -24,6 +24,7 @@ export const sprites = generateAllSprites(TILE_SIZE);
 export const layerVisibility = {
     baseMap: true,
     treeLayer: true,
+    propLayer: true, // Nueva capa para objetos decorativos
     doorLayer: true,
     windowLayer: true,
     roofLayer: true,
@@ -47,6 +48,9 @@ export function render() {
 
     // Draw tree layer over the map but under other entities
     renderTreeLayer(camera, ctx);
+    
+    // Draw prop layer (decorative objects)
+    renderPropLayer(camera, ctx);
 
     // Draw door layer over the map but under entities
     renderDoorLayer(camera, ctx);

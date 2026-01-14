@@ -172,34 +172,29 @@ async function initGame() {
     
     // Manejar tanto mapas simples como objetos con múltiples capas
     if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
-        // Es un objeto con múltiples capas
+        // Es un objeto con múltiples capas - USAR LAS CAPAS DEL GENERADOR
         console.log(`🗺️ Asignando mapa con formato multicapa: ${mapResult.map.length}x${mapResult.map[0]?.length}`);
-        
+
         // Asignar la capa base del mapa
         gameState.map = mapResult.map;
-        
-        // Asignar o crear capas adicionales
-        gameState.roofLayer = Array.isArray(mapResult.roofLayer) ? mapResult.roofLayer : 
-                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-                               
-        gameState.doorLayer = Array.isArray(mapResult.doorLayer) ? mapResult.doorLayer : 
-                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-                               
-        gameState.windowLayer = Array.isArray(mapResult.windowLayer) ? mapResult.windowLayer : 
-                                Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        
+
+        // IMPORTANTE: Usar las capas del generador, no crear vacías
+        gameState.roofLayer = mapResult.roofLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.doorLayer = mapResult.doorLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.windowLayer = mapResult.windowLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+
         // Verificación adicional de asignación
-        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos, puertas, ventanas`);
+        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos(${gameState.roofLayer.length}x${gameState.roofLayer[0]?.length}), puertas(${gameState.doorLayer.length}x${gameState.doorLayer[0]?.length}), ventanas(${gameState.windowLayer.length}x${gameState.windowLayer[0]?.length})`);
     } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple (array 2D directo)
         console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
         gameState.map = mapResult;
-        
-        // Crear capas vacías
+
+        // Crear capas vacías para mapas simples
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        
+
         console.log(`✅ Mapa cargado con estructura simple. Generadas capas vacías adicionales.`);
     } else {
         // Resultado inválido - crear mapa por defecto
@@ -362,34 +357,29 @@ export function changeMap(targetMap, targetX, targetY) {
 
     // Manejar tanto mapas simples como objetos con múltiples capas
     if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
-        // Es un objeto con múltiples capas
+        // Es un objeto con múltiples capas - USAR LAS CAPAS DEL GENERADOR
         console.log(`🗺️ Asignando mapa con formato multicapa: ${mapResult.map.length}x${mapResult.map[0]?.length}`);
-        
+
         // Asignar la capa base del mapa
         gameState.map = mapResult.map;
-        
-        // Asignar o crear capas adicionales
-        gameState.roofLayer = Array.isArray(mapResult.roofLayer) ? mapResult.roofLayer : 
-                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-                               
-        gameState.doorLayer = Array.isArray(mapResult.doorLayer) ? mapResult.doorLayer : 
-                               Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-                               
-        gameState.windowLayer = Array.isArray(mapResult.windowLayer) ? mapResult.windowLayer : 
-                                Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        
+
+        // IMPORTANTE: Usar las capas del generador, no crear vacías
+        gameState.roofLayer = mapResult.roofLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.doorLayer = mapResult.doorLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.windowLayer = mapResult.windowLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+
         // Verificación adicional de asignación
-        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos, puertas, ventanas`);
+        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos(${gameState.roofLayer.length}x${gameState.roofLayer[0]?.length}), puertas(${gameState.doorLayer.length}x${gameState.doorLayer[0]?.length}), ventanas(${gameState.windowLayer.length}x${gameState.windowLayer[0]?.length})`);
     } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple
         console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
         gameState.map = mapResult;
-        
-        // Crear capas vacías
+
+        // Crear capas vacías para mapas simples
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
-        
+
         console.log(`✅ Mapa cargado con estructura simple. Generadas capas vacías adicionales.`);
     } else {
         console.error(`❌ Error al generar mapa ${targetMap} - resultado inválido o formato no reconocido`);

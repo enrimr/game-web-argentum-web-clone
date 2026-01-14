@@ -74,6 +74,7 @@
     <script type="module">
         import { runConfigTests } from './config.test.js';
         import { runStateTests } from './state.test.js';
+        import { mapGeneratorTests } from './mapGenerator.test.js';
         
         function log(message, type = '') {
             const output = document.getElementById('output');
@@ -150,6 +151,12 @@
             const runner = new TestRunner();
             runConfigTests(runner, assert);
             runStateTests(runner, assert);
+
+            // Agregar tests del MapGenerator
+            mapGeneratorTests.forEach(test => {
+                runner.test(test.name, test.test);
+            });
+
             await runner.run();
         };
         

@@ -190,7 +190,7 @@ export function renderTreeLayer(camera, ctx) {
 export function renderDoorLayer(camera, ctx) {
     // Skip rendering if layer is disabled in debug mode
     if (!layerVisibility.doorLayer) return;
-    
+
     // Validate door layer exists
     if (!gameState.doorLayer || !Array.isArray(gameState.doorLayer) || gameState.doorLayer.length === 0) {
         return; // No door layer to render
@@ -204,31 +204,31 @@ export function renderDoorLayer(camera, ctx) {
             // Check bounds and validate row exists
             if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT &&
                 gameState.doorLayer[worldY] && gameState.doorLayer[worldY][worldX] !== undefined) {
-                
+
                 const doorTile = gameState.doorLayer[worldY][worldX];
-                
+
                 // Skip empty tiles
                 if (doorTile === 0) {
                     continue;
                 }
-                
+
                 // Get the sprite for this door
                 const doorSprite = getTileSprite(doorTile);
                 if (doorSprite) {
                     const screenPos = worldToScreen(worldX, worldY);
-                    
+
                     // IMPORTANTE: Las puertas siempre deben ser visibles, especialmente
                     // las del edificio actual, ya que son necesarias para entrar/salir
                     if (gameState.playerInBuilding && gameState.currentBuilding) {
                         // Comprobar si esta puerta pertenece al edificio actual
                         const building = gameState.currentBuilding;
-                        
+
                         // Ampliamos el margen para asegurarnos de incluir las puertas en el perímetro
                         const margin = 1;
-                        const isDoorOfCurrentBuilding = 
+                        const isDoorOfCurrentBuilding =
                             worldX >= building.x - margin && worldX <= building.x + building.width + margin &&
                             worldY >= building.y - margin && worldY <= building.y + building.height + margin;
-                            
+
                         // Si NO es una puerta del edificio actual y estamos dentro de un edificio,
                         // aplicamos un filtro de transparencia pero sin ocultarla completamente
                         if (!isDoorOfCurrentBuilding) {
@@ -239,7 +239,7 @@ export function renderDoorLayer(camera, ctx) {
                         }
                         // Las puertas del edificio actual se dibujan normalmente
                     }
-                    
+
                     // Dibujar la puerta en su posición
                     ctx.drawImage(doorSprite, screenPos.x, screenPos.y);
                 }
@@ -256,11 +256,12 @@ export function renderDoorLayer(camera, ctx) {
 export function renderWindowLayer(camera, ctx) {
     // Skip rendering if layer is disabled in debug mode
     if (!layerVisibility.windowLayer) return;
-    
+
     // Validate window layer exists
     if (!gameState.windowLayer || !Array.isArray(gameState.windowLayer) || gameState.windowLayer.length === 0) {
         return;
     }
+
 
     for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
         for (let vx = 0; vx < VIEWPORT_WIDTH; vx++) {
@@ -268,20 +269,19 @@ export function renderWindowLayer(camera, ctx) {
             const worldY = camera.y + vy;
 
             // Check bounds and validate row exists
-            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT && 
-                gameState.windowLayer[worldY] && gameState.windowLayer[worldY][worldX]) {
-                
+            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT &&
+                gameState.windowLayer[worldY] && gameState.windowLayer[worldY][worldX] !== undefined) {
+
                 const windowTile = gameState.windowLayer[worldY][worldX];
-                
-                // Skip empty window tiles
+
+                // Skip empty tiles
                 if (windowTile === 0) {
                     continue;
                 }
-                
+
                 // Check if this window should be rendered
-                // If player is in this building, the window should be hidden
                 const shouldShow = shouldRenderWindow(worldX, worldY);
-                
+
                 if (shouldShow) {
                     const sprite = getTileSprite(windowTile);
                     if (sprite) {
@@ -295,17 +295,17 @@ export function renderWindowLayer(camera, ctx) {
 }
 
 /**
- * Render the roof layer on top of everything else
+ * Render the prop layer (decorative and interactive objects)
  * @param {Object} camera - Camera position {x, y}
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  */
-export function renderRoofLayer(camera, ctx) {
+export function renderPropLayer(camera, ctx) {
     // Skip rendering if layer is disabled in debug mode
-    if (!layerVisibility.roofLayer) return;
+    if (!layerVisibility.propLayer) return;
     
-    // Validate roof layer exists
-    if (!gameState.roofLayer || !Array.isArray(gameState.roofLayer) || gameState.roofLayer.length === 0) {
-        return;
+    // Validate prop layer exists
+    if (!gameState.propLayer || !Array.isArray(gameState.propLayer) || gameState.propLayer.length === 0) {
+        return; // No prop layer to render
     }
 
     for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
@@ -314,28 +314,106 @@ export function renderRoofLayer(camera, ctx) {
             const worldY = camera.y + vy;
 
             // Check bounds and validate row exists
-            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT && 
+            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT &&
+                gameState.propLayer[worldY] && gameState.propLayer[worldY][worldX] !== undefined) {
+                
+                const propTile = gameState.propLayer[worldY][worldX];
+                
+                // Skip empty tiles
+                if (propTile === 0) {
+                    continue;
+                }
+                
+                // Get the sprite for this prop
+                const propSprite = getTileSprite(propTile);
+                if (propSprite) {
+                    const screenPos = worldToScreen(worldX, worldY);
+                    
+                    // Si el jugador está dentro de un edificio, aplicar el mismo filtro que al mapa base
+                    if (gameState.playerInBuilding) {
+                        const isInsideBuilding = isInsideCurrentBuilding(worldX, worldY);
+                        
+                        // Si es el exterior, aplicar un filtro
+                        if (!isInsideBuilding) {
+                            ctx.globalAlpha = 0.7;
+                            ctx.drawImage(propSprite, screenPos.x, screenPos.y);
+                            ctx.globalAlpha = 1.0;
+                            continue;
+                        }
+                    }
+                    
+                    // Dibujar el objeto decorativo
+                    ctx.drawImage(propSprite, screenPos.x, screenPos.y);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Render the roof layer on top of everything else
+ * @param {Object} camera - Camera position {x, y}
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ */
+export function renderRoofLayer(camera, ctx) {
+    // Skip rendering if layer is disabled in debug mode
+    if (!layerVisibility.roofLayer) {
+        return;
+    }
+
+    // Validate roof layer exists
+    if (!gameState.roofLayer || !Array.isArray(gameState.roofLayer) || gameState.roofLayer.length === 0) {
+        return;
+    }
+
+    let roofTilesFound = 0;
+    let roofsRendered = 0;
+    let roofsTested = 0;
+    
+    // Log para diagnóstico una sola vez
+    if (!window._roofDebugLogged) {
+        console.log('🏠 Iniciando render de techos - Camera:', camera);
+        console.log('🏠 Muestra roofLayer[5][5-10]:', gameState.roofLayer[5]?.slice(5, 11));
+        window._roofDebugLogged = true;
+    }
+
+    for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
+        for (let vx = 0; vx < VIEWPORT_WIDTH; vx++) {
+            const worldX = camera.x + vx;
+            const worldY = camera.y + vy;
+
+            // Check bounds and validate row exists
+            if (worldX >= 0 && worldX < MAP_WIDTH && worldY >= 0 && worldY < MAP_HEIGHT &&
                 gameState.roofLayer[worldY] && gameState.roofLayer[worldY][worldX]) {
-                
+
                 const roofTile = gameState.roofLayer[worldY][worldX];
-                
+
                 // Skip empty roof tiles
                 if (roofTile === 0) {
                     continue;
                 }
-                
+
+                roofTilesFound++;
+
                 // Check if this roof should be rendered
                 // If player is in this building, on a door, or has visited it before, don't render the roof
                 const shouldShow = shouldRenderRoof(worldX, worldY);
-                
+
                 if (shouldShow) {
                     const sprite = getTileSprite(roofTile);
                     if (sprite) {
                         const screenPos = worldToScreen(worldX, worldY);
                         ctx.drawImage(sprite, screenPos.x, screenPos.y);
+                        roofsRendered++;
+                    } else {
+                        console.log(`🏠 Sprite no encontrado para roof tile ${roofTile}`);
                     }
+                } else {
+                    console.log(`🏠 Roof oculto en [${worldX},${worldY}] por shouldRenderRoof()`);
                 }
             }
         }
     }
+
+    console.log(`🏠 Encontrados ${roofTilesFound} tiles de techo, renderizados ${roofsRendered}`);
 }

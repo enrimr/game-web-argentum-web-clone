@@ -72,6 +72,7 @@ export const gameState = {
     },
     map: [], // Capa base del mapa (terreno, muros, etc.)
     treeLayer: [], // Nueva capa para árboles y elementos intermedios
+    propLayer: [], // Capa para objetos decorativos y elementos interactivos
     roofLayer: [], // Capa para los techos de los edificios
     doorLayer: [], // Capa para las puertas en capa superior
     buildings: [], // Información de los edificios en el mapa
@@ -125,6 +126,7 @@ export function resetGameState() {
     };
     gameState.map = [];
     gameState.treeLayer = [];
+    gameState.propLayer = []; // Reset the prop layer too
     gameState.roofLayer = [];
     gameState.doorLayer = [];
     gameState.buildings = [];
