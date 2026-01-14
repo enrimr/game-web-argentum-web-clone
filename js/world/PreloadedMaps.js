@@ -39,11 +39,9 @@ export function preloadAllMaps() {
     
     // Lista de mapas a precargar
     const mapsList = [
-        { id: 'training_fields', path: 'js/world/maps/training_fields.json' },
-        { id: 'canarias_capital', path: 'js/world/maps/canarias_capital.json' },
-        { id: 'canarias_playa_canteras', path: 'js/world/maps/canarias_playa_canteras.json' },
-        { id: 'canarias_dunas', path: 'js/world/maps/canarias_dunas.json' },
-        { id: 'canarias_teide_dungeon', path: 'js/world/maps/canarias_teide_dungeon.json' }
+        { id: 'training_fields', path: 'js/world/maps/training_fields.json' }
+        // Los mapas de Canarias están en backup/ temporalmente
+        // Se añadirán nuevos mapas del mundo aquí conforme se creen
     ];
     
     // Cargar todos los mapas en paralelo
