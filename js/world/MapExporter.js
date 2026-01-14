@@ -43,6 +43,7 @@ export function exportMapToJSON(mapName, mapData, forceOverwrite = false, usePro
             worldPosition: mapData.worldPosition || { x: 100, y: 100 },
             layers: {
                 base: mapData.map,
+                props: mapData.propLayer || [],
                 roofs: mapData.roofLayer || [],
                 doors: mapData.doorLayer || [],
                 windows: mapData.windowLayer || []
@@ -224,6 +225,7 @@ export function exportCurrentMap() {
             // Preparar los datos del mapa actual con todas sus capas
             const mapData = {
                 map: gameState.map,
+                propLayer: gameState.propLayer || [],
                 roofLayer: gameState.roofLayer || [],
                 doorLayer: gameState.doorLayer || [],
                 windowLayer: gameState.windowLayer || [],
