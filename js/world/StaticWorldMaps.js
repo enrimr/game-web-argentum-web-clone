@@ -21,79 +21,6 @@ const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
  * Definición de mapas estáticos del mundo
  */
 export const STATIC_WORLD_MAPS = {
-    // ===== MAPAS DE ISLAS CANARIAS =====
-    'canarias_capital': {
-        name: '🏙️ Las Palmas de GC',
-        description: 'La capital de Gran Canaria, bulliciosa ciudad portuaria',
-        type: 'city',
-        safeZone: true,
-        worldPosition: { x: 500, y: 200 },
-        fileSource: 'js/world/maps/canarias_capital.json',
-        npcs: [],
-        enemies: { enabled: false },
-        portals: [
-            { x: 6, y: 11, targetMap: 'canarias_playa_canteras', targetX: 8, targetY: 1, name: 'Playa de Las Canteras' },
-            { x: 10, y: 1, targetMap: 'newbie_city', targetX: 35, targetY: 15, name: 'Ullathorpe' }
-        ],
-        connections: {}
-    },
-    
-    'canarias_playa_canteras': {
-        name: '🏖️ Playa de Las Canteras',
-        description: 'Hermosa playa urbana con su característica Barra',
-        type: 'beach',
-        safeZone: true,
-        worldPosition: { x: 500, y: 250 },
-        fileSource: 'js/world/maps/canarias_playa_canteras.json',
-        npcs: [],
-        enemies: { enabled: false },
-        portals: [
-            { x: 8, y: 1, targetMap: 'canarias_capital', targetX: 6, targetY: 11, name: 'Las Palmas' },
-            { x: 16, y: 6, targetMap: 'canarias_dunas', targetX: 1, targetY: 6, name: 'Dunas de Maspalomas' }
-        ],
-        connections: {}
-    },
-    
-    'canarias_dunas': {
-        name: '🏜️ Dunas de Maspalomas',
-        description: 'Impresionante paisaje desértico junto al mar',
-        type: 'desert',
-        safeZone: true,
-        worldPosition: { x: 530, y: 250 },
-        fileSource: 'js/world/maps/canarias_dunas.json',
-        npcs: [],
-        enemies: { enabled: false },
-        portals: [
-            { x: 1, y: 6, targetMap: 'canarias_playa_canteras', targetX: 16, targetY: 6, name: 'Playa de Las Canteras' },
-            { x: 18, y: 10, targetMap: 'canarias_teide_dungeon', targetX: 1, targetY: 13, name: 'Volcán del Teide' }
-        ],
-        connections: {}
-    },
-    
-    'canarias_teide_dungeon': {
-        name: '🌋 Volcán del Teide',
-        description: 'Peligrosa mazmorra en el interior del volcán',
-        type: 'dungeon',
-        safeZone: false,
-        isDungeon: true,
-        worldPosition: { x: 650, y: 130 },
-        fileSource: 'js/world/maps/canarias_teide_dungeon.json',
-        npcs: [],
-        enemies: {
-            enabled: true,
-            types: [
-                { type: 'elemental', count: 1, minLevel: 10, maxLevel: 10 },
-                { type: 'orc', count: 1, minLevel: 8, maxLevel: 8 },
-                { type: 'goblin', count: 3, minLevel: 6, maxLevel: 6 }
-            ],
-            spawnAreas: 'dungeon'
-        },
-        portals: [
-            { x: 1, y: 13, targetMap: 'canarias_dunas', targetX: 18, targetY: 10, name: 'Salida hacia Dunas', isDoor: true }
-        ],
-        connections: {}
-    },
-    
     // ===== CIUDAD PRINCIPAL =====
     'newbie_city': {
         name: '🏘️ Ciudad de Ullathorpe',
@@ -116,10 +43,7 @@ export const STATIC_WORLD_MAPS = {
             types: ['potion', 'gold'],
             spawnAreas: 'walkable'
         },
-        portals: [
-            { x: 25, y: 3, targetMap: 'newbie_field', targetX: 25, targetY: 35, name: 'Campo Norte' },
-            { x: 35, y: 15, targetMap: 'canarias_capital', targetX: 10, targetY: 10, name: '🏙️ Islas Canarias' }
-        ],
+        portals: [],
         connections: {}
     },
 

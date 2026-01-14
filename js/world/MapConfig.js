@@ -49,47 +49,6 @@ export const MAP_CONFIG = {
         fileSource: 'training_fields.json'
     },
 
-    // Static maps (try static first, fallback to procedural)
-    canarias_capital: {
-        type: 'static',
-        generator: 'StaticMapLoader',
-        cache: true,
-        safeZone: false,
-        description: 'Capital de las Islas Canarias',
-        worldPosition: { x: 200, y: 200 },
-        fileSource: 'canarias_capital.json'
-    },
-
-    canarias_dunas: {
-        type: 'static',
-        generator: 'StaticMapLoader',
-        cache: true,
-        safeZone: false,
-        description: 'Dunas desérticas de Canarias',
-        worldPosition: { x: 300, y: 150 },
-        fileSource: 'canarias_dunas.json'
-    },
-
-    canarias_playa_canteras: {
-        type: 'static',
-        generator: 'StaticMapLoader',
-        cache: true,
-        safeZone: true,
-        description: 'Playa de Las Canteras',
-        worldPosition: { x: 250, y: 300 },
-        fileSource: 'canarias_playa_canteras.json'
-    },
-
-    canarias_teide_dungeon: {
-        type: 'static',
-        generator: 'StaticMapLoader',
-        cache: false, // Dungeons might be procedural
-        safeZone: false,
-        description: 'Mazmorra del Teide',
-        worldPosition: { x: 350, y: 100 },
-        fileSource: 'canarias_teide_dungeon.json'
-    },
-
     // Procedural maps with parameters
     field: {
         type: 'procedural',
