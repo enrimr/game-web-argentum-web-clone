@@ -6,6 +6,21 @@
 
 import { gameState } from '../state.js';
 import { TILES, isTileWalkable, isRoof, isOpenDoor, isClosedDoor } from '../world/TileTypes.js';
+import { 
+    getCurrentMapData, 
+    setCurrentMapData, 
+    loadCurrentMap as loadCurrentMapCore,
+    exportMapData,
+    loadMapFromFile as loadMapFromFileCore,
+    resizeMap as resizeMapCore,
+    LAYERS as EDITOR_LAYERS
+} from './editor/MapEditorCore.js';
+import { 
+    createConnectionsSection, 
+    drawConnectionIndicators,
+    updateConnectionsUI,
+    openConnectedBorders as openBordersHandler
+} from './editor/MapEditorConnections.js';
 import { generateTerrainSprites } from '../graphics/sprites/TerrainSprites.js';
 import { generateBuildingSprites } from '../graphics/sprites/BuildingSprites.js';
 import { generateObjectSprites } from '../graphics/sprites/ObjectSprites.js';
@@ -809,6 +824,10 @@ function createMapEditorUI() {
     paletteSection.appendChild(paletteContainer);
     paletteSection.appendChild(selectedInfo);
 
+    // Add connections section before other sections
+    const connectionsSection = createConnectionsSection();
+    sidebar.appendChild(connectionsSection);
+    
     sidebar.appendChild(npcSection);
     sidebar.appendChild(portalSection);
     sidebar.appendChild(enemySection);
@@ -1081,6 +1100,9 @@ function renderEditor() {
             editorCtx.fillText(treasureName, (treasure.x + 0.5) * TILE_SIZE, treasure.y * TILE_SIZE - 2);
         });
     }
+
+    // Draw connection indicators
+    drawConnectionIndicators(editorCtx, mapWidth, mapHeight, TILE_SIZE);
 
     editorCtx.restore();
 }
