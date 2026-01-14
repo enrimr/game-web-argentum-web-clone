@@ -887,6 +887,9 @@ function loadCurrentMap() {
  */
 function renderEditor() {
     if (!editorCanvas || !editorCtx || !currentMapData) return;
+    
+    // Expose to global scope for module access
+    window.mapEditorRenderEditor = renderEditor;
 
     const TILE_SIZE = gameState.tileSize || 32;
     const mapWidth = currentMapData.layers.base[0].length;

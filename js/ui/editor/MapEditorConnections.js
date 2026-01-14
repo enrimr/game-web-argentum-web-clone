@@ -110,6 +110,10 @@ export function createConnectionsSection() {
     `;
     openBordersBtn.addEventListener('click', () => {
         if (openConnectedBorders()) {
+            // Trigger re-render if renderEditor exists in global scope
+            if (window.mapEditorRenderEditor) {
+                window.mapEditorRenderEditor();
+            }
             alert('Bordes conectados abiertos correctamente');
         }
     });
@@ -129,6 +133,10 @@ export function createConnectionsSection() {
     `;
     closeBordersBtn.addEventListener('click', () => {
         if (closeAllBorders()) {
+            // Trigger re-render if renderEditor exists in global scope
+            if (window.mapEditorRenderEditor) {
+                window.mapEditorRenderEditor();
+            }
             alert('Todos los bordes cerrados');
         }
     });
