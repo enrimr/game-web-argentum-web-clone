@@ -19,6 +19,7 @@ import { updateAutoMovement, isPlayerAutoMoving, getAutoMoveTarget } from './Mou
 import { updateSpellEffects, recoverMana, toggleMeditation } from '../systems/MagicSystem.js';
 import { getSpellsUIState } from '../ui/SpellsUI.js';
 import { updateOverheadMessages } from '../ui/Chat.js';
+import { checkMapEdgeTransition } from '../world/MapTransitions.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -40,6 +41,14 @@ export function gameLoop(timestamp) {
 
         // Update UI after movement (both manual and automatic)
         updateUI();
+
+        // Check for automatic map transitions at edges
+        const transition = checkMapEdgeTransition();
+        if (transition) {
+            console.log(`🗺️ Transición automática detectada hacia ${transition.targetMap} (dirección: ${transition.direction})`);
+            changeMap(transition.targetMap, transition.targetX, transition.targetY);
+            return; // Exit loop after map change
+        }
 
         updateProjectiles();
         updateEnemies(timestamp);
