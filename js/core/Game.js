@@ -313,10 +313,14 @@ export function changeMap(targetMap, targetX, targetY) {
     const targetMapData = generateMap(targetMap);
     gameState.currentMap = originalMap;
 
+    // Extract the base map array for validation
+    const targetMapArray = (targetMapData && typeof targetMapData === 'object' && targetMapData.map) ? 
+        targetMapData.map : targetMapData;
+
     // Ensure target position is walkable
-    if (!isWalkableOnMap(targetMapData, targetX, targetY)) {
+    if (!isWalkableOnMap(targetMapArray, targetX, targetY)) {
         console.warn(`Posición destino (${targetX}, ${targetY}) no es walkable, buscando alternativa...`);
-        const safePos = findNearestWalkableTile(targetMapData, targetX, targetY);
+        const safePos = findNearestWalkableTile(targetMapArray, targetX, targetY);
         if (safePos) {
             targetX = safePos.x;
             targetY = safePos.y;
