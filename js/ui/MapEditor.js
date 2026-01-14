@@ -164,7 +164,18 @@ function getTileTypeFromSpriteName(name, category) {
             palmTree: TILES.PALM_TREE,
             cactus: TILES.CACTUS,
             seashell: TILES.SEASHELL,
-            volcano: TILES.VOLCANO
+            volcano: TILES.VOLCANO,
+            // New volcanic/mountain tiles
+            obsidian: TILES.OBSIDIAN,
+            ash: TILES.ASH,
+            pumice: TILES.PUMICE,
+            geyser: TILES.GEYSER,
+            // New decoration tiles
+            deadTree: TILES.DEAD_TREE,
+            coral: TILES.CORAL,
+            ruinsWall: TILES.RUINS_WALL,
+            column: TILES.COLUMN,
+            bridge: TILES.BRIDGE
         },
         building: {
             wall: TILES.WALL,
@@ -1131,6 +1142,17 @@ function getSpriteForTile(tileType, layerName) {
         [TILES.CACTUS]: terrainSprites.cactus,
         [TILES.SEASHELL]: terrainSprites.seashell,
         [TILES.VOLCANO]: terrainSprites.volcano,
+        // New volcanic/mountain sprites
+        [TILES.OBSIDIAN]: terrainSprites.obsidian,
+        [TILES.ASH]: terrainSprites.ash,
+        [TILES.PUMICE]: terrainSprites.pumice,
+        [TILES.GEYSER]: terrainSprites.geyser,
+        // New decoration sprites
+        [TILES.DEAD_TREE]: terrainSprites.deadTree,
+        [TILES.CORAL]: terrainSprites.coral,
+        [TILES.RUINS_WALL]: terrainSprites.ruinsWall,
+        [TILES.COLUMN]: terrainSprites.column,
+        [TILES.BRIDGE]: terrainSprites.bridge,
 
         [TILES.WALL]: buildingSprites.wall,
         [TILES.BUILDING]: buildingSprites.building,
