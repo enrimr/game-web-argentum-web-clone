@@ -123,6 +123,35 @@ export const STATIC_WORLD_MAPS = {
         connections: {}
     },
 
+    // ===== CAMPOS DE ENTRENAMIENTO =====
+    'training_fields': {
+        name: '🏞️ Campos de Entrenamiento',
+        description: 'Campos abiertos perfectos para entrenar habilidades básicas',
+        type: 'field',
+        safeZone: false,
+        worldPosition: { x: 210, y: 150 },
+        fileSource: 'js/world/maps/training_fields.json',
+        npcs: [
+            { type: 'banker_city', x: 25, y: 10, dialogue: 'welcome_king' },
+            { type: 'blacksmith_ullathorpe', x: 15, y: 15, dialogue: 'shop_weapons' },
+            { type: 'merchant_general', x: 35, y: 15, dialogue: 'shop_armor' },
+            { type: 'alchemist_market', x: 25, y: 25, dialogue: 'healing' },
+            { type: 'trainer_skills', x: 10, y: 30, dialogue: 'training' },
+            { type: 'guard_city', x: 25, y: 5, dialogue: 'guard_north' }
+        ],
+        enemies: { enabled: false },
+        objects: {
+            density: 0.02,
+            types: ['potion', 'gold'],
+            spawnAreas: 'walkable'
+        },
+        portals: [
+            { x: 25, y: 3, targetMap: 'newbie_field', targetX: 25, targetY: 35, name: 'Campo Norte' },
+            { x: 35, y: 15, targetMap: 'canarias_capital', targetX: 10, targetY: 10, name: '🏙️ Islas Canarias' }
+        ],
+        connections: {}
+    },
+
     // ===== CAMPO INICIAL =====
     'newbie_field': {
         name: '🏞️ Campos de Ullathorpe',

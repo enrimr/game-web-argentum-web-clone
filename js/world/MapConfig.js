@@ -39,6 +39,16 @@ export const MAP_CONFIG = {
         }
     },
 
+    training_fields: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'Campos de entrenamiento para combate',
+        worldPosition: { x: 110, y: 100 },
+        fileSource: 'training_fields.json'
+    },
+
     // Static maps (try static first, fallback to procedural)
     canarias_capital: {
         type: 'static',
