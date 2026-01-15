@@ -181,10 +181,12 @@ function getNPCDialogue(npc) {
                     response: "¡Por supuesto! Aquí tienes mi mercancía.",
                     action: () => {
                         if (currentDialogue) {
+                            // Guardar referencia al NPC antes de cerrar el diálogo
+                            const npc = currentDialogue;
                             // Cerrar el diálogo antes de abrir el comercio
                             closeDialogue();
                             // Abrir la ventana de comercio
-                            openTrade(currentDialogue);
+                            openTrade(npc);
                         }
                     }
                 },
