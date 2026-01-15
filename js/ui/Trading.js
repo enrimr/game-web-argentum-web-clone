@@ -245,29 +245,30 @@ function selectTradeItem(itemEl) {
     tradeContainer.querySelectorAll('.trade-item').forEach(el => {
         el.classList.remove('selected');
     });
-    
+
     // Select this item
     itemEl.classList.add('selected');
-    
+
     // Update item details
     const itemType = itemEl.dataset.itemType;
     const itemDef = ITEM_TYPES[itemType];
     const price = parseInt(itemEl.dataset.price);
     const maxQuantity = parseInt(itemEl.dataset.maxQuantity);
-    
+
     tradeContainer.querySelector('.item-name').textContent = itemDef.name;
     tradeContainer.querySelector('.item-description').textContent = itemDef.description || 'Sin descripción disponible';
     tradeContainer.querySelector('.item-price span').textContent = `${price} oro`;
-    
+
     // Reset quantity input
     const quantityInput = tradeContainer.querySelector('.quantity-input');
     quantityInput.value = 1;
     quantityInput.max = maxQuantity;
-    
-    // Enable action button
+
+    // Show quantity controls and enable action button
+    tradeContainer.querySelector('.item-quantity').style.display = 'flex';
     const actionBtn = tradeContainer.querySelector('.trade-action-btn');
     actionBtn.disabled = false;
-    
+
     // Update total price
     updateTotalPrice();
 }
@@ -317,6 +318,9 @@ function updateTradeAction() {
     } else {
         actionBtn.textContent = 'Vender';
     }
+
+    // Hide quantity controls and disable action button when switching tabs
+    tradeContainer.querySelector('.item-quantity').style.display = 'none';
     actionBtn.disabled = true;
 }
 
