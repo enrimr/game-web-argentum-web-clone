@@ -3,10 +3,7 @@
   "description": "Estado del mapa newbie_city en momento de exportación",
   "type": "city",
   "safeZone": true,
-  "worldPosition": {
-    "x": 100,
-    "y": 100
-  },
+  "worldPosition": {"x":100,"y":100},
   "layers": {
     "base": [
       [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],

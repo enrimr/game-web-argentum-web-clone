@@ -1,305 +1,203 @@
 // Map definitions for complex world system
-// Incluye tanto los mapas originales como el nuevo mundo de las Islas Canarias
+// Mundo principal de Calima Online - Zonas Ullathorpe
 export const MAP_DEFINITIONS = {
-    // MAPA ORIGINAL
+    // ===== ZONA 0: CIUDAD INICIAL =====
     'newbie_city': {
         name: '🏘️ Ciudad de Ullathorpe',
         description: 'Ciudad inicial para aventureros novatos',
-        worldX: 200, worldY: 150,
+        worldX: 200, worldY: 550,
+        zone: 'city',
         portals: [
-            { x: 25, y: 3, targetMap: 'newbie_field', targetX: 25, targetY: 35, name: 'Campo Norte' }
+            { x: 57, y: 20, targetMap: 'training_fields', targetX: 1, targetY: 20, name: 'Campos de Entrenamiento' }
         ]
     },
-    'newbie_field': {
-        name: '🏞️ Campos de Ullathorpe',
-        description: 'Campos seguros para aventureros novatos',
-        worldX: 200, worldY: 220,
+
+    // ===== ZONA 1: CAMPOS DE ENTRENAMIENTO =====
+    'training_fields': {
+        name: '🏞️ Campos de Entrenamiento',
+        description: 'Campos abiertos perfectos para entrenar habilidades básicas',
+        worldX: 350, worldY: 550,
+        zone: 'fields',
         portals: [
-            { x: 25, y: 37, targetMap: 'newbie_city', targetX: 25, targetY: 5, name: 'Ciudad' },
-            { x: 45, y: 10, targetMap: 'dark_forest', targetX: 5, targetY: 20, name: 'Bosque' }
+            { x: 59, y: 20, targetMap: 'newbie_city', targetX: 57, targetY: 20, name: 'Ciudad' },
+            { x: 1, y: 20, targetMap: 'forest_outskirts_2', targetX: 59, targetY: 20, name: 'Bosque Exterior Este' }
         ]
     },
-    'dark_forest': {
-        name: '🌲 Bosque Oscuro',
-        description: 'Bosque denso con criaturas peligrosas',
-        worldX: 300, worldY: 220,
+
+    // ===== ZONA 2: BOSQUES EXTERIORES =====
+    'forest_outskirts_1': {
+        name: '🌲 Bosque Exterior Norte',
+        description: 'El límite norte de los campos de entrenamiento. Los árboles comienzan a densificarse.',
+        worldX: 350, worldY: 450,
+        zone: 'forest',
         portals: [
-            { x: 5, y: 20, targetMap: 'newbie_field', targetX: 43, targetY: 10, name: 'Campo' }
+            { x: 30, y: 39, targetMap: 'training_fields', targetX: 30, targetY: 1, name: 'Campos Sur' },
+            { x: 30, y: 1, targetMap: 'dark_forest_north', targetX: 30, targetY: 39, name: 'Bosque Oscuro Norte' }
         ]
     },
-    'field': {
-        name: '🏞️ Campo Principal',
-        description: 'Campo abierto con caminos hacia otras áreas',
-        worldX: 150, worldY: 200,
+
+    'forest_outskirts_2': {
+        name: '🌲 Bosque Exterior Este',
+        description: 'Bosque más denso al este de los campos de entrenamiento. Los árboles se hacen más abundantes.',
+        worldX: 450, worldY: 550,
+        zone: 'forest',
         portals: [
-            { x: 30, y: 20, targetMap: 'city', targetX: 15, targetY: 35, name: 'Ciudad' },
-            { x: 45, y: 10, targetMap: 'dungeon', targetX: 5, targetY: 5, name: 'Mazmorra' },
-            { x: 5, y: 35, targetMap: 'forest', targetX: 25, targetY: 5, name: 'Bosque' }
+            { x: 1, y: 20, targetMap: 'training_fields', targetX: 59, targetY: 20, name: 'Campos Oeste' },
+            { x: 59, y: 20, targetMap: 'forest_outskirts_3', targetX: 1, targetY: 20, name: 'Bosque Exterior Extremo' }
         ]
     },
-    'city': {
-        name: '🏘️ Ciudad Imperial',
-        description: 'Ciudad con calles, tiendas y ciudadanos',
-        worldX: 250, worldY: 150,
+
+    'forest_outskirts_3': {
+        name: '🌲 Bosque Exterior Extremo',
+        description: 'La zona más densa del bosque exterior. Los árboles casi bloquean el paso en algunas áreas.',
+        worldX: 550, worldY: 550,
+        zone: 'forest',
         portals: [
-            { x: 15, y: 37, targetMap: 'field', targetX: 30, targetY: 18, name: 'Campo' },
-            { x: 45, y: 10, targetMap: 'castle', targetX: 10, targetY: 25, name: 'Castillo' },
-            { x: 5, y: 5, targetMap: 'market', targetX: 15, targetY: 20, name: 'Mercado' }
+            { x: 1, y: 20, targetMap: 'forest_outskirts_2', targetX: 59, targetY: 20, name: 'Bosque Exterior Oeste' }
         ]
     },
-    'dungeon': {
-        name: '🏰 Mazmorra Antigua',
-        description: 'Mazmorra con habitaciones conectadas',
-        worldX: 300, worldY: 250,
+
+    // ===== ZONA 3: BOSQUE OSCURO =====
+    'dark_forest_north': {
+        name: '🌲🌑 Bosque Oscuro Norte',
+        description: 'El bosque se vuelve más oscuro y peligroso. Los lobos acechan entre las sombras.',
+        worldX: 350, worldY: 350,
+        zone: 'dark_forest',
         portals: [
-            { x: 5, y: 3, targetMap: 'field', targetX: 45, targetY: 12, name: 'Campo' },
-            { x: 20, y: 12, targetMap: 'deep_dungeon', targetX: 5, targetY: 5, name: 'Profundidades' }
+            { x: 30, y: 39, targetMap: 'forest_outskirts_1', targetX: 30, targetY: 1, name: 'Bosque Exterior Sur' },
+            { x: 30, y: 1, targetMap: 'dark_forest_center', targetX: 30, targetY: 39, name: 'Bosque Oscuro Centro' }
         ]
     },
-    'forest': {
-        name: '🌲 Bosque Encantado',
-        description: 'Bosque denso con caminos ocultos',
-        worldX: 50, worldY: 120,
+
+    'dark_forest_center': {
+        name: '🌲🌑 Bosque Oscuro Centro',
+        description: 'El corazón del bosque oscuro. Más denso y peligroso, con una entrada a una cueva misteriosa.',
+        worldX: 350, worldY: 250,
+        zone: 'dark_forest',
         portals: [
-            { x: 25, y: 3, targetMap: 'field', targetX: 5, targetY: 37, name: 'Campo' },
-            { x: 40, y: 30, targetMap: 'ruins', targetX: 10, targetY: 10, name: 'Ruinas' }
+            { x: 30, y: 39, targetMap: 'dark_forest_north', targetX: 30, targetY: 1, name: 'Bosque Oscuro Norte' },
+            { x: 30, y: 1, targetMap: 'dark_forest_south', targetX: 30, targetY: 39, name: 'Bosque Oscuro Sur' },
+            { x: 59, y: 20, targetMap: 'dark_forest_east', targetX: 1, targetY: 20, name: 'Bosque Oscuro Este' }
         ]
     },
-    'castle': {
-        name: '🏰 Castillo Real',
-        description: 'Castillo majestuoso con salas importantes',
-        worldX: 320, worldY: 80,
+
+    'dark_forest_south': {
+        name: '🌲🌑 Bosque Oscuro Sur',
+        description: 'La zona sur del bosque oscuro. Más cerca de las montañas, con menos árboles pero mayor peligro.',
+        worldX: 350, worldY: 150,
+        zone: 'dark_forest',
         portals: [
-            { x: 10, y: 27, targetMap: 'city', targetX: 45, targetY: 8, name: 'Ciudad' },
-            { x: 35, y: 5, targetMap: 'throne_room', targetX: 15, targetY: 20, name: 'Sala del Trono' }
+            { x: 30, y: 39, targetMap: 'dark_forest_center', targetX: 30, targetY: 1, name: 'Bosque Oscuro Centro' },
+            { x: 30, y: 1, targetMap: 'mountain_pass_lower', targetX: 30, targetY: 39, name: 'Paso de Montaña Inferior' }
         ]
     },
-    'market': {
-        name: '🏪 Mercado Central',
-        description: 'Mercado bullicioso con comerciantes',
-        worldX: 200, worldY: 100,
+
+    'dark_forest_east': {
+        name: '🌲🌑 Bosque Oscuro Este',
+        description: 'El límite oriental del bosque oscuro. La transición a las montañas comienza aquí.',
+        worldX: 450, worldY: 250,
+        zone: 'dark_forest',
         portals: [
-            { x: 15, y: 22, targetMap: 'city', targetX: 5, targetY: 3, name: 'Ciudad' }
+            { x: 1, y: 20, targetMap: 'dark_forest_center', targetX: 59, targetY: 20, name: 'Bosque Oscuro Oeste' },
+            { x: 59, y: 20, targetMap: 'mountain_pass_lower', targetX: 1, targetY: 20, name: 'Paso de Montaña Este' }
         ]
     },
-    'deep_dungeon': {
-        name: '🕳️ Profundidades',
-        description: 'Zonas profundas y peligrosas de la mazmorra',
-        worldX: 350, worldY: 280,
+
+    // ===== ZONA 4: MONTAÑAS =====
+    'mountain_pass_lower': {
+        name: '⛰️ Paso de Montaña Inferior',
+        description: 'El inicio de las peligrosas montañas. Los caminos son estrechos y los peligros abundan.',
+        worldX: 350, worldY: 50,
+        zone: 'mountain',
         portals: [
-            { x: 5, y: 3, targetMap: 'dungeon', targetX: 20, targetY: 14, name: 'Mazmorra' }
+            { x: 30, y: 39, targetMap: 'dark_forest_south', targetX: 30, targetY: 1, name: 'Bosque Oscuro Norte' },
+            { x: 30, y: 1, targetMap: 'mountain_pass_middle', targetX: 30, targetY: 39, name: 'Paso de Montaña Medio' },
+            { x: 59, y: 20, targetMap: 'dark_forest_east', targetX: 1, targetY: 20, name: 'Bosque Oscuro Oeste' }
         ]
     },
-    'ruins': {
-        name: '🏛️ Ruinas Antiguas',
-        description: 'Ruinas olvidadas con secretos del pasado',
-        worldX: 80, worldY: 50,
+
+    'mountain_pass_middle': {
+        name: '⛰️ Paso de Montaña Medio',
+        description: 'La zona intermedia del paso de montaña. Las pendientes se hacen más pronunciadas y los peligros aumentan.',
+        worldX: 350, worldY: 120,
+        zone: 'mountain',
         portals: [
-            { x: 10, y: 8, targetMap: 'forest', targetX: 40, targetY: 32, name: 'Bosque' }
+            { x: 30, y: 39, targetMap: 'mountain_pass_lower', targetX: 30, targetY: 1, name: 'Paso Inferior' },
+            { x: 30, y: 1, targetMap: 'mountain_pass_upper', targetX: 30, targetY: 39, name: 'Paso Superior' }
         ]
     },
-    'throne_room': {
-        name: '👑 Sala del Trono',
-        description: 'Sala real con el trono del rey',
-        worldX: 350, worldY: 30,
+
+    'mountain_pass_upper': {
+        name: '⛰️ Paso de Montaña Alto',
+        description: 'Las alturas extremas del paso de montaña. El aire es frío y los vientos son intensos. Solo los más valientes llegan aquí.',
+        worldX: 350, worldY: 190,
+        zone: 'mountain',
         portals: [
-            { x: 15, y: 22, targetMap: 'castle', targetX: 35, targetY: 3, name: 'Castillo' }
+            { x: 30, y: 39, targetMap: 'mountain_pass_middle', targetX: 30, targetY: 1, name: 'Paso Medio' },
+            { x: 30, y: 1, targetMap: 'mountain_peak', targetX: 30, targetY: 39, name: 'Cima de la Montaña' }
         ]
     },
-    // MUNDO DE LAS ISLAS CANARIAS (BETA)
-    
-    // GRAN CANARIA
-    'canarias_capital': {
-        name: '🏙️ Las Palmas de GC',
-        description: 'La capital de Gran Canaria, bulliciosa ciudad portuaria',
-        worldX: 500, worldY: 200,
+
+    'mountain_peak': {
+        name: '⛰️ Cima de la Montaña',
+        description: 'La cumbre más alta de las montañas. Desde aquí se divisa todo el mundo. El aire es extremadamente frío y las vistas son espectaculares.',
+        worldX: 350, worldY: 260,
+        zone: 'mountain',
         portals: [
-            { x: 25, y: 37, targetMap: 'canarias_playa_canteras', targetX: 25, targetY: 5, name: 'Playa de Las Canteras' },
-            { x: 35, y: 20, targetMap: 'canarias_puerto', targetX: 5, targetY: 20, name: 'Puerto' }
+            { x: 30, y: 39, targetMap: 'mountain_pass_upper', targetX: 30, targetY: 1, name: 'Paso Alto' }
         ]
     },
-    'canarias_playa_canteras': {
-        name: '🏖️ Playa de Las Canteras',
-        description: 'Hermosa playa urbana con su característica Barra',
-        worldX: 500, worldY: 250,
-        portals: [
-            { x: 25, y: 3, targetMap: 'canarias_capital', targetX: 25, targetY: 35, name: 'Ciudad' },
-            { x: 40, y: 20, targetMap: 'canarias_dunas', targetX: 5, targetY: 20, name: 'Dunas de Maspalomas' }
-        ]
-    },
-    'canarias_dunas': {
-        name: '🏜️ Dunas de Maspalomas',
-        description: 'Impresionante desierto de dunas junto al mar',
-        worldX: 550, worldY: 250,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_playa_canteras', targetX: 38, targetY: 20, name: 'Las Canteras' },
-            { x: 25, y: 5, targetMap: 'canarias_roque', targetX: 25, targetY: 35, name: 'Roque Nublo' }
-        ]
-    },
-    'canarias_roque': {
-        name: '🗿 Roque Nublo',
-        description: 'Formación rocosa emblemática en las montañas',
-        worldX: 550, worldY: 200,
-        portals: [
-            { x: 25, y: 37, targetMap: 'canarias_dunas', targetX: 25, targetY: 7, name: 'Dunas' },
-            { x: 10, y: 20, targetMap: 'canarias_capital', targetX: 33, targetY: 20, name: 'Capital' }
-        ]
-    },
-    'canarias_puerto': {
-        name: '🚢 Puerto de la Luz',
-        description: 'Puerto principal con conexiones a otras islas',
-        worldX: 550, worldY: 150,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_capital', targetX: 33, targetY: 20, name: 'Capital' },
-            // Puertos a otras islas
-            { x: 45, y: 10, targetMap: 'canarias_tenerife_puerto', targetX: 5, targetY: 20, name: 'Tenerife' },
-            { x: 45, y: 20, targetMap: 'canarias_lanzarote_puerto', targetX: 5, targetY: 20, name: 'Lanzarote' },
-            { x: 45, y: 30, targetMap: 'canarias_fuerteventura_puerto', targetX: 5, targetY: 20, name: 'Fuerteventura' }
-        ]
-    },
-    
-    // TENERIFE
-    'canarias_tenerife_puerto': {
-        name: '🚢 Puerto de Santa Cruz',
-        description: 'Puerto principal de Tenerife',
-        worldX: 600, worldY: 150,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_puerto', targetX: 43, targetY: 10, name: 'Gran Canaria' },
-            { x: 25, y: 3, targetMap: 'canarias_tenerife_ciudad', targetX: 25, targetY: 35, name: 'Santa Cruz' }
-        ]
-    },
-    'canarias_tenerife_ciudad': {
-        name: '🏙️ Santa Cruz de Tenerife',
-        description: 'Capital de Tenerife, ciudad costera llena de vida',
-        worldX: 600, worldY: 100,
-        portals: [
-            { x: 25, y: 37, targetMap: 'canarias_tenerife_puerto', targetX: 25, targetY: 5, name: 'Puerto' },
-            { x: 45, y: 20, targetMap: 'canarias_teide', targetX: 5, targetY: 20, name: 'Teide' }
-        ]
-    },
-    'canarias_teide': {
-        name: '🌋 Volcán Teide',
-        description: 'Imponente volcán, el pico más alto de España',
-        worldX: 650, worldY: 100,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_tenerife_ciudad', targetX: 43, targetY: 20, name: 'Ciudad' },
-            { x: 25, y: 25, targetMap: 'canarias_teide_dungeon', targetX: 5, targetY: 5, name: 'Cueva Volcánica', isDoor: true }
-        ]
-    },
-    'canarias_teide_dungeon': {
-        name: '🔥 Cueva Volcánica',
-        description: 'Peligrosa mazmorra en el interior del volcán',
-        worldX: 650, worldY: 130,
+
+    // ===== MAZMORRAS =====
+    'forest_cave': {
+        name: '🏔️ Cueva del Bosque Oscuro',
+        description: 'Una mazmorra subterránea llena de peligros. Corredores estrechos conectan varias salas grandes.',
+        worldX: 650, worldY: 250,
+        zone: 'dungeon',
         isDungeon: true,
         portals: [
-            { x: 5, y: 3, targetMap: 'canarias_teide', targetX: 25, targetY: 23, name: 'Salida', isDoor: true }
+            { x: 30, y: 30, targetMap: 'dark_forest_center', targetX: 30, targetY: 30, name: 'Salida' }
         ]
     },
-    
-    // LANZAROTE
-    'canarias_lanzarote_puerto': {
-        name: '🚢 Puerto de Arrecife',
-        description: 'Puerto principal de Lanzarote',
-        worldX: 650, worldY: 200,
+
+    'mountain_dungeon': {
+        name: '🏔️ Mazmorra de la Montaña',
+        description: 'Una antigua mazmorra excavada en las profundidades de las montañas. Corredores estrechos conectan salas amplias llenas de peligros y tesoros.',
+        worldX: 650, worldY: 120,
+        zone: 'dungeon',
+        isDungeon: true,
         portals: [
-            { x: 3, y: 20, targetMap: 'canarias_puerto', targetX: 43, targetY: 20, name: 'Gran Canaria' },
-            { x: 25, y: 3, targetMap: 'canarias_lanzarote_ciudad', targetX: 25, targetY: 35, name: 'Arrecife' }
-        ]
-    },
-    'canarias_lanzarote_ciudad': {
-        name: '🏙️ Arrecife',
-        description: 'Capital de Lanzarote, ciudad con encanto marinero',
-        worldX: 650, worldY: 150,
-        portals: [
-            { x: 25, y: 37, targetMap: 'canarias_lanzarote_puerto', targetX: 25, targetY: 5, name: 'Puerto' },
-            { x: 45, y: 20, targetMap: 'canarias_timanfaya', targetX: 5, targetY: 20, name: 'Timanfaya' }
-        ]
-    },
-    'canarias_timanfaya': {
-        name: '🌋 Parque Nacional de Timanfaya',
-        description: 'Paisaje volcánico espectacular',
-        worldX: 700, worldY: 150,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_lanzarote_ciudad', targetX: 43, targetY: 20, name: 'Ciudad' }
-        ]
-    },
-    
-    // FUERTEVENTURA
-    'canarias_fuerteventura_puerto': {
-        name: '🚢 Puerto del Rosario',
-        description: 'Puerto principal de Fuerteventura',
-        worldX: 700, worldY: 250,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_puerto', targetX: 43, targetY: 30, name: 'Gran Canaria' },
-            { x: 25, y: 3, targetMap: 'canarias_fuerteventura_ciudad', targetX: 25, targetY: 35, name: 'Ciudad' }
-        ]
-    },
-    'canarias_fuerteventura_ciudad': {
-        name: '🏙️ Puerto del Rosario',
-        description: 'Capital de Fuerteventura',
-        worldX: 700, worldY: 200,
-        portals: [
-            { x: 25, y: 37, targetMap: 'canarias_fuerteventura_puerto', targetX: 25, targetY: 5, name: 'Puerto' },
-            { x: 45, y: 20, targetMap: 'canarias_corralejo', targetX: 5, targetY: 20, name: 'Playas de Corralejo' }
-        ]
-    },
-    'canarias_corralejo': {
-        name: '🏝️ Playas de Corralejo',
-        description: 'Extensas playas de arena blanca y dunas',
-        worldX: 750, worldY: 200,
-        portals: [
-            { x: 3, y: 20, targetMap: 'canarias_fuerteventura_ciudad', targetX: 43, targetY: 20, name: 'Ciudad' },
-            { x: 25, y: 5, targetMap: 'canarias_lobos', targetX: 25, targetY: 35, name: 'Isla de Lobos' }
-        ]
-    },
-    'canarias_lobos': {
-        name: '🏝️ Isla de Lobos',
-        description: 'Pequeño islote natural protegido',
-        worldX: 750, worldY: 150,
-        portals: [
-            { x: 25, y: 37, targetMap: 'canarias_corralejo', targetX: 25, targetY: 7, name: 'Corralejo' }
+            { x: 30, y: 30, targetMap: 'mountain_pass_upper', targetX: 30, targetY: 30, name: 'Salida' }
         ]
     }
 };
 
 // World map connections (which maps are connected)
 export const WORLD_CONNECTIONS = [
-    // Conexiones de mapas originales
-    ['newbie_city', 'newbie_field'],
-    ['newbie_field', 'dark_forest'],
-    ['field', 'city'],
-    ['field', 'dungeon'],
-    ['field', 'forest'],
-    ['city', 'castle'],
-    ['city', 'market'],
-    ['dungeon', 'deep_dungeon'],
-    ['forest', 'ruins'],
-    ['castle', 'throne_room'],
-    
-    // Conexiones de Islas Canarias
-    // Gran Canaria
-    ['canarias_capital', 'canarias_playa_canteras'],
-    ['canarias_capital', 'canarias_puerto'],
-    ['canarias_playa_canteras', 'canarias_dunas'],
-    ['canarias_dunas', 'canarias_roque'],
-    ['canarias_roque', 'canarias_capital'],
-    
-    // Conexiones entre islas
-    ['canarias_puerto', 'canarias_tenerife_puerto'],
-    ['canarias_puerto', 'canarias_lanzarote_puerto'],
-    ['canarias_puerto', 'canarias_fuerteventura_puerto'],
-    
-    // Tenerife
-    ['canarias_tenerife_puerto', 'canarias_tenerife_ciudad'],
-    ['canarias_tenerife_ciudad', 'canarias_teide'],
-    ['canarias_teide', 'canarias_teide_dungeon'],
-    
-    // Lanzarote
-    ['canarias_lanzarote_puerto', 'canarias_lanzarote_ciudad'],
-    ['canarias_lanzarote_ciudad', 'canarias_timanfaya'],
-    
-    // Fuerteventura
-    ['canarias_fuerteventura_puerto', 'canarias_fuerteventura_ciudad'],
-    ['canarias_fuerteventura_ciudad', 'canarias_corralejo'],
-    ['canarias_corralejo', 'canarias_lobos']
+    // ===== ZONA INICIAL =====
+    ['newbie_city', 'training_fields'],
+
+    // ===== CAMPOS DE ENTRENAMIENTO =====
+    ['training_fields', 'forest_outskirts_1'],
+    ['training_fields', 'forest_outskirts_2'],
+
+    // ===== BOSQUES EXTERIORES =====
+    ['forest_outskirts_1', 'dark_forest_north'],
+    ['forest_outskirts_2', 'forest_outskirts_3'],
+
+    // ===== BOSQUE OSCURO =====
+    ['dark_forest_north', 'dark_forest_center'],
+    ['dark_forest_center', 'dark_forest_south'],
+    ['dark_forest_center', 'dark_forest_east'],
+
+    // ===== MONTAÑAS =====
+    ['dark_forest_south', 'mountain_pass_lower'],
+    ['dark_forest_east', 'mountain_pass_lower'],
+    ['mountain_pass_lower', 'mountain_pass_middle'],
+    ['mountain_pass_middle', 'mountain_pass_upper'],
+    ['mountain_pass_upper', 'mountain_peak'],
+
+    // ===== MAZMORRAS =====
+    ['dark_forest_center', 'forest_cave'],
+    ['mountain_pass_upper', 'mountain_dungeon']
 ];

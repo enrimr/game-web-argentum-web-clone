@@ -15,6 +15,7 @@ const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
  * Define qué mapas están conectados y en qué posiciones del mundo
  */
 const WORLD_MAP_LAYOUT = {
+    // ===== CIUDAD INICIAL =====
     'newbie_city': {
         worldPos: { x: 100, y: 100 },
         adjacentMaps: {
@@ -24,42 +25,142 @@ const WORLD_MAP_LAYOUT = {
             west: null
         }
     },
+
+    // ===== ZONA 1: ULLATHORPE REGION =====
     'training_fields': {
         worldPos: { x: 110, y: 100 },
         adjacentMaps: {
-            north: 'forest_outskirts',
+            north: 'forest_outskirts_1',
             south: null,
-            east: null,
+            east: 'forest_outskirts_2',
             west: 'newbie_city'
         }
     },
-    'forest_outskirts': {
+    'forest_outskirts_1': {
         worldPos: { x: 110, y: 90 },
         adjacentMaps: {
-            north: 'dark_forest',
+            north: 'dark_forest_north',
             south: 'training_fields',
             east: null,
             west: null
         }
     },
-    'dark_forest': {
-        worldPos: { x: 110, y: 80 },
+    'forest_outskirts_2': {
+        worldPos: { x: 120, y: 100 },
         adjacentMaps: {
             north: null,
-            south: 'forest_outskirts',
-            east: 'mountain_pass',
-            west: null
+            south: null,
+            east: 'forest_outskirts_3',
+            west: 'training_fields'
         }
     },
-    'mountain_pass': {
-        worldPos: { x: 120, y: 80 },
+    'forest_outskirts_3': {
+        worldPos: { x: 130, y: 100 },
         adjacentMaps: {
             north: null,
             south: null,
             east: null,
-            west: 'dark_forest'
+            west: 'forest_outskirts_2'
         }
     },
+
+    // ===== ZONA 2: DARK FOREST REGION =====
+    'dark_forest_north': {
+        worldPos: { x: 110, y: 80 },
+        adjacentMaps: {
+            north: 'mountain_peak',
+            south: 'forest_outskirts_1',
+            east: null,
+            west: null
+        }
+    },
+    'dark_forest_center': {
+        worldPos: { x: 110, y: 70 },
+        adjacentMaps: {
+            north: 'dark_forest_north',
+            south: 'dark_forest_south',
+            east: 'dark_forest_east',
+            west: null
+        }
+    },
+    'dark_forest_south': {
+        worldPos: { x: 110, y: 60 },
+        adjacentMaps: {
+            north: 'dark_forest_center',
+            south: 'mountain_pass_lower',
+            east: null,
+            west: null
+        }
+    },
+    'dark_forest_east': {
+        worldPos: { x: 120, y: 70 },
+        adjacentMaps: {
+            north: null,
+            south: null,
+            east: 'mountain_pass_lower',
+            west: 'dark_forest_center'
+        }
+    },
+
+    // ===== ZONA 3: MOUNTAIN REGION =====
+    'mountain_pass_lower': {
+        worldPos: { x: 110, y: 50 },
+        adjacentMaps: {
+            north: 'dark_forest_south',
+            south: 'mountain_pass_middle',
+            east: 'dark_forest_east',
+            west: null
+        }
+    },
+    'mountain_pass_middle': {
+        worldPos: { x: 110, y: 40 },
+        adjacentMaps: {
+            north: 'mountain_pass_lower',
+            south: 'mountain_pass_upper',
+            east: null,
+            west: null
+        }
+    },
+    'mountain_pass_upper': {
+        worldPos: { x: 110, y: 30 },
+        adjacentMaps: {
+            north: 'mountain_pass_middle',
+            south: 'mountain_peak',
+            east: null,
+            west: null
+        }
+    },
+    'mountain_peak': {
+        worldPos: { x: 110, y: 20 },
+        adjacentMaps: {
+            north: 'mountain_pass_upper',
+            south: null,
+            east: null,
+            west: null
+        }
+    },
+
+    // ===== MAZMORRAS =====
+    'forest_cave': {
+        worldPos: null,
+        adjacentMaps: {
+            north: null,
+            south: null,
+            east: null,
+            west: null
+        }
+    },
+    'mountain_dungeon': {
+        worldPos: null,
+        adjacentMaps: {
+            north: null,
+            south: null,
+            east: null,
+            west: null
+        }
+    },
+
+    // ===== MAPAS ANTIGUOS (MANTENIDOS) =====
     'coastal_town': {
         worldPos: { x: 90, y: 100 },
         adjacentMaps: {

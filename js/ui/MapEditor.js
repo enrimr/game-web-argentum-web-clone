@@ -888,9 +888,18 @@ function loadCurrentMap() {
             },
             portals: [],
             npcs: [],
-            playerSpawn: { x: 5, y: 5 }
+            playerSpawn: { x: 5, y: 5 },
+            adjacentMaps: {
+                north: null,
+                south: null,
+                east: null,
+                west: null
+            }
         };
     }
+
+    // Update connections UI after loading the map
+    updateConnectionsUI();
 }
 
 /**
@@ -1419,7 +1428,7 @@ function handleFileLoad(event) {
             const loadedMap = JSON.parse(e.target.result);
 
             // Ensure the loaded map has the correct structure
-            currentMapData = {
+            const loadedMapData = {
                 name: loadedMap.name || "Mapa cargado",
                 description: loadedMap.description || "Mapa cargado desde archivo",
                 type: loadedMap.type || "custom",
@@ -1434,8 +1443,18 @@ function handleFileLoad(event) {
                 },
                 portals: loadedMap.portals || [],
                 npcs: loadedMap.npcs || [],
-                playerSpawn: loadedMap.playerSpawn || { x: 5, y: 5 }
+                playerSpawn: loadedMap.playerSpawn || { x: 5, y: 5 },
+                adjacentMaps: loadedMap.adjacentMaps || {
+                    north: null,
+                    south: null,
+                    east: null,
+                    west: null
+                }
             };
+
+            // Update both local and core state
+            currentMapData = loadedMapData;
+            setCurrentMapData(loadedMapData);
 
             // If the loaded map uses the old format (direct map array), convert it
             if (!loadedMap.layers && loadedMap.map) {
@@ -1448,6 +1467,7 @@ function handleFileLoad(event) {
             updatePortalList();
             updateEnemyList();
             updateTreasureList();
+            updateConnectionsUI(); // Actualizar la UI de conexiones después de cargar el mapa
             renderEditor();
             renderPalette();
         } catch (error) {
@@ -1547,7 +1567,7 @@ function showAddNpcDialog() {
     typeSelect.style.cssText = `
         width: 100%;
         padding: 5px;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         background: #222;
         color: white;
         border: 1px solid #555;
@@ -1559,6 +1579,47 @@ function showAddNpcDialog() {
         option.textContent = `${NPC_DEFINITIONS[npcType].name} (${npcType})`;
         typeSelect.appendChild(option);
     });
+
+    // Sprite preview canvas
+    const spritePreview = document.createElement('canvas');
+    spritePreview.width = 64;
+    spritePreview.height = 64;
+    spritePreview.style.cssText = `
+        border: 1px solid #555;
+        background: #000;
+        margin-bottom: 15px;
+        display: block;
+        image-rendering: pixelated;
+    `;
+
+    // Function to update sprite preview
+    const updateSpritePreview = () => {
+        const ctx = spritePreview.getContext('2d');
+        ctx.clearRect(0, 0, 64, 64);
+
+        const selectedNpcType = typeSelect.value;
+        if (selectedNpcType && npcSprites[selectedNpcType]) {
+            const sprite = npcSprites[selectedNpcType];
+            if (sprite) {
+                // Draw sprite scaled up
+                ctx.drawImage(sprite, 0, 0, 64, 64);
+            }
+        } else {
+            // Draw placeholder
+            ctx.fillStyle = '#666';
+            ctx.fillRect(0, 0, 64, 64);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sin sprite', 32, 32);
+        }
+    };
+
+    // Update preview when selection changes
+    typeSelect.addEventListener('change', updateSpritePreview);
+
+    // Initial preview update
+    updateSpritePreview();
 
     // Position inputs
     const posContainer = document.createElement('div');
@@ -2250,7 +2311,7 @@ function showAddSpecificEnemyDialog() {
     typeSelect.style.cssText = `
         width: 100%;
         padding: 5px;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         background: #222;
         color: white;
         border: 1px solid #555;
@@ -2262,6 +2323,47 @@ function showAddSpecificEnemyDialog() {
         option.textContent = `${enemyType.charAt(0).toUpperCase() + enemyType.slice(1)} (HP: ${ENEMY_STATS[enemyType].hp})`;
         typeSelect.appendChild(option);
     });
+
+    // Sprite preview canvas
+    const spritePreview = document.createElement('canvas');
+    spritePreview.width = 64;
+    spritePreview.height = 64;
+    spritePreview.style.cssText = `
+        border: 1px solid #555;
+        background: #000;
+        margin-bottom: 15px;
+        display: block;
+        image-rendering: pixelated;
+    `;
+
+    // Function to update sprite preview
+    const updateSpritePreview = () => {
+        const ctx = spritePreview.getContext('2d');
+        ctx.clearRect(0, 0, 64, 64);
+
+        const selectedEnemyType = typeSelect.value;
+        if (selectedEnemyType && enemySprites[selectedEnemyType]) {
+            const sprite = enemySprites[selectedEnemyType];
+            if (sprite) {
+                // Draw sprite scaled up
+                ctx.drawImage(sprite, 0, 0, 64, 64);
+            }
+        } else {
+            // Draw placeholder
+            ctx.fillStyle = '#666';
+            ctx.fillRect(0, 0, 64, 64);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sin sprite', 32, 32);
+        }
+    };
+
+    // Update preview when selection changes
+    typeSelect.addEventListener('change', updateSpritePreview);
+
+    // Initial preview update
+    updateSpritePreview();
 
     // Position and level inputs
     const paramsContainer = document.createElement('div');

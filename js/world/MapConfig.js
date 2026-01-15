@@ -170,6 +170,142 @@ export const MAP_CONFIG = {
         }
     },
 
+    // ===== NUESTROS MAPAS JSON =====
+    // Zona 1: Bosques Exteriores
+    forest_outskirts_1: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'El límite norte de los campos de entrenamiento. Los árboles comienzan a densificarse.',
+        worldPosition: { x: 110, y: 90 },
+        fileSource: 'forest_outskirts_1.json'
+    },
+
+    forest_outskirts_2: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'Bosque más denso al este de los campos de entrenamiento. Los árboles se hacen más abundantes.',
+        worldPosition: { x: 120, y: 100 },
+        fileSource: 'forest_outskirts_2.json'
+    },
+
+    forest_outskirts_3: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'La zona más densa del bosque exterior. Los árboles casi bloquean el paso en algunas áreas.',
+        worldPosition: { x: 130, y: 100 },
+        fileSource: 'forest_outskirts_3.json'
+    },
+
+    // Zona 2: Bosque Oscuro
+    dark_forest_north: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'El bosque se vuelve más oscuro y peligroso. Los lobos acechan entre las sombras.',
+        worldPosition: { x: 110, y: 80 },
+        fileSource: 'dark_forest_north.json'
+    },
+
+    dark_forest_center: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'El corazón del bosque oscuro. Más denso y peligroso, con una entrada a una cueva misteriosa.',
+        worldPosition: { x: 110, y: 70 },
+        fileSource: 'dark_forest_center.json'
+    },
+
+    dark_forest_south: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'La zona sur del bosque oscuro. Más cerca de las montañas, con menos árboles pero mayor peligro.',
+        worldPosition: { x: 110, y: 60 },
+        fileSource: 'dark_forest_south.json'
+    },
+
+    dark_forest_east: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'El límite oriental del bosque oscuro. La transición a las montañas comienza aquí.',
+        worldPosition: { x: 120, y: 70 },
+        fileSource: 'dark_forest_east.json'
+    },
+
+    // Zona 3: Montañas
+    mountain_pass_lower: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'El inicio de las peligrosas montañas. Los caminos son estrechos y los peligros abundan.',
+        worldPosition: { x: 110, y: 50 },
+        fileSource: 'mountain_pass_lower.json'
+    },
+
+    mountain_pass_middle: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'La zona intermedia del paso de montaña. Las pendientes se hacen más pronunciadas y los peligros aumentan.',
+        worldPosition: { x: 110, y: 40 },
+        fileSource: 'mountain_pass_middle.json'
+    },
+
+    mountain_pass_upper: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'Las alturas extremas del paso de montaña. El aire es frío y los vientos son intensos.',
+        worldPosition: { x: 110, y: 30 },
+        fileSource: 'mountain_pass_upper.json'
+    },
+
+    mountain_peak: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'La cumbre más alta de las montañas. Desde aquí se divisa todo el mundo.',
+        worldPosition: { x: 110, y: 20 },
+        fileSource: 'mountain_peak.json'
+    },
+
+    // Mazmorras
+    forest_cave: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'Una mazmorra subterránea llena de peligros. Corredores estrechos conectan varias salas grandes.',
+        worldPosition: null,
+        fileSource: 'forest_cave.json'
+    },
+
+    mountain_dungeon: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: true,
+        safeZone: false,
+        description: 'Una antigua mazmorra excavada en las profundidades de las montañas.',
+        worldPosition: null,
+        fileSource: 'mountain_dungeon.json'
+    },
+
+    // Mapas legacy
     dark_forest: {
         type: 'procedural',
         generator: 'StaticMapGenerator',

@@ -71,7 +71,7 @@ export function generateNewbieCityLayout() {
  * Generate newbie field layout (static)
  * @returns {Object} Object with map layers
  */
-export function generateNewbieFieldLayout() {
+/*export function generateNewbieFieldLayout() {
     console.log("🏞️ Generando mapa newbie_field con estructura multicapa");
     
     // Crear mapas como objetos con capas
@@ -146,7 +146,7 @@ export function generateNewbieFieldLayout() {
         windowLayer: Array(MAP_HEIGHT).fill().map(() => Array(MAP_WIDTH).fill(0))
     };
 }
-
+*/
 /**
  * Generate dark forest layout (static)
  * @returns {Array} 2D array representing the dark forest

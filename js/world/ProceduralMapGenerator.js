@@ -18,7 +18,7 @@ import {
 } from './generators/DungeonGenerator.js';
 import {
     generateNewbieCityLayout,
-    generateNewbieFieldLayout,
+//    generateNewbieFieldLayout,
     generateDarkForestLayout
 } from './generators/StaticMapGenerator.js';
 import { MapProcessor } from './MapProcessor.js';

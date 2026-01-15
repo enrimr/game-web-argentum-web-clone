@@ -11,6 +11,10 @@ import { showDebugSkillsPanel, initPlayerSkills } from './DebugSkills.js';
 // Estado del panel de depuración
 let debugPanelVisible = false;
 
+// Estado de la super velocidad
+let superSpeedEnabled = false;
+let superSpeedMultiplier = 5; // 5x velocidad normal
+
 /**
  * Inicializar el panel de depuración
  */
@@ -152,7 +156,41 @@ function createDebugPanel() {
     skillsButton.style.cursor = 'pointer';
     skillsButton.onclick = showDebugSkillsPanel;
     debugPanel.appendChild(skillsButton);
-    
+
+    // Sección de super velocidad
+    const speedTitle = document.createElement('div');
+    speedTitle.textContent = 'Super Velocidad:';
+    speedTitle.style.marginTop = '15px';
+    speedTitle.style.marginBottom = '5px';
+    speedTitle.style.borderTop = '1px solid #555';
+    speedTitle.style.paddingTop = '5px';
+    debugPanel.appendChild(speedTitle);
+
+    // Botón para activar/desactivar super velocidad
+    const speedButton = document.createElement('button');
+    speedButton.id = 'super-speed-button';
+    speedButton.textContent = superSpeedEnabled ? '🐌 Desactivar Super Velocidad' : '🚀 Activar Super Velocidad';
+    speedButton.style.marginTop = '5px';
+    speedButton.style.width = '100%';
+    speedButton.style.backgroundColor = superSpeedEnabled ? '#dc2626' : '#059669';
+    speedButton.style.color = 'white';
+    speedButton.style.border = 'none';
+    speedButton.style.padding = '5px 10px';
+    speedButton.style.borderRadius = '3px';
+    speedButton.style.cursor = 'pointer';
+    speedButton.onclick = toggleSuperSpeed;
+    debugPanel.appendChild(speedButton);
+
+    // Indicador de estado de velocidad
+    const speedIndicator = document.createElement('div');
+    speedIndicator.id = 'speed-indicator';
+    speedIndicator.textContent = `Velocidad: ${superSpeedEnabled ? superSpeedMultiplier + 'x' : 'Normal (1x)'}`;
+    speedIndicator.style.marginTop = '5px';
+    speedIndicator.style.fontSize = '12px';
+    speedIndicator.style.textAlign = 'center';
+    speedIndicator.style.color = superSpeedEnabled ? '#fbbf24' : '#94a3b8';
+    debugPanel.appendChild(speedIndicator);
+
     // Sección de teletransporte a mapas
     const teleportTitle = document.createElement('div');
     teleportTitle.textContent = 'Teletransporte:';
@@ -329,13 +367,47 @@ function updateBuildingsList() {
 }
 
 /**
+ * Función para activar/desactivar la super velocidad
+ */
+function toggleSuperSpeed() {
+    superSpeedEnabled = !superSpeedEnabled;
+
+    // Actualizar botón
+    const speedButton = document.getElementById('super-speed-button');
+    const speedIndicator = document.getElementById('speed-indicator');
+
+    if (superSpeedEnabled) {
+        speedButton.textContent = '🐌 Desactivar Super Velocidad';
+        speedButton.style.backgroundColor = '#dc2626';
+        speedIndicator.textContent = `Velocidad: ${superSpeedMultiplier}x`;
+        speedIndicator.style.color = '#fbbf24';
+        console.log(`🚀 Super velocidad activada (${superSpeedMultiplier}x)`);
+    } else {
+        speedButton.textContent = '🚀 Activar Super Velocidad';
+        speedButton.style.backgroundColor = '#059669';
+        speedIndicator.textContent = 'Velocidad: Normal (1x)';
+        speedIndicator.style.color = '#94a3b8';
+        console.log('🐌 Super velocidad desactivada');
+    }
+
+    // Notificar al game loop sobre el cambio de velocidad
+    import('../core/GameLoop.js').then(({ setSuperSpeed }) => {
+        if (setSuperSpeed) {
+            setSuperSpeed(superSpeedEnabled, superSpeedMultiplier);
+        }
+    }).catch(err => {
+        console.error('Error al configurar super velocidad:', err);
+    });
+}
+
+/**
  * Añadir botón para mostrar/ocultar el panel de depuración
  */
 function addToggleButton() {
     const toggleButton = document.createElement('button');
     toggleButton.id = 'debug-toggle';
     toggleButton.textContent = '🛠️'; // Icono de herramienta
-    
+
     // Estilo del botón
     toggleButton.style.position = 'absolute';
     toggleButton.style.top = '10px';
@@ -347,12 +419,12 @@ function addToggleButton() {
     toggleButton.style.padding = '5px 10px';
     toggleButton.style.cursor = 'pointer';
     toggleButton.style.zIndex = '1001'; // Por encima del panel
-    
+
     // Evento para mostrar/ocultar el panel
     toggleButton.addEventListener('click', () => {
         const debugPanel = document.getElementById('debug-panel');
         debugPanelVisible = !debugPanelVisible;
-        
+
         if (debugPanelVisible) {
             debugPanel.style.display = 'block';
             toggleButton.textContent = '❌'; // Icono de cierre
@@ -361,7 +433,7 @@ function addToggleButton() {
             toggleButton.textContent = '🛠️'; // Icono de herramienta
         }
     });
-    
+
     // Añadir el botón al DOM
     document.body.appendChild(toggleButton);
 }

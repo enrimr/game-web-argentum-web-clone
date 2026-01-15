@@ -24,15 +24,22 @@ import { checkMapEdgeTransition } from '../world/MapTransitions.js';
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
 
+// Estado de la super velocidad para debugging
+let superSpeedEnabled = false;
+let superSpeedMultiplier = 5; // 5x velocidad normal
+
 /**
  * Main game loop
  * @param {number} timestamp - Current timestamp
  */
 export function gameLoop(timestamp) {
+    // Aplicar super velocidad si está activada
+    const effectiveTimestamp = superSpeedEnabled ? timestamp * superSpeedMultiplier : timestamp;
+
     // Only process game logic if player is alive
     if (isPlayerAlive()) {
         // Handle automatic movement from mouse clicks first
-        const autoMoving = updateAutoMovement(timestamp);
+        const autoMoving = updateAutoMovement(effectiveTimestamp);
 
         // Only handle manual movement if not auto-moving
         if (!autoMoving) {
@@ -51,22 +58,22 @@ export function gameLoop(timestamp) {
         }
 
         updateProjectiles();
-        updateEnemies(timestamp);
-        enemyAttacks(timestamp);
+        updateEnemies(effectiveTimestamp);
+        enemyAttacks(effectiveTimestamp);
 
         // Check for enemy respawns (every 5 seconds)
-        if (timestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {
+        if (effectiveTimestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {
             checkEnemyRespawns();
-            gameLoop.lastRespawnCheck = timestamp;
+            gameLoop.lastRespawnCheck = effectiveTimestamp;
         }
-        
+
         // Update spell effects (buffs, debuffs, etc.)
         updateSpellEffects();
-        
+
         // Recover mana if meditating (every 3 seconds)
-        if (timestamp - (gameLoop.lastManaRecovery || 0) > 3000) {
+        if (effectiveTimestamp - (gameLoop.lastManaRecovery || 0) > 3000) {
             recoverMana();
-            gameLoop.lastManaRecovery = timestamp;
+            gameLoop.lastManaRecovery = effectiveTimestamp;
         }
         
         // Update overhead messages (remove expired ones)
@@ -133,7 +140,9 @@ function handleMovement(timestamp) {
     }
 
     // Only move if not on cooldown and position is valid
-    if (moved && timestamp - lastMoveTime >= MOVE_DELAY && isWalkable(gameState.map, newX, newY)) {
+    // Aplicar super velocidad al delay de movimiento si está activada
+    const moveDelay = superSpeedEnabled ? MOVE_DELAY / superSpeedMultiplier : MOVE_DELAY;
+    if (moved && timestamp - lastMoveTime >= moveDelay && isWalkable(gameState.map, newX, newY)) {
         // Check if there's an enemy in the target position (ghosts can pass through enemies)
         const enemyInPosition = !gameState.player.isGhost && gameState.enemies.some(e => e.x === newX && e.y === newY);
 
@@ -391,4 +400,15 @@ function enemyAttacks(timestamp) {
             enemy.lastAttackTime = timestamp;
         }
     }
+}
+
+/**
+ * Configurar super velocidad para debugging
+ * @param {boolean} enabled - Si la super velocidad está activada
+ * @param {number} multiplier - Multiplicador de velocidad (ej: 5 = 5x más rápido)
+ */
+export function setSuperSpeed(enabled, multiplier = 5) {
+    superSpeedEnabled = enabled;
+    superSpeedMultiplier = multiplier;
+    console.log(`🚀 Super velocidad ${enabled ? 'activada' : 'desactivada'} (multiplicador: ${multiplier}x)`);
 }

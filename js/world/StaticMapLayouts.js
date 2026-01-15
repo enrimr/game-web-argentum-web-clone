@@ -453,7 +453,7 @@ export function generateNewbieCityWithBuildings() {
             if (x === 0 || y === 0 || y === MAP_HEIGHT - 1) {
                 row.push(TILES.WALL);
             } else if (x === MAP_WIDTH - 1) {
-                row.push(TILES.PATH); // Path para indicar salida al este
+                row.push(TILES.PATH); // Path abierto para indicar salida al este hacia training_fields
             } else {
                 row.push(TILES.GRASS);
             }

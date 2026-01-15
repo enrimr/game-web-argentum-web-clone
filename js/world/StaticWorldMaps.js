@@ -76,10 +76,360 @@ export const STATIC_WORLD_MAPS = {
         connections: {}
     },
 
-    // ===== CAMPO INICIAL =====
+    // ===== ZONA 1: BOSQUES EXTERIORES =====
+    'forest_outskirts_1': {
+        name: '🌲 Bosque Exterior Norte',
+        description: 'El límite norte de los campos de entrenamiento. Los árboles comienzan a densificarse.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 110, y: 90 },
+        fileSource: 'js/world/maps/forest_outskirts_1.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'slime', count: 5, minLevel: 2, maxLevel: 4 },
+                { type: 'wolf', count: 3, minLevel: 2, maxLevel: 4 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.03,
+            types: ['potion', 'gold'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'forest_outskirts_2': {
+        name: '🌲 Bosque Exterior Este',
+        description: 'Bosque más denso al este de los campos de entrenamiento. Los árboles se hacen más abundantes.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 120, y: 100 },
+        fileSource: 'js/world/maps/forest_outskirts_2.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'slime', count: 5, minLevel: 2, maxLevel: 4 },
+                { type: 'wolf', count: 3, minLevel: 2, maxLevel: 4 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.03,
+            types: ['potion', 'gold'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'forest_outskirts_3': {
+        name: '🌲 Bosque Exterior Extremo',
+        description: 'La zona más densa del bosque exterior. Los árboles casi bloquean el paso en algunas áreas.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 130, y: 100 },
+        fileSource: 'js/world/maps/forest_outskirts_3.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'slime', count: 5, minLevel: 3, maxLevel: 5 },
+                { type: 'wolf', count: 4, minLevel: 3, maxLevel: 5 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.03,
+            types: ['potion', 'gold'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    // ===== ZONA 2: BOSQUE OSCURO =====
+    'dark_forest_north': {
+        name: '🌲🌑 Bosque Oscuro Norte',
+        description: 'El bosque se vuelve más oscuro y peligroso. Los lobos acechan entre las sombras.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 110, y: 80 },
+        fileSource: 'js/world/maps/dark_forest_north.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'wolf', count: 8, minLevel: 4, maxLevel: 7 },
+                { type: 'spider', count: 6, minLevel: 4, maxLevel: 7 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.04,
+            types: ['potion', 'gold', 'rare_weapon'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'dark_forest_center': {
+        name: '🌲🌑 Bosque Oscuro Centro',
+        description: 'El corazón del bosque oscuro. Más denso y peligroso, con una entrada a una cueva misteriosa.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 110, y: 70 },
+        fileSource: 'js/world/maps/dark_forest_center.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'wolf', count: 10, minLevel: 5, maxLevel: 8 },
+                { type: 'spider', count: 8, minLevel: 5, maxLevel: 8 },
+                { type: 'bear', count: 2, minLevel: 6, maxLevel: 9 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.04,
+            types: ['potion', 'gold', 'rare_weapon'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'dark_forest_south': {
+        name: '🌲🌑 Bosque Oscuro Sur',
+        description: 'La zona sur del bosque oscuro. Más cerca de las montañas, con menos árboles pero mayor peligro.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 110, y: 60 },
+        fileSource: 'js/world/maps/dark_forest_south.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'wolf', count: 8, minLevel: 5, maxLevel: 8 },
+                { type: 'spider', count: 6, minLevel: 5, maxLevel: 8 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.04,
+            types: ['potion', 'gold', 'rare_weapon'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'dark_forest_east': {
+        name: '🌲🌑 Bosque Oscuro Este',
+        description: 'El límite oriental del bosque oscuro. La transición a las montañas comienza aquí.',
+        type: 'forest',
+        safeZone: false,
+        worldPosition: { x: 120, y: 70 },
+        fileSource: 'js/world/maps/dark_forest_east.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'wolf', count: 8, minLevel: 7, maxLevel: 10 },
+                { type: 'spider', count: 6, minLevel: 7, maxLevel: 10 }
+            ],
+            spawnAreas: 'forest',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.04,
+            types: ['potion', 'gold', 'rare_weapon'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    // ===== ZONA 3: MONTAÑAS =====
+    'mountain_pass_lower': {
+        name: '⛰️ Paso de Montaña Inferior',
+        description: 'El inicio de las peligrosas montañas. Los caminos son estrechos y los peligros abundan.',
+        type: 'mountain',
+        safeZone: false,
+        worldPosition: { x: 110, y: 50 },
+        fileSource: 'js/world/maps/mountain_pass_lower.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'mountain_goat', count: 5, minLevel: 10, maxLevel: 13 },
+                { type: 'orc', count: 4, minLevel: 10, maxLevel: 13 }
+            ],
+            spawnAreas: 'mountain',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.05,
+            types: ['potion', 'gold', 'ore', 'rare_armor'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'mountain_pass_middle': {
+        name: '⛰️ Paso de Montaña Medio',
+        description: 'La zona intermedia del paso de montaña. Las pendientes se hacen más pronunciadas y los peligros aumentan.',
+        type: 'mountain',
+        safeZone: false,
+        worldPosition: { x: 110, y: 40 },
+        fileSource: 'js/world/maps/mountain_pass_middle.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'mountain_goat', count: 8, minLevel: 12, maxLevel: 16 },
+                { type: 'orc', count: 6, minLevel: 12, maxLevel: 16 },
+                { type: 'troll', count: 2, minLevel: 14, maxLevel: 18 }
+            ],
+            spawnAreas: 'mountain',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.06,
+            types: ['potion', 'gold', 'ore', 'rare_weapon'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'mountain_pass_upper': {
+        name: '⛰️ Paso de Montaña Alto',
+        description: 'Las alturas extremas del paso de montaña. El aire es frío y los vientos son intensos. Solo los más valientes llegan aquí.',
+        type: 'mountain',
+        safeZone: false,
+        worldPosition: { x: 110, y: 30 },
+        fileSource: 'js/world/maps/mountain_pass_upper.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'mountain_goat', count: 6, minLevel: 15, maxLevel: 19 },
+                { type: 'orc', count: 8, minLevel: 15, maxLevel: 19 },
+                { type: 'troll', count: 4, minLevel: 16, maxLevel: 21 },
+                { type: 'mountain_giant', count: 1, minLevel: 18, maxLevel: 22 }
+            ],
+            spawnAreas: 'mountain',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.07,
+            types: ['potion', 'gold', 'ore', 'rare_weapon', 'legendary_armor'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    'mountain_peak': {
+        name: '⛰️ Cima de la Montaña',
+        description: 'La cumbre más alta de las montañas. Desde aquí se divisa todo el mundo. El aire es extremadamente frío y las vistas son espectaculares.',
+        type: 'mountain',
+        safeZone: false,
+        worldPosition: { x: 110, y: 20 },
+        fileSource: 'js/world/maps/mountain_peak.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'mountain_giant', count: 2, minLevel: 20, maxLevel: 25 },
+                { type: 'dragon', count: 1, minLevel: 22, maxLevel: 25 }
+            ],
+            spawnAreas: 'mountain',
+            respawnTime: 300000
+        },
+        objects: {
+            density: 0.08,
+            types: ['legendary_weapon', 'legendary_armor', 'rare_gem', 'ancient_artifact'],
+            spawnAreas: 'walkable'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    // ===== MAZMORRAS =====
+    'mountain_dungeon': {
+        name: '🏔️ Mazmorra de la Montaña',
+        description: 'Una antigua mazmorra excavada en las profundidades de las montañas. Corredores estrechos conectan salas amplias llenas de peligros y tesoros.',
+        type: 'dungeon',
+        safeZone: false,
+        worldPosition: null,
+        fileSource: 'js/world/maps/mountain_dungeon.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'mountain_troll', count: 6, minLevel: 18, maxLevel: 23 },
+                { type: 'cave_golem', count: 4, minLevel: 19, maxLevel: 24 },
+                { type: 'ancient_guardian', count: 1, minLevel: 20, maxLevel: 25 }
+            ],
+            spawnAreas: 'dungeon',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.08,
+            types: ['legendary_weapon', 'legendary_armor', 'rare_gem', 'ancient_artifact'],
+            spawnAreas: 'floor'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    // ===== MAZMORRAS =====
+    'forest_cave': {
+        name: '🏔️ Cueva del Bosque Oscuro',
+        description: 'Una mazmorra subterránea llena de peligros. Corredores estrechos conectan varias salas grandes.',
+        type: 'dungeon',
+        safeZone: false,
+        worldPosition: null,
+        fileSource: 'js/world/maps/forest_cave.json',
+        npcs: [],
+        enemies: {
+            enabled: true,
+            types: [
+                { type: 'spider', count: 10, minLevel: 8, maxLevel: 12 },
+                { type: 'bat', count: 8, minLevel: 8, maxLevel: 12 },
+                { type: 'cave_troll', count: 2, minLevel: 10, maxLevel: 12 }
+            ],
+            spawnAreas: 'dungeon',
+            respawnTime: 180000
+        },
+        objects: {
+            density: 0.06,
+            types: ['potion', 'gold', 'rare_weapon', 'treasure_chest'],
+            spawnAreas: 'floor'
+        },
+        portals: [],
+        connections: {}
+    },
+
+    // ===== MAPAS LEGACY (MANTENIDOS PARA COMPATIBILIDAD) =====
+    // Estos mapas usan layouts programáticos y no archivos JSON
     'newbie_field': {
-        name: '🏞️ Campos de Ullathorpe',
-        description: 'Campos abiertos cerca de la ciudad',
+        name: '🏞️ Campos de Ullathorpe (Legacy)',
+        description: 'Campos abiertos cerca de la ciudad - versión legacy',
         type: 'field',
         safeZone: false,
         worldPosition: { x: 200, y: 220 },
@@ -103,116 +453,7 @@ export const STATIC_WORLD_MAPS = {
             spawnAreas: 'all'
         },
         portals: [
-            { x: 25, y: 37, targetMap: 'newbie_city', targetX: 25, targetY: 5, name: 'Ciudad' },
-            { x: 45, y: 10, targetMap: 'dark_forest', targetX: 5, targetY: 20, name: 'Bosque' }
-        ],
-        connections: {}
-    },
-
-    // ===== BOSQUE OSCURO =====
-    'dark_forest': {
-        name: '🌲 Bosque Oscuro',
-        description: 'Bosque denso con criaturas peligrosas',
-        type: 'forest',
-        safeZone: false,
-        worldPosition: { x: 300, y: 220 },
-        layout: generateDarkForestLayout,
-        npcs: [], // No NPCs for now
-        enemies: {
-            enabled: true,
-            types: [
-                { type: 'wolf', count: 6, minLevel: 3, maxLevel: 5 },
-                { type: 'spider', count: 8, minLevel: 2, maxLevel: 4 }
-            ],
-            spawnAreas: 'forest'
-        },
-        objects: {
-            density: 0.06,
-            types: ['potion', 'gold', 'armor', 'sword'],
-            spawnAreas: 'ground'
-        },
-        portals: [
-            { x: 5, y: 20, targetMap: 'newbie_field', targetX: 43, targetY: 10, name: 'Campo' }
-        ],
-        connections: {}
-    },
-
-    // ===== MAZMORRA NIVEL 1 =====
-    'dungeon_level_1': {
-        name: '🏰 Mazmorra Abandonada',
-        description: 'Primera planta de una antigua mazmorra',
-        type: 'dungeon',
-        safeZone: false,
-        worldPosition: { x: 280, y: 280 },
-        layout: generateDungeonLevel1Layout,
-        npcs: [],
-        enemies: {
-            enabled: true,
-            types: [
-                { type: 'skeleton', count: 10, minLevel: 5, maxLevel: 8 },
-                { type: 'zombie', count: 6, minLevel: 6, maxLevel: 9 }
-            ],
-            spawnAreas: 'dungeon'
-        },
-        objects: {
-            density: 0.08,
-            types: ['potion', 'gold', 'armor', 'sword'],
-            spawnAreas: 'floor'
-        },
-        portals: [
-            { x: 5, y: 5, targetMap: 'newbie_field', targetX: 30, targetY: 30, name: 'Salida' }
-        ],
-        connections: {}
-    },
-
-    // ===== ISLA DEL TESORO =====
-    'treasure_island': {
-        name: '�️ Isla del Tesoro',
-        description: 'Isla misteriosa rodeada de agua',
-        type: 'island',
-        safeZone: false,
-        worldPosition: { x: 100, y: 100 },
-        layout: generateTreasureIslandLayout,
-        npcs: [], // No NPCs for now
-        enemies: {
-            enabled: true,
-            types: [
-                { type: 'pirate_warrior', count: 5, minLevel: 8, maxLevel: 12 }
-            ],
-            spawnAreas: 'island'
-        },
-        objects: {
-            density: 0.10,
-            types: ['gold', 'treasure_chest', 'rare_armor'],
-            spawnAreas: 'beach'
-        },
-        portals: [],
-        connections: {}
-    },
-
-    // ===== MONTAÑAS =====
-    'mountain_pass': {
-        name: '⛰️ Paso de Montaña',
-        description: 'Paso montañoso con clima hostil',
-        type: 'mountain',
-        safeZone: false,
-        worldPosition: { x: 350, y: 180 },
-        layout: generateMountainPassLayout,
-        npcs: [], // No NPCs for now
-        enemies: {
-            enabled: true,
-            types: [
-                { type: 'mountain_troll', count: 4, minLevel: 10, maxLevel: 15 }
-            ],
-            spawnAreas: 'mountain'
-        },
-        objects: {
-            density: 0.07,
-            types: ['ore', 'gold', 'rare_weapon'],
-            spawnAreas: 'rocks'
-        },
-        portals: [
-            { x: 25, y: 38, targetMap: 'newbie_field', targetX: 25, targetY: 5, name: 'Campos' }
+            { x: 25, y: 37, targetMap: 'newbie_city', targetX: 25, targetY: 5, name: 'Ciudad' }
         ],
         connections: {}
     }

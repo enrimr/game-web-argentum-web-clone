@@ -208,11 +208,7 @@ function createDirectionSelector(direction) {
         select.appendChild(option);
     });
 
-    // Set current value
-    const mapData = getCurrentMapData();
-    if (mapData && mapData.adjacentMaps && mapData.adjacentMaps[direction.key]) {
-        select.value = mapData.adjacentMaps[direction.key];
-    }
+    // Note: Value will be set by updateConnectionsUI() after map loading
 
     // Update on change
     select.addEventListener('change', (e) => {

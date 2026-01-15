@@ -5,6 +5,7 @@
 
 import { gameState } from '../../state.js';
 import { CONFIG } from '../../config.js';
+import { updateConnectionsUI } from './MapEditorConnections.js';
 
 // Editor state
 export let currentMapData = null;
