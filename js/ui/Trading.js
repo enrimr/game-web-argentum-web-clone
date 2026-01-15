@@ -39,16 +39,16 @@ export function initTrading() {
                         <h3 class="item-name">-</h3>
                         <p class="item-description">Selecciona un item para ver detalles</p>
                         <div class="item-price">Precio: <span>-</span></div>
-                    </div>
-                    <div class="trade-gold">
-                        <div>Oro del jugador: <span class="player-gold">0</span></div>
-                    </div>
-                    <div class="trade-actions">
                         <div class="item-quantity">
                             <button class="quantity-btn minus">-</button>
                             <input type="number" class="quantity-input" value="1" min="1" max="99">
                             <button class="quantity-btn plus">+</button>
                         </div>
+                    </div>
+                    <div class="trade-gold">
+                        <div>Oro del jugador: <span class="player-gold">0</span></div>
+                    </div>
+                    <div class="trade-actions">
                         <button class="trade-action-btn">Comprar</button>
                     </div>
                 </div>
