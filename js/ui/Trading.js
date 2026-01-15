@@ -330,17 +330,45 @@ function executeTrade() {
     const itemType = selectedItemEl.dataset.itemType;
     const index = parseInt(selectedItemEl.dataset.index);
     const quantity = parseInt(tradeContainer.querySelector('.quantity-input').value);
+    const itemDef = ITEM_TYPES[itemType];
+    
+    // Validar cantidad
+    if (quantity <= 0 || isNaN(quantity)) {
+        addChatMessage('error', '❌ La cantidad debe ser mayor a 0');
+        return;
+    }
     
     let result;
     
     if (tradeMode === 'buy') {
+        // Validaciones de compra
+        const merchantItem = currentMerchant.inventory.find(i => i.itemType === itemType);
+        
+        if (!merchantItem) {
+            addChatMessage('error', '❌ El mercader no tiene este item');
+            return;
+        }
+        
+        // Verificar que el mercader tenga suficiente stock
+        if (merchantItem.quantity < quantity) {
+            addChatMessage('error', `❌ El mercader solo tiene ${merchantItem.quantity} ${itemDef.name}(s)`);
+            return;
+        }
+        
+        // Verificar que el jugador tenga suficiente oro
+        const totalCost = merchantItem.price * quantity;
+        if (gameState.player.gold < totalCost) {
+            addChatMessage('error', `❌ No tienes suficiente oro. Necesitas ${totalCost} oro (tienes ${gameState.player.gold})`);
+            return;
+        }
+        
         // El jugador compra al NPC
         result = currentMerchant.sellItem(itemType, quantity, gameState.player);
         
         if (result.success) {
             // Añadir item al inventario del jugador
             addItemToInventory(itemType, quantity);
-            addChatMessage('system', result.message);
+            addChatMessage('system', `✅ ${result.message}`);
             
             // Actualizar oro del jugador
             tradeContainer.querySelector('.player-gold').textContent = gameState.player.gold;
@@ -348,13 +376,31 @@ function executeTrade() {
             // Actualizar lista de items
             updateTradeItems();
         } else {
-            addChatMessage('npc', result.message);
+            addChatMessage('error', `❌ ${result.message}`);
         }
     } else {
-        // El jugador vende al NPC
-        // Crear un objeto con la información necesaria para la transacción
+        // Validaciones de venta
         const item = gameState.player.inventory[index];
         
+        if (!item) {
+            addChatMessage('error', '❌ No tienes este item');
+            return;
+        }
+        
+        // Verificar que el jugador tenga suficiente cantidad
+        if (item.quantity < quantity) {
+            addChatMessage('error', `❌ Solo tienes ${item.quantity} ${itemDef.name}(s)`);
+            return;
+        }
+        
+        // Verificar que el mercader compre este tipo de item
+        const merchantItem = currentMerchant.inventory.find(i => i.itemType === itemType);
+        if (!merchantItem) {
+            addChatMessage('error', `❌ El mercader no compra ${itemDef.name}`);
+            return;
+        }
+        
+        // El jugador vende al NPC
         result = currentMerchant.buyItem(itemType, quantity, gameState.player);
         
         if (result.success) {
@@ -364,7 +410,7 @@ function executeTrade() {
                 gameState.player.inventory.splice(index, 1);
             }
             
-            addChatMessage('system', result.message);
+            addChatMessage('system', `✅ ${result.message}`);
             
             // Actualizar oro del jugador
             tradeContainer.querySelector('.player-gold').textContent = gameState.player.gold;
@@ -372,7 +418,7 @@ function executeTrade() {
             // Actualizar lista de items
             updateTradeItems();
         } else {
-            addChatMessage('npc', result.message);
+            addChatMessage('error', `❌ ${result.message}`);
         }
     }
     
