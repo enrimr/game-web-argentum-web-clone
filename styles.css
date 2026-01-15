@@ -1516,12 +1516,17 @@ body {
     border: 2px solid rgba(245, 158, 11, 0.3);
 }
 
+.trade-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .item-quantity {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 15px;
 }
 
 .quantity-btn {
