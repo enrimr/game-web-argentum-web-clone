@@ -30,6 +30,15 @@ export function getEntityAtPosition(x, y) {
         return { type: 'door', entity: { x, y, tile: doorTile } };
     }
 
+    // Verificar bots (jugadores bot)
+    if (gameState.bots) {
+        for (const bot of gameState.bots) {
+            if (bot.currentMap === gameState.currentMap && bot.x === x && bot.y === y) {
+                return { type: 'bot', entity: bot };
+            }
+        }
+    }
+
     // Verificar NPCs
     for (const npc of gameState.npcs) {
         if (npc.x === x && npc.y === y) {
@@ -77,6 +86,8 @@ export function getTargetDescription(entityInfo) {
             return 'Portal';
         case 'player':
             return `Jugador ${entityInfo.entity.username || 'Desconocido'}`;
+        case 'bot':
+            return `Bot ${entityInfo.entity.name}`;
         default:
             return 'Posición';
     }

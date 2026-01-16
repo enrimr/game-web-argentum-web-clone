@@ -107,6 +107,31 @@ export class BotPlayer extends Character {
         this.level = Math.floor(Math.random() * 10) + 1;
         this.maxHp = 100 + (this.level * 10);
         this.hp = this.maxHp;
+        
+        // Propiedades adicionales para ficha de información
+        this.faction = this.getRandomFaction();
+        this.class = this.getRandomClass();
+        this.guild = null; // Sin guild por defecto, se puede agregar en futuro
+        this.status = 'online'; // online, afk, busy, etc.
+        this.createdAt = Date.now(); // Timestamp de creación
+    }
+    
+    /**
+     * Obtiene una facción aleatoria
+     * @returns {string} Nombre de la facción
+     */
+    getRandomFaction() {
+        const factions = ['Neutral', 'Reino', 'Legión', 'Caos', 'Armada'];
+        return factions[Math.floor(Math.random() * factions.length)];
+    }
+    
+    /**
+     * Obtiene una clase aleatoria
+     * @returns {string} Nombre de la clase
+     */
+    getRandomClass() {
+        const classes = ['Guerrero', 'Mago', 'Arquero', 'Clérigo', 'Asesino', 'Paladín'];
+        return classes[Math.floor(Math.random() * classes.length)];
     }
     
     /**

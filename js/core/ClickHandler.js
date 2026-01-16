@@ -134,6 +134,9 @@ export function handleCanvasClick(event) {
  */
 function handleEntityClick(clickedEntity, worldCoords) {
     switch (clickedEntity.type) {
+        case 'bot':
+            handleBotClick(clickedEntity.entity);
+            break;
         case 'enemy':
             handleEnemyClick(clickedEntity.entity);
             break;
@@ -150,6 +153,19 @@ function handleEntityClick(clickedEntity, worldCoords) {
             handlePortalClick(clickedEntity.entity);
             break;
     }
+}
+
+/**
+ * Manejar clic en bot
+ * @param {Object} bot - El bot clickeado
+ */
+function handleBotClick(bot) {
+    console.log(`🤖 Clic en bot: ${bot.name}`);
+    
+    // Importar y mostrar la ficha de información del bot
+    import('../ui/BotInfoCard.js').then(({ showBotInfoCard }) => {
+        showBotInfoCard(bot);
+    });
 }
 
 /**
