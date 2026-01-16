@@ -9,7 +9,11 @@ import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { toggleEquipItem } from '../systems/Inventory.js';
 // Note: We import the Inventory module dynamically when needed to avoid circular dependencies
 
-const { MAX_INVENTORY_SLOTS } = CONFIG;
+const { MAX_INVENTORY_SLOTS, INVENTORY_SLOTS_PER_PAGE } = CONFIG;
+
+// Estado del inventario
+let currentInventoryPage = 0;
+const totalPages = Math.ceil(MAX_INVENTORY_SLOTS / INVENTORY_SLOTS_PER_PAGE);
 
 /**
  * Update all UI elements
@@ -126,12 +130,16 @@ function updateInventorySection(selector) {
     if (!inventoryContainer) return;
 
     const slotElements = inventoryContainer.querySelectorAll('.item-slot');
+    
+    // Calculate which items to show based on current page
+    const startIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE;
 
-    for (let i = 0; i < Math.min(MAX_INVENTORY_SLOTS, slotElements.length); i++) {
+    for (let i = 0; i < INVENTORY_SLOTS_PER_PAGE && i < slotElements.length; i++) {
+        const actualIndex = startIndex + i;
         const slotEl = slotElements[i];
         if (!slotEl) continue;
 
-        const item = gameState.player.inventory[i];
+        const item = gameState.player.inventory[actualIndex];
 
         // Clear previous content and classes
         slotEl.textContent = '';
@@ -157,18 +165,20 @@ function updateInventorySection(selector) {
             // Check if this item is equipped
             const isWeaponEquipped = gameState.player.equipped.weapon === item.type;
             const isShieldEquipped = gameState.player.equipped.shield === item.type;
+            const isBodyEquipped = gameState.player.equipped.body === item.type;
+            const isHeadEquipped = gameState.player.equipped.head === item.type;
 
-            if (isWeaponEquipped || isShieldEquipped) {
+            if (isWeaponEquipped || isShieldEquipped || isBodyEquipped || isHeadEquipped) {
                 slotEl.classList.add('equipped');
             }
 
             // Update title for tooltips
-            const equipStatus = (isWeaponEquipped || isShieldEquipped) ? ' [EQUIPADO]' : '';
-            slotEl.title = `${item.name} (${totalQuantity} total)${equipStatus}`;
+            const equipStatus = (isWeaponEquipped || isShieldEquipped || isBodyEquipped || isHeadEquipped) ? ' [EQUIPADO]' : '';
+            slotEl.title = `${item.name} (${totalQuantity} total)${equipStatus}\nSlot: ${actualIndex + 1}`;
         } else {
             slotEl.textContent = '-';
             slotEl.classList.add('empty');
-            slotEl.title = 'Espacio vacío';
+            slotEl.title = `Espacio vacío (Slot ${actualIndex + 1})`;
         }
     }
 }
@@ -221,6 +231,93 @@ export function initUI() {
             hideContextMenu();
         }
     });
+    
+    // Initialize inventory pagination
+    initInventoryPagination();
+}
+
+/**
+ * Initialize inventory pagination controls
+ */
+function initInventoryPagination() {
+    // Add pagination controls after each inventory container
+    const inventoryContainers = [
+        document.querySelector('#inventory'),
+        document.querySelector('.inventory-bottom .inventory')
+    ];
+    
+    inventoryContainers.forEach(container => {
+        if (!container) return;
+        
+        // Create pagination controls container
+        const paginationDiv = document.createElement('div');
+        paginationDiv.className = 'inventory-pagination';
+        paginationDiv.style.display = 'flex';
+        paginationDiv.style.justifyContent = 'space-between';
+        paginationDiv.style.alignItems = 'center';
+        paginationDiv.style.marginTop = '5px';
+        paginationDiv.style.padding = '5px';
+        paginationDiv.style.background = 'rgba(0,0,0,0.3)';
+        paginationDiv.style.borderRadius = '3px';
+        
+        // Previous button
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '◀️';
+        prevBtn.className = 'inv-page-btn';
+        prevBtn.style.background = '#4a5568';
+        prevBtn.style.color = 'white';
+        prevBtn.style.border = 'none';
+        prevBtn.style.padding = '5px 10px';
+        prevBtn.style.borderRadius = '3px';
+        prevBtn.style.cursor = 'pointer';
+        prevBtn.onclick = () => changeInventoryPage(-1);
+        
+        // Page indicator
+        const pageIndicator = document.createElement('span');
+        pageIndicator.className = 'page-indicator';
+        pageIndicator.style.color = '#fbbf24';
+        pageIndicator.style.fontSize = '12px';
+        pageIndicator.textContent = `Página ${currentInventoryPage + 1}/${totalPages}`;
+        
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '▶️';
+        nextBtn.className = 'inv-page-btn';
+        nextBtn.style.background = '#4a5568';
+        nextBtn.style.color = 'white';
+        nextBtn.style.border = 'none';
+        nextBtn.style.padding = '5px 10px';
+        nextBtn.style.borderRadius = '3px';
+        nextBtn.style.cursor = 'pointer';
+        nextBtn.onclick = () => changeInventoryPage(1);
+        
+        paginationDiv.appendChild(prevBtn);
+        paginationDiv.appendChild(pageIndicator);
+        paginationDiv.appendChild(nextBtn);
+        
+        // Insert after inventory container
+        container.parentNode.insertBefore(paginationDiv, container.nextSibling);
+    });
+}
+
+/**
+ * Change inventory page
+ * @param {number} direction - Direction to change page (-1 for previous, 1 for next)
+ */
+function changeInventoryPage(direction) {
+    currentInventoryPage += direction;
+    
+    // Clamp to valid range
+    if (currentInventoryPage < 0) currentInventoryPage = 0;
+    if (currentInventoryPage >= totalPages) currentInventoryPage = totalPages - 1;
+    
+    // Update inventory display
+    updateInventory();
+    
+    // Update page indicators
+    document.querySelectorAll('.page-indicator').forEach(indicator => {
+        indicator.textContent = `Página ${currentInventoryPage + 1}/${totalPages}`;
+    });
 }
 
 /**
@@ -233,29 +330,34 @@ function initInventoryListeners(selector) {
 
     const slotElements = inventoryContainer.querySelectorAll('.item-slot');
 
-    for (let i = 0; i < Math.min(MAX_INVENTORY_SLOTS, slotElements.length); i++) {
+    for (let i = 0; i < INVENTORY_SLOTS_PER_PAGE && i < slotElements.length; i++) {
         const slotEl = slotElements[i];
         if (slotEl) {
             // Left click to equip/use
-            slotEl.addEventListener('click', () => toggleEquipItem(i));
+            slotEl.addEventListener('click', () => {
+                const actualIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE + i;
+                toggleEquipItem(actualIndex);
+            });
 
             // Right click to open context menu (desktop only)
             slotEl.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                const item = gameState.player.inventory[i];
+                const actualIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE + i;
+                const item = gameState.player.inventory[actualIndex];
                 if (!item) return; // No menu for empty slots
 
-                showContextMenu(e, i, item);
+                showContextMenu(e, actualIndex, item);
             });
 
             // Touch events for mobile (long press for context menu)
             let touchTimer;
             slotEl.addEventListener('touchstart', (e) => {
                 touchTimer = setTimeout(() => {
-                    const item = gameState.player.inventory[i];
+                    const actualIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE + i;
+                    const item = gameState.player.inventory[actualIndex];
                     if (item) {
                         // Show mobile context menu or just use item
-                        toggleEquipItem(i);
+                        toggleEquipItem(actualIndex);
                     }
                 }, 500); // Long press for 500ms
             });
@@ -289,7 +391,9 @@ function showContextMenu(e, slotIndex, item) {
     
     if (itemDef.type === 'weapon' || itemDef.type === 'armor') {
         const isEquipped = gameState.player.equipped.weapon === item.type || 
-                          gameState.player.equipped.shield === item.type;
+                          gameState.player.equipped.shield === item.type ||
+                          gameState.player.equipped.body === item.type ||
+                          gameState.player.equipped.head === item.type;
         
         useOption.innerHTML = isEquipped ? 
             '<span class="icon">📤</span> Desequipar' : 

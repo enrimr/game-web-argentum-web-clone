@@ -10,7 +10,8 @@ export const CONFIG = {
     VIEWPORT_HEIGHT: 13, // Celdas visibles verticalmente
     MAP_WIDTH: 60,       // Mapa total ancho (3x más grande)
     MAP_HEIGHT: 40,      // Mapa total alto (3x más grande)
-    MAX_INVENTORY_SLOTS: 9, // Máximo de tipos diferentes de items
+    MAX_INVENTORY_SLOTS: 45, // Máximo de items (9 slots x 5 páginas)
+    INVENTORY_SLOTS_PER_PAGE: 9, // Slots visibles por página
 
     // Configuración de edificios
     BUILDING: {
