@@ -65,19 +65,16 @@ export function renderBots(camera, ctx) {
             if (playerSprite) {
                 ctx.drawImage(playerSprite, screenPos.x, screenPos.y);
                 
-                // Draw bot nickname above sprite with different color
+                // Draw bot nickname below sprite with different color
                 ctx.fillStyle = '#60a5fa'; // Blue color for bots
                 ctx.font = 'bold 10px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(bot.name, screenPos.x + TILE_SIZE/2, screenPos.y - 2);
+                ctx.fillText(bot.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
                 
-                // Draw level indicator
+                // Draw level indicator below the name
                 ctx.fillStyle = '#22c55e'; // Green for level
                 ctx.font = '8px monospace';
-                ctx.fillText(`Lv.${bot.level}`, screenPos.x + TILE_SIZE/2, screenPos.y - 12);
-                
-                // Draw health bar
-                renderHealthBar(screenPos.x, screenPos.y, bot.hp, bot.maxHp, ctx);
+                ctx.fillText(`Lv.${bot.level}`, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 20);
             }
         }
     }
@@ -104,11 +101,11 @@ export function renderNPCs(camera, ctx) {
             if (npcSprite) {
                 ctx.drawImage(npcSprite, screenPos.x, screenPos.y);
 
-                // Draw NPC name above sprite
+                // Draw NPC name below sprite
                 ctx.fillStyle = '#fbbf24';
                 ctx.font = '10px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(npc.name, screenPos.x + TILE_SIZE/2, screenPos.y - 2);
+                ctx.fillText(npc.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
                 
                 // Si el NPC está meditando, mostrar el efecto de meditación
                 if (npc.meditating) {
