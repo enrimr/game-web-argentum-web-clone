@@ -20,6 +20,7 @@ import { updateSpellEffects, recoverMana, toggleMeditation } from '../systems/Ma
 import { getSpellsUIState } from '../ui/SpellsUI.js';
 import { updateOverheadMessages } from '../ui/Chat.js';
 import { checkMapEdgeTransition } from '../world/MapTransitions.js';
+import { botManager } from '../systems/BotManager.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -60,6 +61,10 @@ export function gameLoop(timestamp) {
         updateProjectiles();
         updateEnemies(effectiveTimestamp);
         enemyAttacks(effectiveTimestamp);
+        
+        // Update bots
+        botManager.update(effectiveTimestamp - (gameLoop.lastTimestamp || effectiveTimestamp), gameState);
+        gameLoop.lastTimestamp = effectiveTimestamp;
 
         // Check for enemy respawns (every 5 seconds)
         if (effectiveTimestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {

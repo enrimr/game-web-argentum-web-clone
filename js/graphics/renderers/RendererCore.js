@@ -7,7 +7,7 @@ import { gameState } from '../../state.js';
 import { CONFIG } from '../../config.js';
 import { generateAllSprites } from '../SpriteGenerator.js';
 import { renderMap, renderTreeLayer, renderPropLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
-import { renderPlayer, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
+import { renderPlayer, renderBots, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
 import { renderOverheadMessages } from '../../ui/Chat.js';
 
@@ -59,6 +59,7 @@ export function render() {
     renderObjects(camera, ctx);
     renderEnemies(camera, ctx);
     renderNPCs(camera, ctx);
+    renderBots(camera, ctx); // Draw bots after NPCs but before player
     renderProjectiles(camera, ctx);
 
     // Draw player at correct position in viewport
