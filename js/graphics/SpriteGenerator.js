@@ -11,6 +11,7 @@ import { generateEnemySprites } from './sprites/EnemySprites.js';
 import { generateNPCSprites } from './sprites/NPCSprites.js';
 import { generateObjectSprites } from './sprites/ObjectSprites.js';
 import { generateItemSprites } from './sprites/ItemSprites.js';
+import { generateEquipmentSprites } from './sprites/EquipmentSprites.js';
 
 export function generateAllSprites(TILE_SIZE) {
     // Combina todos los sprites generados en un solo objeto
@@ -21,7 +22,8 @@ export function generateAllSprites(TILE_SIZE) {
         ...generateEnemySprites(TILE_SIZE),
         ...generateNPCSprites(TILE_SIZE),
         ...generateObjectSprites(TILE_SIZE),
-        ...generateItemSprites(TILE_SIZE)
+        ...generateItemSprites(TILE_SIZE),
+        ...generateEquipmentSprites(TILE_SIZE)
     };
 }
 

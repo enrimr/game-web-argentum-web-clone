@@ -12,6 +12,7 @@ import { getEnemySprite } from './SpriteHelpers.js';
 import { getAnimatedPlayerSprite } from './AnimationHelpers.js';
 import { layerVisibility, sprites, TILE_SIZE } from './RendererCore.js';
 import { drawDBZMeditationEffects } from './EffectRenderers.js';
+import { renderEquipmentLayers, getPlayerVisualEquipment } from '../../systems/EquipmentSystem.js';
 
 /**
  * Render player with animations
@@ -27,8 +28,12 @@ export function renderPlayer(camera, ctx) {
     // Get animated player sprite based on direction and animation state
     const playerSprite = getAnimatedPlayerSprite();
 
-    // Draw the sprite
+    // Draw the base sprite
     ctx.drawImage(playerSprite, playerScreenPos.x, playerScreenPos.y);
+    
+    // Draw equipment layers (armor, helmet, weapon, shield)
+    const playerEquipment = getPlayerVisualEquipment(gameState.player);
+    renderEquipmentLayers(ctx, playerScreenPos, playerEquipment, sprites);
     
     // Si el jugador está meditando, mostrar el efecto de DBZ
     if (gameState.player.meditating) {
@@ -63,7 +68,13 @@ export function renderBots(camera, ctx) {
             const playerSprite = sprites.player || sprites.playerDown;
             
             if (playerSprite) {
+                // Draw base character sprite
                 ctx.drawImage(playerSprite, screenPos.x, screenPos.y);
+                
+                // Draw equipment layers (armor, helmet, weapon, shield)
+                if (bot.equipment) {
+                    renderEquipmentLayers(ctx, screenPos, bot.equipment, sprites);
+                }
                 
                 // Draw bot nickname below sprite with different color
                 ctx.fillStyle = '#60a5fa'; // Blue color for bots
