@@ -192,6 +192,48 @@ function createDebugPanel() {
     skillsButton.onclick = showDebugSkillsPanel;
     debugPanel.appendChild(skillsButton);
 
+    // Sección de oro (gold cheat)
+    const goldTitle = document.createElement('div');
+    goldTitle.textContent = 'Oro (Debug):';
+    goldTitle.style.marginTop = '15px';
+    goldTitle.style.marginBottom = '5px';
+    goldTitle.style.borderTop = '1px solid #555';
+    goldTitle.style.paddingTop = '5px';
+    debugPanel.appendChild(goldTitle);
+    
+    // Botones para añadir oro
+    const goldButtonsContainer = document.createElement('div');
+    goldButtonsContainer.style.display = 'flex';
+    goldButtonsContainer.style.gap = '5px';
+    goldButtonsContainer.style.marginTop = '5px';
+    
+    const goldAmounts = [100, 1000, 10000];
+    goldAmounts.forEach(amount => {
+        const goldButton = document.createElement('button');
+        goldButton.textContent = `+${amount}`;
+        goldButton.style.flex = '1';
+        goldButton.style.backgroundColor = '#f59e0b';
+        goldButton.style.color = 'white';
+        goldButton.style.border = 'none';
+        goldButton.style.padding = '5px';
+        goldButton.style.borderRadius = '3px';
+        goldButton.style.cursor = 'pointer';
+        goldButton.onclick = () => addGold(amount);
+        goldButtonsContainer.appendChild(goldButton);
+    });
+    
+    debugPanel.appendChild(goldButtonsContainer);
+    
+    // Indicador de oro actual
+    const goldIndicator = document.createElement('div');
+    goldIndicator.id = 'gold-indicator';
+    goldIndicator.textContent = `Oro actual: ${gameState.player.gold}`;
+    goldIndicator.style.marginTop = '5px';
+    goldIndicator.style.fontSize = '12px';
+    goldIndicator.style.textAlign = 'center';
+    goldIndicator.style.color = '#fbbf24';
+    debugPanel.appendChild(goldIndicator);
+    
     // Sección de super velocidad
     const speedTitle = document.createElement('div');
     speedTitle.textContent = 'Super Velocidad:';
@@ -433,6 +475,28 @@ function toggleSuperSpeed() {
     }).catch(err => {
         console.error('Error al configurar super velocidad:', err);
     });
+}
+
+/**
+ * Función para añadir oro al jugador (debug)
+ * @param {number} amount - Cantidad de oro a añadir
+ */
+function addGold(amount) {
+    gameState.player.gold += amount;
+    
+    // Actualizar indicador de oro en el panel
+    const goldIndicator = document.getElementById('gold-indicator');
+    if (goldIndicator) {
+        goldIndicator.textContent = `Oro actual: ${gameState.player.gold}`;
+    }
+    
+    // Actualizar UI del juego
+    import('./UI.js').then(({ updateUI, addChatMessage }) => {
+        updateUI();
+        addChatMessage('system', `💰 [DEBUG] Agregado ${amount} oro`);
+    });
+    
+    console.log(`💰 [DEBUG] Agregado ${amount} oro. Total: ${gameState.player.gold}`);
 }
 
 /**
