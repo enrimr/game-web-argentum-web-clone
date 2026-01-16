@@ -576,8 +576,8 @@ export function generateNPCs(mapType) {
                 if (x !== npcSpawn.x || y !== npcSpawn.y) break;
             }
 
-            // Create NPC instance
-            const npc = new NPC(npcSpawn.type, x, y);
+            // Create NPC instance with currentMap
+            const npc = new NPC(npcSpawn.type, x, y, mapType);
             npcs.push(npc);
         }
     } else {
@@ -612,8 +612,8 @@ export function generateNPCs(mapType) {
                     }
                 }
 
-                // Crear instancia de NPC usando la clase NPC
-                const npc = new NPC(npcSpawn.type, x, y);
+                // Crear instancia de NPC usando la clase NPC con currentMap
+                const npc = new NPC(npcSpawn.type, x, y, mapType);
                 npcs.push(npc);
             }
         } else if (mapType === 'market') {
@@ -642,7 +642,7 @@ export function generateNPCs(mapType) {
                     }
                 }
 
-                const npc = new NPC(npcSpawn.type, x, y);
+                const npc = new NPC(npcSpawn.type, x, y, mapType);
                 npcs.push(npc);
             }
         } else if (mapType === 'field') {
@@ -671,7 +671,7 @@ export function generateNPCs(mapType) {
                     }
                 }
 
-                const npc = new NPC(npcSpawn.type, x, y);
+                const npc = new NPC(npcSpawn.type, x, y, mapType);
                 npcs.push(npc);
             }
         }

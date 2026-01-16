@@ -101,6 +101,11 @@ export function renderNPCs(camera, ctx) {
     if (!layerVisibility.npcs) return;
     
     for (const npc of gameState.npcs) {
+        // Solo renderizar NPCs del mapa actual
+        if (npc.currentMap && npc.currentMap !== gameState.currentMap) {
+            continue;
+        }
+        
         // Si estamos dentro de un edificio, solo mostrar NPCs dentro del mismo
         if (gameState.playerInBuilding && !isInsideCurrentBuilding(npc.x, npc.y)) {
             continue;

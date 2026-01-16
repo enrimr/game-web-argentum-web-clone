@@ -8,7 +8,7 @@ import { Character } from './Character.js';
 import { NPC_DEFINITIONS } from './NPCTypes.js';
 
 export class NPC extends Character {
-    constructor(npcType, x, y) {
+    constructor(npcType, x, y, currentMap = null) {
         super();
         
         const definition = NPC_DEFINITIONS[npcType];
@@ -23,6 +23,7 @@ export class NPC extends Character {
         this.sprite = definition.sprite;
         this.x = x;
         this.y = y;
+        this.currentMap = currentMap; // Mapa actual del NPC
         this.meditating = definition.meditating || false; // Añadimos propiedad de meditación
         
         // Dialogue
