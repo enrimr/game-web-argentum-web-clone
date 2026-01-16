@@ -91,7 +91,7 @@ export class BotPlayer extends Character {
         // Movimiento
         this.targetX = null;
         this.targetY = null;
-        this.movementSpeed = CONFIG.PLAYER.WALK_SPEED || 200; // ms por tile
+        this.movementSpeed = 400; // ms por tile (más lento que el jugador: 400ms vs 200ms)
         this.lastMoveTime = 0;
         
         // Chat
@@ -124,7 +124,7 @@ export class BotPlayer extends Character {
      * @returns {number} Duración en ms
      */
     getRandomBehaviorDuration() {
-        return 3000 + Math.random() * 7000; // 3-10 segundos
+        return 5000 + Math.random() * 10000; // 5-15 segundos (más tiempo en cada comportamiento)
     }
     
     /**
@@ -169,7 +169,7 @@ export class BotPlayer extends Character {
      */
     changeBehavior() {
         const behaviors = Object.values(BOT_BEHAVIORS);
-        const weights = [30, 40, 15, 10, 5]; // Probabilidades: idle, wandering, hunting, chatting, traveling
+        const weights = [50, 25, 10, 10, 5]; // Probabilidades: idle(50%), wandering(25%), hunting(10%), chatting(10%), traveling(5%)
         
         const random = Math.random() * 100;
         let accumulated = 0;
