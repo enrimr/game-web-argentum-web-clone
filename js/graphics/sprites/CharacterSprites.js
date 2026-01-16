@@ -21,12 +21,6 @@ export function generateCharacterSprites(TILE_SIZE) {
             ctx.fillStyle = '#000';
             ctx.fillRect(w/2-3, h/4-1, 2, 2);
             ctx.fillRect(w/2+1, h/4-1, 2, 2);
-            // Arms (gray)
-            ctx.fillStyle = '#9ca3af';
-            ctx.fillRect(w/4-6, h/2, 3, h/3);
-            // Sword/Weapon (gold)
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(w/4-7, h/2-3, 5, 3);
         }),
 
         // Facing right - eyes looking right
@@ -43,12 +37,6 @@ export function generateCharacterSprites(TILE_SIZE) {
             ctx.fillStyle = '#000';
             ctx.fillRect(w/2-1, h/4-1, 2, 2);
             ctx.fillRect(w/2+3, h/4-1, 2, 2);
-            // Arms (gray)
-            ctx.fillStyle = '#9ca3af';
-            ctx.fillRect(w/4-6, h/2, 3, h/3);
-            // Sword/Weapon (gold)
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(w/4-7, h/2-3, 5, 3);
         }),
 
         // Facing left - eyes looking left
@@ -65,12 +53,6 @@ export function generateCharacterSprites(TILE_SIZE) {
             ctx.fillStyle = '#000';
             ctx.fillRect(w/2-5, h/4-1, 2, 2);
             ctx.fillRect(w/2-1, h/4-1, 2, 2);
-            // Arms (gray)
-            ctx.fillStyle = '#9ca3af';
-            ctx.fillRect(w/4-6, h/2, 3, h/3);
-            // Sword/Weapon (gold)
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(w/4-7, h/2-3, 5, 3);
         }),
 
         // Facing up - hair visible from behind
@@ -91,12 +73,6 @@ export function generateCharacterSprites(TILE_SIZE) {
             ctx.fillStyle = '#000';
             ctx.fillRect(w/2-3, h/4-3, 2, 2);
             ctx.fillRect(w/2+1, h/4-3, 2, 2);
-            // Arms (gray)
-            ctx.fillStyle = '#9ca3af';
-            ctx.fillRect(w/4-6, h/2, 3, h/3);
-            // Sword/Weapon (gold)
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(w/4-7, h/2-3, 5, 3);
         }),
         
         // Ghost player sprites for all directions

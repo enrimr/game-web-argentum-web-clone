@@ -6,6 +6,7 @@
 
 import { Character } from './Character.js';
 import { CONFIG } from '../config.js';
+import { createBotEquipment } from '../systems/EquipmentSystem.js';
 
 // Lista de nombres aleatorios para los bots
 const BOT_NAMES = [
@@ -114,6 +115,9 @@ export class BotPlayer extends Character {
         this.guild = null; // Sin guild por defecto, se puede agregar en futuro
         this.status = 'online'; // online, afk, busy, etc.
         this.createdAt = Date.now(); // Timestamp de creación
+        
+        // Equipamiento visual basado en la clase
+        this.equipment = createBotEquipment(this.class);
     }
     
     /**
