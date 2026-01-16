@@ -168,6 +168,16 @@ export function getPlayerVisualEquipment(player) {
         shield: null
     };
     
+    // Armadura corporal equipada (slot 'body')
+    if (player.equipped.body) {
+        equipment.armor = mapItemToVisualSprite(player.equipped.body, 'armor');
+    }
+    
+    // Casco equipado (slot 'head')
+    if (player.equipped.head) {
+        equipment.helmet = mapItemToVisualSprite(player.equipped.head, 'helmet');
+    }
+    
     // Arma equipada
     if (player.equipped.weapon) {
         equipment.weapon = mapItemToVisualSprite(player.equipped.weapon, 'weapon');
@@ -177,8 +187,6 @@ export function getPlayerVisualEquipment(player) {
     if (player.equipped.shield) {
         equipment.shield = mapItemToVisualSprite(player.equipped.shield, 'shield');
     }
-    
-    // TODO: Expandir para armaduras y cascos cuando se agreguen al sistema de inventario
     
     return equipment;
 }
@@ -194,18 +202,25 @@ function mapItemToVisualSprite(itemType, category) {
     const mappings = {
         weapon: {
             'SWORD': 'weaponSwordShort',
+            'SWORD_IRON': 'weaponSwordLong',
             'BOW': 'weaponBow',
-            // Agregar más según se vayan añadiendo al ItemTypes
+            'BOW_ELVEN': 'weaponBow'
         },
         shield: {
             'SHIELD': 'shieldLarge',
-            // Agregar más según se vayan añadiendo
+            'SHIELD_IRON': 'shieldLarge'
         },
         armor: {
-            // TODO: Agregar cuando se implementen armaduras en ItemTypes
+            'ARMOR_LEATHER': 'armorLeather',
+            'ARMOR_PLATE': 'armorPlate',
+            'ARMOR_PLATE_GOLD': 'armorPlateGold',
+            'ROBE_MAGE': 'armorRobeLightBlue'
         },
         helmet: {
-            // TODO: Agregar cuando se implementen cascos en ItemTypes
+            'HELMET_LEATHER': 'helmetLight',
+            'HELMET_FULL': 'helmetFull',
+            'HELMET_GOLD': 'helmetFullGold',
+            'HOOD_MAGE': 'helmetHood'
         }
     };
     

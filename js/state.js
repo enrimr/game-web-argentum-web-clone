@@ -52,7 +52,9 @@ export const gameState = {
         equipped: {
             weapon: null,
             shield: null,
-            ammunition: null
+            ammunition: null,
+            body: null,      // Armadura corporal
+            head: null       // Casco
         },
         // Propiedades exclusivas para jugador online
         id: null, // ID único del jugador en el servidor
@@ -106,7 +108,9 @@ export function resetGameState() {
         equipped: {
             weapon: null,
             shield: null,
-            ammunition: null
+            ammunition: null,
+            body: null,      // Armadura corporal
+            head: null       // Casco
         },
         level: CONFIG.LEVEL.STARTING_LEVEL,
         exp: CONFIG.LEVEL.STARTING_EXP,
