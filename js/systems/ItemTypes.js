@@ -193,5 +193,107 @@ export const ITEM_TYPES = {
         slot: 'shield',
         defense: 20,
         description: '+20 defensa'
+    },
+    
+    // Armaduras corporales
+    ARMOR_LEATHER: {
+        name: 'Armadura de Cuero',
+        icon: '🦺',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'armorLeather',
+        visualSprite: 'armorLeather',
+        type: 'armor',
+        slot: 'body',
+        defense: 15,
+        description: 'Armadura ligera de cuero (+15 defensa)'
+    },
+    ARMOR_PLATE: {
+        name: 'Armadura de Placas',
+        icon: '🛡️',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'armorPlate',
+        visualSprite: 'armorPlate',
+        type: 'armor',
+        slot: 'body',
+        defense: 30,
+        description: 'Armadura pesada de placas (+30 defensa)'
+    },
+    ARMOR_PLATE_GOLD: {
+        name: 'Armadura Dorada',
+        icon: '✨',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'armorPlateGold',
+        visualSprite: 'armorPlateGold',
+        type: 'armor',
+        slot: 'body',
+        defense: 40,
+        description: 'Armadura élite de placas doradas (+40 defensa)'
+    },
+    ROBE_MAGE: {
+        name: 'Túnica de Mago',
+        icon: '👘',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'armorRobeLightBlue',
+        visualSprite: 'armorRobeLightBlue',
+        type: 'armor',
+        slot: 'body',
+        defense: 5,
+        manaBonus: 20,
+        description: 'Túnica mágica (+5 defensa, +20 mana máximo)'
+    },
+    
+    // Cascos
+    HELMET_LEATHER: {
+        name: 'Casco de Cuero',
+        icon: '🪖',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'helmetLight',
+        visualSprite: 'helmetLight',
+        type: 'armor',
+        slot: 'head',
+        defense: 8,
+        description: 'Casco ligero de cuero (+8 defensa)'
+    },
+    HELMET_FULL: {
+        name: 'Casco Completo',
+        icon: '⛑️',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'helmetFull',
+        visualSprite: 'helmetFull',
+        type: 'armor',
+        slot: 'head',
+        defense: 15,
+        description: 'Casco pesado completo (+15 defensa)'
+    },
+    HELMET_GOLD: {
+        name: 'Casco Dorado',
+        icon: '👑',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'helmetFullGold',
+        visualSprite: 'helmetFullGold',
+        type: 'armor',
+        slot: 'head',
+        defense: 20,
+        description: 'Casco élite dorado (+20 defensa)'
+    },
+    HOOD_MAGE: {
+        name: 'Capucha Mágica',
+        icon: '🧙',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'helmetHood',
+        visualSprite: 'helmetHood',
+        type: 'armor',
+        slot: 'head',
+        defense: 3,
+        manaBonus: 10,
+        description: 'Capucha de mago (+3 defensa, +10 mana máximo)'
     }
 };

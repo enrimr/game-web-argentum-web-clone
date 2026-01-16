@@ -51,10 +51,20 @@ export const NPC_DEFINITIONS = {
             farewell: '¡Que tu espada nunca se rompa!'
         },
         inventory: [
+            // Armas
             { itemType: 'SWORD', quantity: 5, price: 500 },
             { itemType: 'SWORD_IRON', quantity: 3, price: 1000 },
+            // Escudos
             { itemType: 'SHIELD', quantity: 5, price: 400 },
-            { itemType: 'SHIELD_IRON', quantity: 3, price: 800 }
+            { itemType: 'SHIELD_IRON', quantity: 3, price: 800 },
+            // Armaduras corporales
+            { itemType: 'ARMOR_LEATHER', quantity: 5, price: 800 },
+            { itemType: 'ARMOR_PLATE', quantity: 3, price: 1500 },
+            { itemType: 'ARMOR_PLATE_GOLD', quantity: 1, price: 3000 },
+            // Cascos
+            { itemType: 'HELMET_LEATHER', quantity: 5, price: 400 },
+            { itemType: 'HELMET_FULL', quantity: 3, price: 750 },
+            { itemType: 'HELMET_GOLD', quantity: 1, price: 1500 }
         ],
         crafting: {
             canCraft: true,
