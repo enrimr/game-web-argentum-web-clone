@@ -248,6 +248,20 @@ function getNPCDialogue(npc) {
             text: "¡Bienvenido a mi herrería! Forjo las mejores armas y armaduras. ¿Buscas algo específico?",
             options: [
                 {
+                    text: "Ver tienda",
+                    response: "¡Excelente! Aquí está mi mejor equipamiento forjado.",
+                    action: () => {
+                        if (currentDialogue) {
+                            // Guardar referencia al NPC antes de cerrar el diálogo
+                            const npc = currentDialogue;
+                            // Cerrar el diálogo antes de abrir el comercio
+                            closeDialogue();
+                            // Abrir la ventana de comercio
+                            openTrade(npc);
+                        }
+                    }
+                },
+                {
                     text: "Reparar equipo",
                     response: "Por 50 oro reparo todo tu equipo. ¿Quieres que lo haga?",
                     followUpOptions: [
