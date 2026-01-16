@@ -37,6 +37,50 @@ export function renderPlayer(camera, ctx) {
 }
 
 /**
+ * Render bot players
+ * @param {Object} camera - Camera position {x, y}
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ */
+export function renderBots(camera, ctx) {
+    // Skip rendering if layer is disabled in debug mode
+    if (!layerVisibility.player) return;
+    
+    // Only render bots in the current map
+    const currentMapBots = gameState.bots.filter(bot => bot.currentMap === gameState.currentMap);
+    
+    for (const bot of currentMapBots) {
+        // Si estamos dentro de un edificio, solo mostrar bots dentro del mismo
+        if (gameState.playerInBuilding && !isInsideCurrentBuilding(bot.x, bot.y)) {
+            continue;
+        }
+        
+        if (isInViewport(bot.x, bot.y, camera)) {
+            const screenPos = worldToScreen(bot.x, bot.y);
+            
+            // Get player sprite based on bot's animation state and facing direction
+            // For now, we'll use a simple player sprite
+            // TODO: Could make bots look different from player
+            const playerSprite = sprites.player || sprites.playerDown;
+            
+            if (playerSprite) {
+                ctx.drawImage(playerSprite, screenPos.x, screenPos.y);
+                
+                // Draw bot nickname below sprite with different color
+                ctx.fillStyle = '#60a5fa'; // Blue color for bots
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(bot.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
+                
+                // Draw level indicator below the name
+                ctx.fillStyle = '#22c55e'; // Green for level
+                ctx.font = '8px monospace';
+                ctx.fillText(`Lv.${bot.level}`, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 20);
+            }
+        }
+    }
+}
+
+/**
  * Render NPCs
  * @param {Object} camera - Camera position {x, y}
  * @param {CanvasRenderingContext2D} ctx - Canvas context
@@ -57,11 +101,11 @@ export function renderNPCs(camera, ctx) {
             if (npcSprite) {
                 ctx.drawImage(npcSprite, screenPos.x, screenPos.y);
 
-                // Draw NPC name above sprite
+                // Draw NPC name below sprite
                 ctx.fillStyle = '#fbbf24';
                 ctx.font = '10px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(npc.name, screenPos.x + TILE_SIZE/2, screenPos.y - 2);
+                ctx.fillText(npc.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
                 
                 // Si el NPC está meditando, mostrar el efecto de meditación
                 if (npc.meditating) {

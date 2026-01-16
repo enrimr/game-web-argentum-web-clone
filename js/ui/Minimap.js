@@ -16,6 +16,7 @@ const { MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 let minimapCanvas = null;
 let minimapCtx = null;
 let minimapVisible = false;
+let showBotsOnMinimap = true; // Mostrar bots en el minimapa por defecto
 
 // Initialize canvas references when needed
 function initMinimapCanvas() {
@@ -130,6 +131,20 @@ export function renderMinimap() {
         );
     }
 
+    // Draw bots (cyan/light blue color) if enabled
+    if (showBotsOnMinimap && gameState.bots) {
+        const currentMapBots = gameState.bots.filter(bot => bot.currentMap === gameState.currentMap);
+        for (const bot of currentMapBots) {
+            minimapCtx.fillStyle = '#60a5fa'; // Azul claro para bots
+            minimapCtx.fillRect(
+                bot.x * scaleX - 1,
+                bot.y * scaleY - 1,
+                scaleX * 2,
+                scaleY * 2
+            );
+        }
+    }
+
     // Draw player position
     minimapCtx.fillStyle = '#3b82f6';
     minimapCtx.fillRect(
@@ -155,4 +170,23 @@ export function updateMinimap() {
  */
 export function isMinimapVisible() {
     return minimapVisible;
+}
+
+/**
+ * Toggle bots visibility on minimap
+ */
+export function toggleBotsOnMinimap() {
+    showBotsOnMinimap = !showBotsOnMinimap;
+    if (minimapVisible) {
+        renderMinimap(); // Re-render if minimap is visible
+    }
+    return showBotsOnMinimap;
+}
+
+/**
+ * Get bots visibility status on minimap
+ * @returns {boolean} True if bots are shown on minimap
+ */
+export function getBotsOnMinimapStatus() {
+    return showBotsOnMinimap;
 }

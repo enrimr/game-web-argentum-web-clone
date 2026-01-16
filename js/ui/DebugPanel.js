@@ -104,6 +104,41 @@ function createDebugPanel() {
         debugPanel.appendChild(layerControl);
     });
     
+    // Sección de minimapa
+    const minimapTitle = document.createElement('div');
+    minimapTitle.textContent = 'Minimapa:';
+    minimapTitle.style.marginTop = '15px';
+    minimapTitle.style.marginBottom = '5px';
+    minimapTitle.style.borderTop = '1px solid #555';
+    minimapTitle.style.paddingTop = '5px';
+    debugPanel.appendChild(minimapTitle);
+    
+    // Control para mostrar/ocultar bots en minimapa
+    const botsMinimapControl = document.createElement('div');
+    botsMinimapControl.style.margin = '2px 0';
+    
+    const botsMinimapCheckbox = document.createElement('input');
+    botsMinimapCheckbox.type = 'checkbox';
+    botsMinimapCheckbox.id = 'debug-bots-minimap';
+    
+    // Importar y obtener el estado actual
+    import('../ui/Minimap.js').then(({ getBotsOnMinimapStatus, toggleBotsOnMinimap }) => {
+        botsMinimapCheckbox.checked = getBotsOnMinimapStatus();
+        
+        botsMinimapCheckbox.addEventListener('change', () => {
+            toggleBotsOnMinimap();
+        });
+    });
+    
+    const botsMinimapLabel = document.createElement('label');
+    botsMinimapLabel.htmlFor = 'debug-bots-minimap';
+    botsMinimapLabel.textContent = '🤖 Mostrar bots en minimapa';
+    botsMinimapLabel.style.marginLeft = '5px';
+    
+    botsMinimapControl.appendChild(botsMinimapCheckbox);
+    botsMinimapControl.appendChild(botsMinimapLabel);
+    debugPanel.appendChild(botsMinimapControl);
+    
     // Crear sección de edificios individuales
     const buildingsTitle = document.createElement('div');
     buildingsTitle.textContent = 'Edificios individuales:';

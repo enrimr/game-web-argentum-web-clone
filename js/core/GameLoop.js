@@ -20,6 +20,7 @@ import { updateSpellEffects, recoverMana, toggleMeditation } from '../systems/Ma
 import { getSpellsUIState } from '../ui/SpellsUI.js';
 import { updateOverheadMessages } from '../ui/Chat.js';
 import { checkMapEdgeTransition } from '../world/MapTransitions.js';
+import { botManager } from '../systems/BotManager.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -60,6 +61,10 @@ export function gameLoop(timestamp) {
         updateProjectiles();
         updateEnemies(effectiveTimestamp);
         enemyAttacks(effectiveTimestamp);
+        
+        // Update bots
+        botManager.update(effectiveTimestamp - (gameLoop.lastTimestamp || effectiveTimestamp), gameState);
+        gameLoop.lastTimestamp = effectiveTimestamp;
 
         // Check for enemy respawns (every 5 seconds)
         if (effectiveTimestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {
@@ -148,16 +153,24 @@ function handleMovement(timestamp) {
 
         // Check if there's an NPC in the target position
         const npcInPosition = gameState.npcs.some(npc => npc.x === newX && npc.y === newY);
+        
+        // Check if there's a bot in the target position
+        const botInPosition = gameState.bots && gameState.bots.some(bot => 
+            bot.currentMap === gameState.currentMap && bot.x === newX && bot.y === newY
+        );
 
         // Debug logging
         if (npcInPosition) {
             console.log(`🚫 Bloqueado por NPC en posición (${newX}, ${newY})`);
         }
+        if (botInPosition) {
+            console.log(`🚫 Bloqueado por bot en posición (${newX}, ${newY})`);
+        }
 
         // Ya no necesitamos esta verificación aquí porque la comprobación de meditación 
         // ahora se realiza al principio de la función para cualquier intento de movimiento
 
-        if (!enemyInPosition && !npcInPosition) {
+        if (!enemyInPosition && !npcInPosition && !botInPosition) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
@@ -359,7 +372,7 @@ function updateEnemies(timestamp) {
             newX += dx > 0 ? 1 : -1;
         }
 
-        // Check if new position is valid and not occupied by another enemy or NPC
+        // Check if new position is valid and not occupied by another enemy, NPC, or bot
         // La función isWalkable ya incluye la comprobación de árboles
         if (isWalkable(gameState.map, newX, newY)) {
             const occupiedByEnemy = gameState.enemies.some(e =>
@@ -369,8 +382,12 @@ function updateEnemies(timestamp) {
             const occupiedByNPC = gameState.npcs.some(npc =>
                 npc.x === newX && npc.y === newY
             );
+            
+            const occupiedByBot = gameState.bots && gameState.bots.some(bot =>
+                bot.currentMap === gameState.currentMap && bot.x === newX && bot.y === newY
+            );
 
-            if (!occupiedByEnemy && !occupiedByNPC && (newX !== gameState.player.x || newY !== gameState.player.y)) {
+            if (!occupiedByEnemy && !occupiedByNPC && !occupiedByBot && (newX !== gameState.player.x || newY !== gameState.player.y)) {
                 enemy.x = newX;
                 enemy.y = newY;
                 enemy.lastMoveTime = timestamp;

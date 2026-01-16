@@ -79,6 +79,7 @@ export const gameState = {
     objects: [],
     enemies: [],
     npcs: [], // NPCs del juego
+    bots: [], // Jugadores bot simulados
     projectiles: [], // Flechas y otros proyectiles volando
     deadEnemies: [], // Enemigos muertos esperando respawn (timestamp, enemyType, map)
     droppedItems: [], // Objetos caídos al suelo que persisten entre mapas
@@ -133,6 +134,7 @@ export function resetGameState() {
     gameState.objects = [];
     gameState.enemies = [];
     gameState.npcs = [];
+    gameState.bots = [];
     gameState.projectiles = [];
     gameState.deadEnemies = [];
     gameState.droppedItems = [];

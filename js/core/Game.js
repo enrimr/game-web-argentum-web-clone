@@ -27,6 +27,7 @@ import { getStaticMap } from '../world/StaticWorldMaps.js';
 import { initMouseControls } from './MouseControls.js';
 import { initDebugPanel } from '../ui/DebugPanel.js';
 import { preloadAllMaps, getPreloadedMap } from '../world/PreloadedMaps.js';
+import { botManager } from '../systems/BotManager.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
@@ -160,6 +161,9 @@ async function initGame() {
     
     // Initialize debug panel
     initDebugPanel();
+
+    // Initialize bot system
+    botManager.init(gameState);
 
     // Generate initial map first
     const mapResult = generateMap(gameState.currentMap);
@@ -347,6 +351,9 @@ export function changeMap(targetMap, targetX, targetY) {
 
     // Cambiamos el mapa actual
     gameState.currentMap = targetMap;
+    
+    // Notificar al botManager sobre el cambio de mapa
+    botManager.onPlayerMapChange(targetMap, gameState);
 
     // Clear dead enemies from other maps to prevent respawns in wrong maps
     gameState.deadEnemies = gameState.deadEnemies.filter(deadEnemy => deadEnemy.map === targetMap);
