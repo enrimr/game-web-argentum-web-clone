@@ -234,6 +234,28 @@ function createDebugPanel() {
     goldIndicator.style.color = '#fbbf24';
     debugPanel.appendChild(goldIndicator);
     
+    // Sección de vida/muerte (Debug)
+    const lifeTitle = document.createElement('div');
+    lifeTitle.textContent = 'Vida (Debug):';
+    lifeTitle.style.marginTop = '15px';
+    lifeTitle.style.marginBottom = '5px';
+    lifeTitle.style.borderTop = '1px solid #555';
+    lifeTitle.style.paddingTop = '5px';
+    debugPanel.appendChild(lifeTitle);
+    
+    // Botón para matar al jugador
+    const killButton = document.createElement('button');
+    killButton.textContent = '💀 Matar Jugador';
+    killButton.style.width = '100%';
+    killButton.style.backgroundColor = '#dc2626';
+    killButton.style.color = 'white';
+    killButton.style.border = 'none';
+    killButton.style.padding = '5px 10px';
+    killButton.style.borderRadius = '3px';
+    killButton.style.cursor = 'pointer';
+    killButton.onclick = killPlayer;
+    debugPanel.appendChild(killButton);
+    
     // Sección de super velocidad
     const speedTitle = document.createElement('div');
     speedTitle.textContent = 'Super Velocidad:';
@@ -497,6 +519,41 @@ function addGold(amount) {
     });
     
     console.log(`💰 [DEBUG] Agregado ${amount} oro. Total: ${gameState.player.gold}`);
+}
+
+/**
+ * Función para matar al jugador (debug)
+ * Simula una muerte reduciendo HP a 0 y activando el sistema de muerte
+ */
+function killPlayer() {
+    if (gameState.player.isGhost) {
+        import('./UI.js').then(({ addChatMessage }) => {
+            addChatMessage('system', '👻 El jugador ya está muerto (fantasma).');
+        });
+        return;
+    }
+    
+    // Reducir HP a 0 para activar el sistema de muerte
+    gameState.player.hp = 0;
+    
+    // Importar y ejecutar la lógica de muerte desde Combat.js
+    import('../systems/Combat.js').then(({ enemyAttack }) => {
+        // Crear un enemigo ficticio para activar el sistema de muerte
+        const fakeEnemy = {
+            type: 'debug',
+            damage: { min: 0, max: 0 }
+        };
+        
+        // Esto activará enterGhostMode() si HP es 0
+        enemyAttack(fakeEnemy);
+        
+        import('./UI.js').then(({ addChatMessage, updateUI }) => {
+            addChatMessage('system', '💀 [DEBUG] Jugador eliminado');
+            updateUI();
+        });
+    });
+    
+    console.log('💀 [DEBUG] Jugador eliminado');
 }
 
 /**

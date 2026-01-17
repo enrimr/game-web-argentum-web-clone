@@ -198,6 +198,12 @@ function handlePortalClick(portal) {
  * @param {Object} enemy - El enemigo clickeado
  */
 function handleEnemyClick(enemy) {
+    // Los fantasmas no pueden atacar
+    if (gameState.player.isGhost) {
+        addChatMessage('system', '👻 Como fantasma no puedes atacar.');
+        return;
+    }
+    
     const dist = Math.abs(enemy.x - gameState.player.x) + Math.abs(enemy.y - gameState.player.y);
     const player = gameState.player;
 
@@ -312,6 +318,14 @@ function handleObjectClick(obj) {
     // Si el objeto es un portal, usar el handler específico de portales
     if (obj.type === 'portal') {
         handlePortalClick(obj);
+        return;
+    }
+    
+    // Si el jugador es un fantasma, solo permitir movimiento (no recoger objetos)
+    if (gameState.player.isGhost) {
+        console.log(`👻 Fantasma moviéndose hacia objeto (sin recogerlo)`);
+        setAutoMoveTarget(obj.x, obj.y, 'position', null); // Usar 'position' en lugar de 'object'
+        addChatMessage('system', `🎯 Moviendo hacia posición (${obj.x}, ${obj.y})`);
         return;
     }
     

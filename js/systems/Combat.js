@@ -72,37 +72,71 @@ function dropAllPlayerItems() {
     const playerX = gameState.player.x;
     const playerY = gameState.player.y;
     const currentMap = gameState.currentMap;
+    
+    let itemsDropped = 0;
+    const allItems = [];
 
-    // Drop inventory items
+    // Recopilar todos los items del inventario
     gameState.player.inventory.forEach(item => {
+        if (item && item.type) {
+            allItems.push({
+                type: item.type,
+                quantity: item.quantity,
+                equippedSlot: null
+            });
+        }
+    });
+
+    // Recopilar todos los items equipados
+    Object.keys(gameState.player.equipped).forEach(slot => {
+        const itemType = gameState.player.equipped[slot];
+        if (itemType) {
+            allItems.push({
+                type: itemType,
+                quantity: 1,
+                equippedSlot: slot
+            });
+        }
+    });
+
+    // Dropear cada item en una posición diferente alrededor del jugador
+    allItems.forEach((item, index) => {
+        // Calcular posición aleatoria en un radio de 2 casillas alrededor del jugador
+        const offsetX = Math.floor(Math.random() * 5) - 2; // -2 a +2
+        const offsetY = Math.floor(Math.random() * 5) - 2; // -2 a +2
+        const dropX = playerX + offsetX;
+        const dropY = playerY + offsetY;
+
+        // Verificar que la posición es válida (dentro del mapa y caminable)
+        const isValidDrop = dropX >= 0 && dropX < CONFIG.MAP_WIDTH && 
+                           dropY >= 0 && dropY < CONFIG.MAP_HEIGHT &&
+                           isWalkable(gameState.map, dropX, dropY);
+
+        const finalX = isValidDrop ? dropX : playerX;
+        const finalY = isValidDrop ? dropY : playerY;
+
+        // Añadir a droppedItems para persistencia
         const droppedItem = {
             type: item.type,
             quantity: item.quantity,
-            x: playerX,
-            y: playerY,
+            x: finalX,
+            y: finalY,
             map: currentMap,
             droppedByPlayer: true,
-            dropTime: Date.now()
+            dropTime: Date.now(),
+            equippedSlot: item.equippedSlot
         };
         gameState.droppedItems.push(droppedItem);
-    });
-
-    // Drop equipped items
-    Object.keys(gameState.player.equipped).forEach(slot => {
-        const item = gameState.player.equipped[slot];
-        if (item) {
-            const droppedItem = {
-                type: item.type,
-                quantity: 1,
-                x: playerX,
-                y: playerY,
-                map: currentMap,
-                droppedByPlayer: true,
-                dropTime: Date.now(),
-                equippedSlot: slot
-            };
-            gameState.droppedItems.push(droppedItem);
-        }
+        
+        // Añadir también a objects para renderizado inmediato
+        gameState.objects.push({
+            type: 'dropped_item',
+            x: finalX,
+            y: finalY,
+            droppedItem: droppedItem
+        });
+        
+        itemsDropped++;
     });
 
     // Clear player's inventory and equipment
@@ -110,13 +144,17 @@ function dropAllPlayerItems() {
     gameState.player.equipped = {
         weapon: null,
         shield: null,
-        ammunition: null
+        ammunition: null,
+        body: null,
+        head: null
     };
 
     // Lose gold (optional - could keep it or drop it too)
     // For now, keep gold for resurrection
 
-    addChatMessage('system', '📦 Todos tus objetos han caído al suelo.');
+    if (itemsDropped > 0) {
+        addChatMessage('system', `📦 Todos tus objetos (${itemsDropped}) han caído al suelo en (${playerX}, ${playerY}).`);
+    }
 }
 
 /**

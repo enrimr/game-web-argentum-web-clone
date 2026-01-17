@@ -244,6 +244,11 @@ export class LoginScreen {
                             <span class="icon">🌐</span>
                             Jugar en Modo Multijugador
                         </button>
+                        
+                        <a href="/manual" target="_blank" class="login-button manual-button">
+                            <span class="icon">📖</span>
+                            Ver Manual del Juego
+                        </a>
                     </div>
                     
                     <div class="server-status">

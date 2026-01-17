@@ -63,13 +63,8 @@ export function handleObjectInteraction(obj) {
                 changeMap(obj.targetMap, obj.targetX, obj.targetY);
             });
         } else if (obj.type === 'dropped_item') {
-            // Objetos caídos - solo fantasmas pueden recogerlos
-            if (!gameState.player.isGhost) {
-                addChatMessage('system', 'Solo los fantasmas pueden recoger objetos caídos.');
-                return;
-            }
-
-            // Recoger objeto caído
+            // Objetos caídos - cualquier jugador puede recogerlos
+            // (No restringir solo a fantasmas, permitir que cualquiera los recoja)
             pickUpDroppedItem(obj);
         }
 
@@ -82,36 +77,58 @@ export function handleObjectInteraction(obj) {
 
 /**
  * Recoger un objeto caído del suelo
- * @param {Object} droppedItem - Objeto caído a recoger
+ * @param {Object} obj - Objeto visual en gameState.objects
  */
-function pickUpDroppedItem(droppedItem) {
-    // Verificar que el objeto pertenece al jugador fantasma
-    if (!droppedItem.droppedByPlayer) {
-        addChatMessage('system', 'Este objeto no te pertenece.');
+function pickUpDroppedItem(obj) {
+    const droppedItem = obj.droppedItem;
+    
+    // Verificar que el objeto existe
+    if (!droppedItem) {
+        console.error('pickUpDroppedItem: No droppedItem reference');
         return;
     }
 
     // Recoger el objeto
-    if (droppedItem.equippedSlot) {
-        // Era un objeto equipado - volver a equiparlo
-        gameState.player.equipped[droppedItem.equippedSlot] = {
-            type: droppedItem.type,
-            name: droppedItem.name || droppedItem.type
-        };
-        addChatMessage('system', `⚔️ ¡Recuperaste tu ${droppedItem.name || droppedItem.type}!`);
-    } else {
-        // Era un objeto de inventario - añadir al inventario
-        import('../systems/Inventory.js').then(({ addItemToInventory }) => {
-            const success = addItemToInventory(droppedItem.type, droppedItem.quantity);
-            if (success) {
-                addChatMessage('system', `📦 ¡Recuperaste ${droppedItem.quantity}x ${droppedItem.name || droppedItem.type}!`);
-            } else {
-                addChatMessage('system', '❌ ¡Inventario lleno! No puedes recuperar el objeto.');
-                return; // No remover el objeto caído si no se pudo recoger
+    import('../systems/Inventory.js').then(({ addItemToInventory }) => {
+        import('../systems/ItemTypes.js').then(({ ITEM_TYPES }) => {
+            const itemDef = ITEM_TYPES[droppedItem.type];
+            if (!itemDef) {
+                console.error(`pickUpDroppedItem: Item type not found: ${droppedItem.type}`);
+                return;
             }
-        });
-    }
 
-    // Remover el objeto caído del suelo
-    gameState.droppedItems.splice(gameState.droppedItems.indexOf(droppedItem), 1);
+            if (droppedItem.equippedSlot) {
+                // Era un objeto equipado - añadir al slot correspondiente
+                gameState.player.equipped[droppedItem.equippedSlot] = droppedItem.type;
+                addChatMessage('system', `⚔️ ¡Recogiste ${itemDef.name}!`);
+            } else {
+                // Era un objeto de inventario - añadir al inventario
+                const success = addItemToInventory(droppedItem.type, droppedItem.quantity);
+                if (success) {
+                    addChatMessage('system', `📦 ¡Recogiste ${droppedItem.quantity}x ${itemDef.name}!`);
+                } else {
+                    addChatMessage('system', '❌ ¡Inventario lleno! No puedes recoger el objeto.');
+                    return; // No hacer nada si no se pudo recoger
+                }
+            }
+
+            // Eliminar el item del suelo - solo el jugador que lo recoge se lo queda
+            // Remover el objeto del suelo (gameState.objects)
+            const objIndex = gameState.objects.indexOf(obj);
+            if (objIndex !== -1) {
+                gameState.objects.splice(objIndex, 1);
+            }
+
+            // Remover de la lista de items dropeados persistentes
+            const droppedIndex = gameState.droppedItems.indexOf(droppedItem);
+            if (droppedIndex !== -1) {
+                gameState.droppedItems.splice(droppedIndex, 1);
+            }
+
+            // Actualizar UI
+            import('../ui/UI.js').then(({ updateUI }) => {
+                updateUI();
+            });
+        });
+    });
 }

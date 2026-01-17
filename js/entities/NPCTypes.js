@@ -212,15 +212,15 @@ export const NPC_DEFINITIONS = {
         sprite: 'npc_healer',
         dialogue: {
             greeting: 'La paz sea contigo, viajero.',
-            heal: 'Deja que cure tus heridas.',
-            resurrect: 'Te devolveré a la vida, pero ten más cuidado en adelante.',
+            heal: 'Deja que cure tus heridas. Los servicios de curación son gratuitos en nuestra iglesia.',
+            resurrect: 'Te devolveré a la vida por la gracia divina. Ten más cuidado en adelante.',
             farewell: 'Ve con la bendición de los dioses.'
         },
         services: {
             canHeal: true,
             canResurrect: true,
-            resurrectCost: 100, // Costo en oro para resucitar
-            healCost: 50        // Costo en oro para curar
+            resurrectCost: 0, // GRATIS - Resurrección gratuita
+            healCost: 0       // GRATIS - Curación gratuita
         }
     },
     

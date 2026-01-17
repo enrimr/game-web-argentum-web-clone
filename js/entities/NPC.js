@@ -311,21 +311,27 @@ export class NPC extends Character {
     }
     
     /**
-     * Heal player's wounds
+     * Heal player's wounds and status effects
      */
     healPlayer(player) {
         if (!this.services || !this.services.canHeal) {
             return { success: false, message: 'No puedo curar heridas.' };
         }
         
-        // Check if player needs healing
-        if (player.hp >= player.maxHp) {
-            return { success: false, message: 'No necesitas curación.' };
+        // Los fantasmas no pueden ser curados (deben resucitar primero)
+        if (player.isGhost) {
+            return { success: false, message: 'Debes resucitar primero antes de poder ser curado.' };
         }
         
-        // Check if player has enough gold
-        const healCost = this.services.healCost || 50;
-        if (player.gold < healCost) {
+        // Check if player needs healing
+        if (player.hp >= player.maxHp) {
+            return { success: false, message: 'No necesitas curación, ya estás en perfecto estado.' };
+        }
+        
+        const healCost = this.services.healCost || 0;
+        
+        // Verificar oro solo si el costo es mayor que 0
+        if (healCost > 0 && player.gold < healCost) {
             return {
                 success: false,
                 message: `Necesitas ${healCost} oro para curarte.`
@@ -333,17 +339,25 @@ export class NPC extends Character {
         }
         
         // Apply healing
-        player.gold -= healCost;
-        player.hp = player.maxHp;
+        if (healCost > 0) {
+            player.gold -= healCost;
+        }
         
+        const healedAmount = player.maxHp - player.hp;
+        player.hp = player.maxHp; // HP al 100%
+        
+        // TODO: Curar estados alterados (veneno, confusión, parálisis, etc.)
+        // Por ahora solo curamos HP
+        
+        const costMsg = healCost > 0 ? ` (-${healCost} oro)` : ' (GRATIS por la gracia divina)';
         return {
             success: true,
-            message: `¡He curado todas tus heridas! (-${healCost} oro)`
+            message: `¡Curado! +${healedAmount} HP restaurado${costMsg}`
         };
     }
     
     /**
-     * Resurrect ghost player
+     * Resurrect ghost player and restore to life
      */
     resurrectPlayer(player) {
         if (!this.services || !this.services.canResurrect) {
@@ -352,12 +366,13 @@ export class NPC extends Character {
         
         // Check if player is a ghost
         if (!player.isGhost) {
-            return { success: false, message: '¡Pero si estás vivo!' };
+            return { success: false, message: '¡Pero si estás vivo! No necesitas resurrección.' };
         }
         
-        // Check if player has enough gold
-        const resurrectCost = this.services.resurrectCost || 100;
-        if (player.gold < resurrectCost) {
+        const resurrectCost = this.services.resurrectCost || 0;
+        
+        // Verificar oro solo si el costo es mayor que 0
+        if (resurrectCost > 0 && player.gold < resurrectCost) {
             return {
                 success: false,
                 message: `Necesitas ${resurrectCost} oro para resucitar.`
@@ -365,18 +380,20 @@ export class NPC extends Character {
         }
         
         // Apply resurrection
-        player.gold -= resurrectCost;
+        if (resurrectCost > 0) {
+            player.gold -= resurrectCost;
+        }
+        
+        // Resucitar: restaurar estado vivo
         player.isGhost = false;
-        player.hp = player.maxHp;
+        player.hp = player.maxHp; // Vida al 100%
         
-        // Return any dropped items that haven't been recovered
-        const droppedItems = this.recoverDroppedItems(player);
+        // TODO: Limpiar estados alterados si los hay (veneno, confusión, parálisis)
         
+        const costMsg = resurrectCost > 0 ? ` (-${resurrectCost} oro)` : ' (GRATIS por la gracia divina)';
         return {
             success: true,
-            message: `¡He devuelto tu alma a tu cuerpo! (-${resurrectCost} oro)${
-                droppedItems ? `\nRecuperados ${droppedItems} objetos caídos.` : ''
-            }`
+            message: `¡Resucitado!${costMsg} Tu alma ha vuelto a tu cuerpo y tu HP está al 100%.`
         };
     }
     

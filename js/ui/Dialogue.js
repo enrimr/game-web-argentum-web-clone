@@ -203,8 +203,9 @@ function getNPCDialogue(npc) {
         healer: {
             text: npc.dialogue.greeting,
             options: [
-                {
-                    text: "Necesito curación",
+                // Opción de curar solo aparece para jugadores vivos
+                ...(!gameState.player.isGhost ? [{
+                    text: "Curar",
                     response: npc.dialogue.heal,
                     action: () => {
                         if (currentDialogue) {
@@ -217,10 +218,10 @@ function getNPCDialogue(npc) {
                             }
                         }
                     }
-                },
+                }] : []),
                 // Opción de resucitar solo aparece para jugadores fantasma
                 ...(gameState.player.isGhost ? [{
-                    text: "Necesito resucitar",
+                    text: "Resucitar",
                     response: npc.dialogue.resurrect,
                     action: () => {
                         if (currentDialogue) {
@@ -228,16 +229,14 @@ function getNPCDialogue(npc) {
                             if (result.success) {
                                 addChatMessage('system', `✨ ${result.message}`);
                                 updateUI();
+                                // Cerrar diálogo después de resucitar
+                                setTimeout(() => closeDialogue(), 1000);
                             } else {
                                 addChatMessage('system', `❌ ${result.message}`);
                             }
                         }
                     }
                 }] : []),
-                {
-                    text: "¿Cuánto cobras por tus servicios?",
-                    response: `Cobro ${npc.services.healCost} monedas por curar y ${npc.services.resurrectCost} monedas por resucitar.`,
-                },
                 {
                     text: "Adiós",
                     response: npc.dialogue.farewell
@@ -316,67 +315,6 @@ function getNPCDialogue(npc) {
                 {
                     text: "Adiós",
                     response: "¡Que los dioses te protejan en tus aventuras!"
-                }
-            ]
-        },
-        healer: {
-            text: "Soy el curandero del pueblo. Puedo sanarte por 50 monedas de oro. ¿Necesitas mis servicios?",
-            options: [
-                {
-                    text: "Sí, cúrame por favor",
-                    response: "¡Hecho! Te he restaurado toda la vida.",
-                    action: () => {
-                        if (gameState.player.gold >= 50 && gameState.player.hp < gameState.player.maxHp) {
-                            const healAmount = gameState.player.maxHp - gameState.player.hp;
-                            gameState.player.hp = gameState.player.maxHp;
-                            gameState.player.gold -= 50;
-                            addChatMessage('system', `💚 ¡Curado! +${healAmount} HP (-50 oro)`);
-                            updateUI(); // Update UI after healing and gold change
-                        } else if (gameState.player.hp >= gameState.player.maxHp) {
-                            addChatMessage('npc', 'Ya estás completamente sano.');
-                        } else {
-                            addChatMessage('npc', 'No tienes suficiente oro.');
-                        }
-                    }
-                },
-                {
-                    text: "¿Cuánto cuesta?",
-                    response: "50 monedas de oro por una curación completa. Es un precio justo por salvar tu vida.",
-                    followUpOptions: [
-                        {
-                            text: "Acepto, cúrame",
-                            response: "¡Excelente! Prepárate para sentir la energía curativa...",
-                            action: () => {
-                                if (gameState.player.gold >= 50 && gameState.player.hp < gameState.player.maxHp) {
-                                    const healAmount = gameState.player.maxHp - gameState.player.hp;
-                                    gameState.player.hp = gameState.player.maxHp;
-                                    gameState.player.gold -= 50;
-                                    addChatMessage('system', `💚 ¡Curado! +${healAmount} HP (-50 oro)`);
-                                    updateUI(); // Update UI after healing and gold change
-                                } else if (gameState.player.hp >= gameState.player.maxHp) {
-                                    addChatMessage('npc', 'Ya estás completamente sano.');
-                                } else {
-                                    addChatMessage('npc', 'No tienes suficiente oro.');
-                                }
-                            }
-                        },
-                        {
-                            text: "Demasiado caro",
-                            response: "Entiendo que los precios son altos, pero la magia curativa no es barata. Puedo ofrecerte un descuento si traes hierbas medicinales."
-                        },
-                        {
-                            text: "Háblame de tu magia",
-                            response: "Uso antiguos rituales de sanación transmitidos por generaciones. Mi magia restaura completamente tu vitalidad."
-                        }
-                    ]
-                },
-                {
-                    text: "¿Puedes enseñarme curación?",
-                    response: "Lo siento, la curación requiere años de estudio. Pero puedo curarte cuando lo necesites."
-                },
-                {
-                    text: "No gracias",
-                    response: "Como quieras. Si cambias de opinión, ya sabes dónde encontrarme."
                 }
             ]
         },
@@ -500,86 +438,6 @@ function getNPCDialogue(npc) {
                 {
                     text: "Nos vemos",
                     response: "¡Adiós! Vuelve cuando necesites mis servicios alquímicos."
-                }
-            ]
-        },
-        priest: {
-            text: "¡Bendiciones, aventurero! Soy el sacerdote del templo. ¿Necesitas mis servicios espirituales?",
-            options: [
-                {
-                    text: "Curarme",
-                    response: "Puedo restaurar tu vitalidad por 100 monedas de oro. ¿Quieres que te cure completamente?",
-                    followUpOptions: [
-                        {
-                            text: "Sí, cúrame por favor",
-                            response: "¡Que la luz divina te restaure!",
-                            action: () => {
-                                if (gameState.player.gold >= 100) {
-                                    gameState.player.hp = gameState.player.maxHp;
-                                    gameState.player.gold -= 100;
-                                    addChatMessage('system', `💚 ¡Curado completamente! +${gameState.player.maxHp} HP (-100 oro)`);
-                                    updateUI();
-                                } else {
-                                    addChatMessage('npc', 'No tienes suficiente oro para mis servicios.');
-                                }
-                            }
-                        },
-                        {
-                            text: "No, gracias",
-                            response: "Como prefieras. La luz divina siempre está aquí cuando la necesites."
-                        },
-                        {
-                            text: "¿Cuánto cuesta?",
-                            response: "100 monedas de oro por una curación divina completa. Es un precio justo por el favor de los dioses."
-                        }
-                    ]
-                },
-                {
-                    text: "Resucitarme",
-                    response: "Veo que eres un fantasma... Puedo devolverte a la vida por 500 monedas de oro. ¿Quieres resucitar?",
-                    followUpOptions: [
-                        {
-                            text: "Sí, resucítame",
-                            response: "¡Que los dioses te devuelvan a este mundo!",
-                            action: () => {
-                                if (!gameState.player.isGhost) {
-                                    addChatMessage('npc', 'No necesitas resurrección, aventurero.');
-                                    return;
-                                }
-                                if (gameState.player.gold >= 500) {
-                                    // Resucitar al jugador
-                                    gameState.player.isGhost = false;
-                                    gameState.player.hp = Math.floor(gameState.player.maxHp / 2); // Resucitar con la mitad de vida
-                                    gameState.player.gold -= 500;
-
-                                    // Recuperar objetos caídos
-                                    recoverDroppedItems();
-
-                                    addChatMessage('system', `✨ ¡Resucitado! Recuperas la mitad de tu vida máxima y todos tus objetos.`);
-                                    addChatMessage('system', `💰 Perdiste 500 oro en la resurrección.`);
-                                    updateUI();
-                                } else {
-                                    addChatMessage('npc', 'No tienes suficiente oro para la resurrección. Los dioses requieren un sacrificio apropiado.');
-                                }
-                            }
-                        },
-                        {
-                            text: "No, gracias",
-                            response: "Entiendo. Algunos prefieren vagar como fantasmas. Pero recuerda que la vida es preciosa."
-                        },
-                        {
-                            text: "¿Qué cuesta resucitar?",
-                            response: "500 monedas de oro. Es el precio que los dioses exigen para devolver un alma al mundo de los vivos."
-                        }
-                    ]
-                },
-                {
-                    text: "Hablar de los dioses",
-                    response: "Los dioses nos observan a todos. Cada acción tiene consecuencias, cada muerte es una lección. ¿Qué quieres saber?"
-                },
-                {
-                    text: "Hasta luego",
-                    response: "¡Que los dioses te protejan en tu camino, ya seas vivo o fantasma!"
                 }
             ]
         }

@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Juego - Calima Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #e94560;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #53a8b6;
+            font-style: italic;
+        }
+
+        nav {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        nav a {
+            color: #53a8b6;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        nav a:hover {
+            background: #e94560;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        section {
+            background: rgba(15, 52, 96, 0.6);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            font-size: 2.2em;
+            color: #e94560;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #53a8b6;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.6em;
+            color: #53a8b6;
+            margin: 25px 0 15px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: rgba(22, 33, 62, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #0f3460;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #53a8b6;
+            box-shadow: 0 8px 20px rgba(83, 168, 182, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            color: #e94560;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(83, 168, 182, 0.2);
+        }
+
+        .stat-label {
+            color: #53a8b6;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #e0e0e0;
+        }
+
+        .description {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-style: italic;
+            color: #b0b0b0;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+            font-weight: bold;
+        }
+
+        .tag-weapon { background: #d32f2f; color: white; }
+        .tag-armor { background: #1976d2; color: white; }
+        .tag-consumable { background: #388e3c; color: white; }
+        .tag-spell { background: #7b1fa2; color: white; }
+        .tag-damage { background: #f57c00; color: white; }
+        .tag-heal { background: #00897b; color: white; }
+        .tag-buff { background: #5e35b1; color: white; }
+        .tag-debuff { background: #c62828; color: white; }
+
+        .map-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .map-item {
+            background: rgba(22, 33, 62, 0.6);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #53a8b6;
+        }
+
+        .map-name {
+            font-size: 1.2em;
+            color: #e94560;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .map-zone {
+            color: #53a8b6;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(83, 168, 182, 0.3);
+        }
+
+        th {
+            background: rgba(83, 168, 182, 0.2);
+            color: #53a8b6;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #53a8b6;
+            border-top: 2px solid #0f3460;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            h2 { font-size: 1.6em; }
+            .grid { grid-template-columns: 1fr; }
+            nav ul { flex-direction: column; }
+        }
+
+        .intro {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #e94560;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        // Sistema de generación de sprites (adaptado del juego)
+        function createSprite(width, height, drawFunction) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.imageRendering = 'pixelated';
+            const ctx = canvas.getContext('2d');
+            drawFunction(ctx, width, height);
+            return canvas;
+        }
+
+        // Generador de sprites de items
+        const itemSprites = {
+            potion: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-4, h/2-2, 8, 10);
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(w/2-3, h/2+3, 6, 2);
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/2-2, h/2-4, 4, 3);
+            }),
+            potionBlue: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#2563eb';
+                ctx.fillRect(w/2-4, h/2-2, 8, 10);
+                ctx.fillStyle = '#1e40af';
+                ctx.fillRect(w/2-3, h/2+3, 6, 2);
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/2-2, h/2-4, 4, 3);
+            }),
+            potionGreen: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#16a34a';
+                ctx.fillRect(w/2-4, h/2-2, 8, 10);
+                ctx.fillStyle = '#15803d';
+                ctx.fillRect(w/2-3, h/2+3, 6, 2);
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/2-2, h/2-4, 4, 3);
+            }),
+            arrow: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(w/2-1, h/2-6, 2, 12);
+                ctx.fillStyle = '#9ca3af';
+                ctx.beginPath();
+                ctx.moveTo(w/2, h/2-8);
+                ctx.lineTo(w/2-3, h/2-3);
+                ctx.lineTo(w/2+3, h/2-3);
+                ctx.fill();
+                ctx.fillStyle = '#fef3c7';
+                ctx.fillRect(w/2-2, h/2+4, 4, 2);
+            }),
+            sword: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(w/2-2, h/2-8, 4, 12);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/2-4, h/2-2, 8, 2);
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(w/2-2, h/2, 4, 4);
+            }),
+            shield: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, 10, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(w/2-1, h/2-6, 2, 12);
+                ctx.fillRect(w/2-6, h/2-1, 12, 2);
+            }),
+            bow: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.strokeStyle = '#8b4513';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, 8, Math.PI * 0.3, Math.PI * 0.7);
+                ctx.stroke();
+                ctx.strokeStyle = '#f5f5dc';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(w/2 + Math.cos(Math.PI * 0.3) * 8, h/2 + Math.sin(Math.PI * 0.3) * 8);
+                ctx.lineTo(w/2 + Math.cos(Math.PI * 0.7) * 8, h/2 + Math.sin(Math.PI * 0.7) * 8);
+                ctx.stroke();
+            }),
+            armor: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/4, h/3, w/2, 3);
+                ctx.fillRect(w/4, h/2, w/2, 2);
+            }),
+            helmet: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/2 - w/5, h/4 - w/5, w/2.5, w/2.5);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2 - w/8, h/4, w/4, 2);
+            }),
+            robe: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#8b5cf6';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillRect(w/4 - 2, h/2 + 2, w/2 + 4, h/3);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/2 - 1, h/3, 2, h/4);
+            }),
+            spellbook: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#7c2d12';
+                ctx.fillRect(w/4, h/4, w/2, h/2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/4 + 2, h/4 + 2, w/2 - 4, h/2 - 4);
+                ctx.fillStyle = '#7c2d12';
+                ctx.fillRect(w/2 - 1, h/4 + 2, 2, h/2 - 4);
+            }),
+            scroll: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#fef3c7';
+                ctx.fillRect(w/4, h/3, w/2, h/3);
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(w/4, h/3 + 2, w/2, 1);
+                ctx.fillRect(w/4, h/3 + 6, w/2, 1);
+            })
+        };
+
+        // Generador de sprites de NPCs
+        const npcSprites = {
+            merchant: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#16a34a';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#15803d';
+                ctx.fillRect(w/2-6, h/4-6, 12, 3);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/4-2, h/2+6, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }),
+            blacksmith: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(w/4-8, h/2, 4, h/3);
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(w/4-10, h/2-2, 8, 4);
+            }),
+            healer: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#f3f4f6';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-1, h/2-4, 2, 10);
+                ctx.fillRect(w/2-4, h/2-1, 8, 2);
+            }),
+            banker: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fef3c7';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/4-2, h/2+6, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(w/2-4, h/4-8, 8, 4);
+                ctx.fillRect(w/2-6, h/4-4, 12, 2);
+            }),
+            trainer: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(w/2-3, h/4+2, 6, 6);
+                ctx.fillStyle = '#8b4513';
+                ctx.fillRect(w/4-6, h/3, 2, h/2);
+                ctx.fillStyle = '#a855f7';
+                ctx.beginPath();
+                ctx.arc(w/4-5, h/3-2, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }),
+            alchemist: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#065f46';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#d1d5db';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(w/4-4, h/2+4, 4, 6);
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/4-3, h/2+3, 2, 2);
+            }),
+            guard: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#4b5563';
+                ctx.fillRect(w/2-6, h/4-6, 12, 4);
+                ctx.fillStyle = '#d1d5db';
+                ctx.fillRect(w/4-8, h/2, 2, h/3);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/4-9, h/2-2, 4, 2);
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/4+w/2+2, h/2, 6, 8);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(w/4+w/2+3, h/2+3, 4, 2);
+                ctx.fillRect(w/4+w/2+4, h/2+2, 2, 4);
+            }),
+            mage: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fef3c7';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#f9fafb';
+                ctx.fillRect(w/2-2, h/4+4, 4, 4);
+                ctx.fillStyle = '#4c1d95';
+                ctx.beginPath();
+                ctx.moveTo(w/2-8, h/4-2);
+                ctx.lineTo(w/2+8, h/4-2);
+                ctx.lineTo(w/2+6, h/4-8);
+                ctx.lineTo(w/2-6, h/4-8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/4-4, h/2, 2, h/3);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/4-3, h/2-2, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w/2-2, 0, Math.PI * 2);
+                ctx.stroke();
+            }),
+            carpenter: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/4-2, 2, 2);
+                ctx.fillRect(w/2+2, h/4-2, 2, 2);
+                ctx.fillStyle = '#4b5563';
+                ctx.fillRect(w/2-3, h/4+3, 6, 2);
+                ctx.fillRect(w/2-6, h/4-6, 12, 4);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/2-4, h/4-4, 8, 2);
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/4-6, h/2, 4, 2);
+                ctx.fillRect(w/4-4, h/2+2, 2, 6);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/4-5, h/2-2, 3, 2);
+                ctx.fillStyle = '#8b4513';
+                ctx.fillRect(w/4, h/3-2, w/2, 3);
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(w/4+2, h/3-1, 2, 2);
+                ctx.fillRect(w/4+w/2-4, h/3-1, 2, 2);
+            })
+        };
+
+        // Generador de sprites de enemigos
+        const enemySprites = {
+            bat: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#1f2937';
+                ctx.beginPath();
+                ctx.moveTo(w/2, h/4);
+                ctx.lineTo(w/4, h/2);
+                ctx.lineTo(w/2, h/3);
+                ctx.lineTo(w*3/4, h/2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-2, h/3, 2, 2);
+                ctx.fillRect(w/2, h/3, 2, 2);
+            }),
+            slime: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#34d399';
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-2, h/2-2, 1, 1);
+                ctx.fillRect(w/2+1, h/2-2, 1, 1);
+            }),
+            bandit: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#4b5563';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#d97706';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-3, h/4-1, 2, 2);
+                ctx.fillRect(w/2+1, h/4-1, 2, 2);
+            }),
+            skeleton: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#f5f5dc';
+                ctx.fillRect(w/2-2, h/2-6, 4, 12);
+                ctx.fillRect(w/2-6, h/2-2, 12, 4);
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-3, h/4-1, 2, 2);
+                ctx.fillRect(w/2+1, h/4-1, 2, 2);
+            }),
+            spider: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#1f2937';
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#374151';
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI) / 4;
+                    const legX = w/2 + Math.cos(angle) * w/3;
+                    const legY = h/2 + Math.sin(angle) * h/3;
+                    ctx.fillRect(legX-1, legY-1, 3, 2);
+                }
+            }),
+            goblin: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#166534';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#16a34a';
+                ctx.beginPath();
+                ctx.arc(w/2, h/4, w/5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-3, h/4-1, 2, 2);
+                ctx.fillRect(w/2+1, h/4-1, 2, 2);
+            }),
+            wolf: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(w/4, h/3, w/2, h/3);
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/6, h/4, w/3, h/4);
+                ctx.fillRect(w/2, h/4, w/3, h/4);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-3, h/6-1, 2, 2);
+                ctx.fillRect(w/2+1, h/6-1, 2, 2);
+            }),
+            goat: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#f5f5dc';
+                ctx.fillRect(w/4, h/3, w/2, h/3);
+                ctx.fillStyle = '#374151';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/2-4, h/6-4, 3, 4);
+                ctx.fillRect(w/2+1, h/6-4, 3, 4);
+            }),
+            orc: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#166534';
+                ctx.fillRect(w/6, h/4, w*2/3, h/2);
+                ctx.fillStyle = '#15803d';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/2-4, h/6-2, 3, 3);
+                ctx.fillRect(w/2+1, h/6-2, 3, 3);
+            }),
+            elemental: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w/6, 0, Math.PI * 2);
+                ctx.fill();
+            }),
+            demon: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#7f1d1d';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.arc(w/2, h/5, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-5, h/5-6, 3, 6);
+                ctx.fillRect(w/2+2, h/5-6, 3, 6);
+            }),
+            bear: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(w/6, h/4, w*2/3, h/2);
+                ctx.fillStyle = '#a16207';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-4, h/6-2, 3, 3);
+                ctx.fillRect(w/2+1, h/6-2, 3, 3);
+            }),
+            caveTroll: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(w/6, h/4, w*2/3, h/2);
+                ctx.fillStyle = '#4b5563';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-2, h/6+2, 4, 3);
+            }),
+            troll: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#166534';
+                ctx.fillRect(w/6, h/4, w*2/3, h/2);
+                ctx.fillStyle = '#15803d';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#f5f5dc';
+                ctx.fillRect(w/2-3, h/6+2, 2, 4);
+                ctx.fillRect(w/2+1, h/6+2, 2, 4);
+            }),
+            mountainTroll: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#166534';
+                ctx.fillRect(w/6, h/4, w*2/3, h/2);
+                ctx.fillStyle = '#15803d';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/2-4, h/6-2, 3, 3);
+            }),
+            golem: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/4, h/4, w/2, h/2);
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(w/3, h/3, w/3, h/3);
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-2, h/6-1, 2, 2);
+                ctx.fillRect(w/2, h/6-1, 2, 2);
+            }),
+            guardian: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillRect(w/4, h/3, w/2, h/2);
+                ctx.fillStyle = '#a855f7';
+                ctx.beginPath();
+                ctx.arc(w/2, h/5, w/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(w/2-4, h/5-3, 3, 3);
+                ctx.fillRect(w/2+1, h/5-3, 3, 3);
+            }),
+            dragon: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#7c2d12';
+                ctx.fillRect(w/4, h/3, w/2, h/3);
+                ctx.fillStyle = '#991b1b';
+                ctx.beginPath();
+                ctx.arc(w/2, h/6, w/5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(w/2-3, h/6-1, 2, 2);
+                ctx.fillRect(w/2+1, h/6-1, 2, 2);
+            }),
+            giant: (size) => createSprite(size, size, (ctx, w, h) => {
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(w/8, h/6, w*3/4, h*2/3);
+                ctx.fillStyle = '#9ca3af';
+                ctx.beginPath();
+                ctx.arc(w/2, h/8, w/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(w/2-6, h/8-3, 4, 4);
+                ctx.fillRect(w/2+2, h/8-3, 4, 4);
+            })
+        };
+
+        // Función para inicializar sprites en la página
+        function initializeSprites() {
+            // Reemplazar iconos en cards
+            document.querySelectorAll('.icon').forEach(icon => {
+                const text = icon.textContent.trim();
+                let sprite = null;
+                const size = 32;
+                
+                // Mapeo de emojis a sprites de items
+                if (text === '⚔️' || text === '🗡️') sprite = itemSprites.sword(size);
+                else if (text === '🏹') sprite = itemSprites.bow(size);
+                else if (text === '🦺') sprite = itemSprites.armor(size);
+                else if (text === '✨') sprite = itemSprites.armor(size);
+                else if (text === '👘') sprite = itemSprites.robe(size);
+                else if (text === '🪖' || text === '⛑️' || text === '👑') sprite = itemSprites.helmet(size);
+                else if (text === '🧪') sprite = itemSprites.potion(size);
+                else if (text === '💧') sprite = itemSprites.potionBlue(size);
+                else if (text === '🍀') sprite = itemSprites.potionGreen(size);
+                else if (text === '📖' || text === '📕' || text === '📗' || text === '📘' || text === '📙') sprite = itemSprites.spellbook(size);
+                else if (text === '📜' || text === '🧾') sprite = itemSprites.scroll(size);
+                else if (text === '🔮') sprite = itemSprites.spellbook(size);
+                else if (text === '🔥' || text === '⚡') sprite = itemSprites.spellbook(size);
+                else if (text === '💚' || text === '💉') sprite = itemSprites.potionGreen(size);
+                else if (text === '💪' || text === '🧊' || text === '☠️') sprite = itemSprites.scroll(size);
+                
+                // Mapeo de emojis a sprites de NPCs
+                else if (text === '🏪') sprite = npcSprites.merchant(size);
+                else if (text === '🔨') sprite = npcSprites.blacksmith(size);
+                else if (text === '🪓') sprite = npcSprites.carpenter(size);
+                else if (text === '🧙') sprite = npcSprites.mage(size);
+                else if (text === '🧘') sprite = npcSprites.mage(size);
+                else if (text === '🏦') sprite = npcSprites.banker(size);
+                else if (text === '⚕️') sprite = npcSprites.healer(size);
+                else if (text === '🎯') sprite = npcSprites.trainer(size);
+                
+                // Mapeo especial para escudos (puede ser item o NPC guardia)
+                else if (text === '🛡️' || text === '🔰') {
+                    // Verificar contexto: si está en sección NPCs, usar guardia; si no, usar shield
+                    const parentSection = icon.closest('section');
+                    if (parentSection && parentSection.id === 'npcs') {
+                        sprite = npcSprites.guard(size);
+                    } else {
+                        sprite = itemSprites.shield(size);
+                    }
+                }
+                
+                if (sprite) {
+                    icon.textContent = '';
+                    icon.appendChild(sprite);
+                }
+            });
+
+            // Reemplazar emojis en las tablas de enemigos
+            document.querySelectorAll('table tbody tr td:first-child').forEach(cell => {
+                const text = cell.textContent.trim();
+                let sprite = null;
+                const size = 24;
+                
+                // Crear contenedor para sprite + texto
+                const container = document.createElement('div');
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.gap = '10px';
+                
+                // Mapeo de emojis a sprites de enemigos
+                if (text.includes('Murciélago')) sprite = enemySprites.bat(size);
+                else if (text.includes('Slime')) sprite = enemySprites.slime(size);
+                else if (text.includes('Bandido')) sprite = enemySprites.bandit(size);
+                else if (text.includes('Esqueleto')) sprite = enemySprites.skeleton(size);
+                else if (text.includes('Araña')) sprite = enemySprites.spider(size);
+                else if (text.includes('Goblin')) sprite = enemySprites.goblin(size);
+                else if (text.includes('Lobo')) sprite = enemySprites.wolf(size);
+                else if (text.includes('Cabra Montesa')) sprite = enemySprites.goat(size);
+                else if (text.includes('Orco')) sprite = enemySprites.orc(size);
+                else if (text.includes('Elemental')) sprite = enemySprites.elemental(size);
+                else if (text.includes('Demonio')) sprite = enemySprites.demon(size);
+                else if (text.includes('Oso')) sprite = enemySprites.bear(size);
+                else if (text.includes('Troll de Cueva')) sprite = enemySprites.caveTroll(size);
+                else if (text.includes('Troll de Montaña')) sprite = enemySprites.mountainTroll(size);
+                else if (text.includes('Troll') && !text.includes('de')) sprite = enemySprites.troll(size);
+                else if (text.includes('Gólem')) sprite = enemySprites.golem(size);
+                else if (text.includes('Guardián')) sprite = enemySprites.guardian(size);
+                else if (text.includes('Dragón')) sprite = enemySprites.dragon(size);
+                else if (text.includes('Gigante')) sprite = enemySprites.giant(size);
+                
+                if (sprite) {
+                    // Extraer solo el nombre sin emoji
+                    const nameMatch = text.match(/\s+(.+)$/);
+                    const name = nameMatch ? nameMatch[1] : text;
+                    
+                    container.appendChild(sprite);
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = name;
+                    container.appendChild(textSpan);
+                    
+                    cell.textContent = '';
+                    cell.appendChild(container);
+                }
+            });
+        }
+
+        // Inicializar sprites cuando cargue la página
+        window.addEventListener('DOMContentLoaded', initializeSprites);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚔️ Manual de Juego ⚔️</h1>
+            <p class="subtitle">Calima Online - Guía Completa del Aventurero</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#introduccion">📖 Introducción</a></li>
+                <li><a href="#items">🎒 Items</a></li>
+                <li><a href="#enemigos">👹 Enemigos</a></li>
+                <li><a href="#magias">✨ Magias</a></li>
+                <li><a href="#npcs">🏪 NPCs</a></li>
+                <li><a href="#mapas">🗺️ Mapas</a></li>
+            </ul>
+        </nav>
+
+        <!-- INTRODUCCIÓN -->
+        <section id="introduccion">
+            <h2>📖 Introducción</h2>
+            <div class="intro">
+                <p><strong>Bienvenido a Calima Online</strong>, un mundo de fantasía medieval inspirado en el clásico Argentum Online. Este manual te guiará a través de todos los elementos del juego para que puedas convertirte en un aventurero legendario.</p>
+                <p style="margin-top: 15px;">En este mundo encontrarás:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>⚔️ <strong>Combate:</strong> Enfrenta a peligrosas criaturas y acumula experiencia</li>
+                    <li>🎯 <strong>Exploración:</strong> Descubre vastas regiones desde ciudades hasta montañas</li>
+                    <li>✨ <strong>Magia:</strong> Aprende poderosos hechizos de ataque, curación y mejora</li>
+                    <li>🏪 <strong>Comercio:</strong> Negocia con diversos NPCs para obtener equipo</li>
+                    <li>⚙️ <strong>Progresión:</strong> Mejora tu personaje con armaduras, armas y habilidades</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ITEMS -->
+        <section id="items">
+            <h2>🎒 Items y Equipamiento</h2>
+            
+            <h3>⚔️ Armas</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">⚔️</span>
+                        <span>Espada</span>
+                    </div>
+                    <span class="tag tag-weapon">Arma</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">+15</span>
+                    </div>
+                    <div class="description">Espada básica para combate cuerpo a cuerpo.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🗡️</span>
+                        <span>Espada de Hierro</span>
+                    </div>
+                    <span class="tag tag-weapon">Arma</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">+25</span>
+                    </div>
+                    <div class="description">Espada mejorada de hierro forjado. Mayor daño en combate.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🏹</span>
+                        <span>Arco</span>
+                    </div>
+                    <span class="tag tag-weapon">Arma a Distancia</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">+12</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Rango:</span>
+                        <span class="stat-value">8 casillas</span>
+                    </div>
+                    <div class="description">Arco básico para combate a distancia. Requiere flechas.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🏹</span>
+                        <span>Arco Élfico</span>
+                    </div>
+                    <span class="tag tag-weapon">Arma a Distancia</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">+18</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Rango:</span>
+                        <span class="stat-value">10 casillas</span>
+                    </div>
+                    <div class="description">Arco élfico de alta calidad con mayor alcance y daño.</div>
+                </div>
+            </div>
+
+            <h3>🛡️ Armaduras</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🛡️</span>
+                        <span>Escudo</span>
+                    </div>
+                    <span class="tag tag-armor">Escudo</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+10</span>
+                    </div>
+                    <div class="description">Escudo básico de madera reforzada.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🔰</span>
+                        <span>Escudo de Hierro</span>
+                    </div>
+                    <span class="tag tag-armor">Escudo</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+20</span>
+                    </div>
+                    <div class="description">Escudo de hierro forjado con mayor protección.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🦺</span>
+                        <span>Armadura de Cuero</span>
+                    </div>
+                    <span class="tag tag-armor">Armadura Corporal</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+15</span>
+                    </div>
+                    <div class="description">Armadura ligera de cuero curtido.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🛡️</span>
+                        <span>Armadura de Placas</span>
+                    </div>
+                    <span class="tag tag-armor">Armadura Corporal</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+30</span>
+                    </div>
+                    <div class="description">Armadura pesada de placas metálicas.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">✨</span>
+                        <span>Armadura Dorada</span>
+                    </div>
+                    <span class="tag tag-armor">Armadura Corporal</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+40</span>
+                    </div>
+                    <div class="description">Armadura élite de placas doradas, máxima protección.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">👘</span>
+                        <span>Túnica de Mago</span>
+                    </div>
+                    <span class="tag tag-armor">Armadura Corporal</span>
+                    <span class="tag tag-spell">Mágico</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+5</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">+20</span>
+                    </div>
+                    <div class="description">Túnica mágica que aumenta el mana máximo.</div>
+                </div>
+            </div>
+
+            <h3>🪖 Cascos</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🪖</span>
+                        <span>Casco de Cuero</span>
+                    </div>
+                    <span class="tag tag-armor">Casco</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+8</span>
+                    </div>
+                    <div class="description">Casco ligero de cuero para protección básica.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">⛑️</span>
+                        <span>Casco Completo</span>
+                    </div>
+                    <span class="tag tag-armor">Casco</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+15</span>
+                    </div>
+                    <div class="description">Casco pesado de metal con protección completa.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">👑</span>
+                        <span>Casco Dorado</span>
+                    </div>
+                    <span class="tag tag-armor">Casco</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+20</span>
+                    </div>
+                    <div class="description">Casco élite dorado de máxima protección.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧙</span>
+                        <span>Capucha Mágica</span>
+                    </div>
+                    <span class="tag tag-armor">Casco</span>
+                    <span class="tag tag-spell">Mágico</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Defensa:</span>
+                        <span class="stat-value">+3</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">+10</span>
+                    </div>
+                    <div class="description">Capucha de mago que aumenta el mana máximo.</div>
+                </div>
+            </div>
+
+            <h3>🧪 Pociones y Consumibles</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧪</span>
+                        <span>Poción Roja</span>
+                    </div>
+                    <span class="tag tag-consumable">Consumible</span>
+                    <span class="tag tag-heal">Curación</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Efecto:</span>
+                        <span class="stat-value">Restaura 50 HP</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Apilable:</span>
+                        <span class="stat-value">Hasta 100</span>
+                    </div>
+                    <div class="description">Poción de curación que restaura puntos de vida.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">💧</span>
+                        <span>Poción Azul</span>
+                    </div>
+                    <span class="tag tag-consumable">Consumible</span>
+                    <span class="tag tag-spell">Mana</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Efecto:</span>
+                        <span class="stat-value">Restaura 30 Mana</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Apilable:</span>
+                        <span class="stat-value">Hasta 100</span>
+                    </div>
+                    <div class="description">Poción mágica que restaura puntos de mana.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🍀</span>
+                        <span>Poción Verde</span>
+                    </div>
+                    <span class="tag tag-consumable">Consumible</span>
+                    <span class="tag tag-heal">Antídoto</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Efecto:</span>
+                        <span class="stat-value">Cura veneno</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Apilable:</span>
+                        <span class="stat-value">Hasta 100</span>
+                    </div>
+                    <div class="description">Antídoto que cura el envenenamiento.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🏹</span>
+                        <span>Flechas</span>
+                    </div>
+                    <span class="tag tag-consumable">Munición</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Uso:</span>
+                        <span class="stat-value">Arcos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Apilable:</span>
+                        <span class="stat-value">Hasta 500</span>
+                    </div>
+                    <div class="description">Munición necesaria para usar arcos.</div>
+                </div>
+            </div>
+
+            <h3>📖 Libros de Hechizos</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">📖</span>
+                        <span>Libro: Flecha Mágica</span>
+                    </div>
+                    <span class="tag tag-spell">Libro de Hechizo</span>
+                    <div class="description">Te enseña el hechizo "Flecha Mágica" permanentemente.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">📕</span>
+                        <span>Libro: Bola de Fuego</span>
+                    </div>
+                    <span class="tag tag-spell">Libro de Hechizo</span>
+                    <div class="description">Te enseña el hechizo "Bola de Fuego" permanentemente.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">📗</span>
+                        <span>Libro: Curar Heridas</span>
+                    </div>
+                    <span class="tag tag-spell">Libro de Hechizo</span>
+                    <div class="description">Te enseña el hechizo "Curar Heridas" permanentemente.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">📘</span>
+                        <span>Libro: Paralizar</span>
+                    </div>
+                    <span class="tag tag-spell">Libro de Hechizo</span>
+                    <div class="description">Te enseña el hechizo "Paralizar" permanentemente.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">📙</span>
+                        <span>Libro: Fuerza</span>
+                    </div>
+                    <span class="tag tag-spell">Libro de Hechizo</span>
+                    <div class="description">Te enseña el hechizo "Fuerza" permanentemente.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">📜</span>
+                        <span>Pergamino: Relámpago</span>
+                    </div>
+                    <span class="tag tag-spell">Pergamino</span>
+                    <span class="tag tag-consumable">Un uso</span>
+                    <div class="description">Lanza el hechizo "Relámpago" una vez y se consume.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧾</span>
+                        <span>Pergamino: Envenenar</span>
+                    </div>
+                    <span class="tag tag-spell">Pergamino</span>
+                    <span class="tag tag-consumable">Un uso</span>
+                    <div class="description">Lanza el hechizo "Envenenar" una vez y se consume.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ENEMIGOS -->
+        <section id="enemigos">
+            <h2>👹 Criaturas y Enemigos</h2>
+            
+            <h3>Enemigos Básicos (Nivel 1-10)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Criatura</th>
+                        <th>HP</th>
+                        <th>Daño</th>
+                        <th>Oro</th>
+                        <th>EXP</th>
+                        <th>Velocidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🦇 Murciélago</td>
+                        <td>15</td>
+                        <td>1-4</td>
+                        <td>3-8</td>
+                        <td>8</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>🟢 Slime</td>
+                        <td>20</td>
+                        <td>2-6</td>
+                        <td>5-12</td>
+                        <td>15</td>
+                        <td>Lento</td>
+                    </tr>
+                    <tr>
+                        <td>🏴‍☠️ Bandido</td>
+                        <td>20</td>
+                        <td>3-8</td>
+                        <td>15-25</td>
+                        <td>25</td>
+                        <td>Lento</td>
+                    </tr>
+                    <tr>
+                        <td>💀 Esqueleto</td>
+                        <td>25</td>
+                        <td>4-9</td>
+                        <td>8-18</td>
+                        <td>35</td>
+                        <td>Normal</td>
+                    </tr>
+                    <tr>
+                        <td>🕷️ Araña</td>
+                        <td>28</td>
+                        <td>4-9</td>
+                        <td>8-16</td>
+                        <td>30</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>👺 Goblin</td>
+                        <td>30</td>
+                        <td>5-10</td>
+                        <td>10-20</td>
+                        <td>40</td>
+                        <td>Normal</td>
+                    </tr>
+                    <tr>
+                        <td>🐺 Lobo</td>
+                        <td>35</td>
+                        <td>6-12</td>
+                        <td>12-25</td>
+                        <td>45</td>
+                        <td>Rápido</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Enemigos Intermedios (Nivel 11-25)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Criatura</th>
+                        <th>HP</th>
+                        <th>Daño</th>
+                        <th>Oro</th>
+                        <th>EXP</th>
+                        <th>Velocidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🐐 Cabra Montesa</td>
+                        <td>45</td>
+                        <td>9-16</td>
+                        <td>18-32</td>
+                        <td>65</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>🐷 Orco</td>
+                        <td>50</td>
+                        <td>8-15</td>
+                        <td>20-40</td>
+                        <td>80</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>🔮 Elemental</td>
+                        <td>60</td>
+                        <td>12-20</td>
+                        <td>25-45</td>
+                        <td>100</td>
+                        <td>Normal</td>
+                    </tr>
+                    <tr>
+                        <td>😈 Demonio</td>
+                        <td>80</td>
+                        <td>18-28</td>
+                        <td>30-60</td>
+                        <td>150</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>🐻 Oso</td>
+                        <td>90</td>
+                        <td>14-22</td>
+                        <td>35-70</td>
+                        <td>120</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>🗿 Troll de Cueva</td>
+                        <td>100</td>
+                        <td>12-20</td>
+                        <td>25-50</td>
+                        <td>140</td>
+                        <td>Normal</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Enemigos Avanzados (Nivel 26+)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Criatura</th>
+                        <th>HP</th>
+                        <th>Daño</th>
+                        <th>Oro</th>
+                        <th>EXP</th>
+                        <th>Velocidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>👹 Troll</td>
+                        <td>120</td>
+                        <td>15-25</td>
+                        <td>50-100</td>
+                        <td>200</td>
+                        <td>Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>⛰️ Troll de Montaña</td>
+                        <td>140</td>
+                        <td>16-26</td>
+                        <td>45-90</td>
+                        <td>220</td>
+                        <td>Normal</td>
+                    </tr>
+                    <tr>
+                        <td>🗿 Gólem de Cueva</td>
+                        <td>150</td>
+                        <td>18-28</td>
+                        <td>40-80</td>
+                        <td>250</td>
+                        <td>Normal</td>
+                    </tr>
+                    <tr>
+                        <td>🛡️ Guardián Ancestral</td>
+                        <td>180</td>
+                        <td>22-32</td>
+                        <td>60-120</td>
+                        <td>350</td>
+                        <td>Normal</td>
+                    </tr>
+                    <tr>
+                        <td>🐉 Dragón</td>
+                        <td>200</td>
+                        <td>20-35</td>
+                        <td>100-200</td>
+                        <td>500</td>
+                        <td>Muy Rápido</td>
+                    </tr>
+                    <tr>
+                        <td>⛰️ Gigante de Montaña</td>
+                        <td>220</td>
+                        <td>25-38</td>
+                        <td>80-150</td>
+                        <td>400</td>
+                        <td>Muy Rápido</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- MAGIAS -->
+        <section id="magias">
+            <h2>✨ Sistema de Magia</h2>
+            
+            <h3>🔥 Hechizos Ofensivos</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🔮</span>
+                        <span>Flecha Mágica</span>
+                    </div>
+                    <span class="tag tag-damage">Daño</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">10</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">8-15</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Rango:</span>
+                        <span class="stat-value">5 casillas</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">2 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">FUEG FLAM</span>
+                    </div>
+                    <div class="description">Lanza un proyectil mágico que causa daño a un enemigo. Hechizo básico de combate.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🔥</span>
+                        <span>Bola de Fuego</span>
+                    </div>
+                    <span class="tag tag-damage">Daño</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">20</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">15-25</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Rango:</span>
+                        <span class="stat-value">4 casillas</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">3 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">EN FLAMUS</span>
+                    </div>
+                    <div class="description">Lanza una bola de fuego que causa daño moderado. Requiere nivel 15 de magia.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">⚡</span>
+                        <span>Relámpago</span>
+                    </div>
+                    <span class="tag tag-damage">Daño</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">35</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">25-40</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Rango:</span>
+                        <span class="stat-value">6 casillas</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">4 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">RELAMP XEN</span>
+                    </div>
+                    <div class="description">Invoca un relámpago devastador. Requiere nivel 25 de magia.</div>
+                </div>
+            </div>
+
+            <h3>💚 Hechizos de Curación</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">💚</span>
+                        <span>Curar Heridas</span>
+                    </div>
+                    <span class="tag tag-heal">Curación</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">15</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Curación:</span>
+                        <span class="stat-value">15-25 HP</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">3 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">SANCTIS</span>
+                    </div>
+                    <div class="description">Restaura puntos de vida del objetivo. Puedes usarlo en ti mismo o en aliados.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">💉</span>
+                        <span>Antídoto</span>
+                    </div>
+                    <span class="tag tag-heal">Curación</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">12</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Efecto:</span>
+                        <span class="stat-value">Cura veneno</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">5 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">NIHIL VED</span>
+                    </div>
+                    <div class="description">Elimina el efecto de envenenamiento del objetivo.</div>
+                </div>
+            </div>
+
+            <h3>🔮 Hechizos de Mejora</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">💪</span>
+                        <span>Fuerza</span>
+                    </div>
+                    <span class="tag tag-buff">Mejora</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">18</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Efecto:</span>
+                        <span class="stat-value">+5 Daño</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Duración:</span>
+                        <span class="stat-value">30 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">15 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">FORTIS</span>
+                    </div>
+                    <div class="description">Aumenta temporalmente la fuerza del objetivo.</div>
+                </div>
+            </div>
+
+            <h3>😈 Hechizos de Debilitamiento</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧊</span>
+                        <span>Paralizar</span>
+                    </div>
+                    <span class="tag tag-debuff">Debilitamiento</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">25</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Efecto:</span>
+                        <span class="stat-value">Inmoviliza</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Duración:</span>
+                        <span class="stat-value">5 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">10 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">PARALIX</span>
+                    </div>
+                    <div class="description">Paraliza al objetivo temporalmente, impidiendo su movimiento.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">☠️</span>
+                        <span>Envenenar</span>
+                    </div>
+                    <span class="tag tag-debuff">Debilitamiento</span>
+                    <div class="stat-line">
+                        <span class="stat-label">Mana:</span>
+                        <span class="stat-value">22</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Daño:</span>
+                        <span class="stat-value">3-5 por tick</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Duración:</span>
+                        <span class="stat-value">10 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Enfriamiento:</span>
+                        <span class="stat-value">8 segundos</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Palabras:</span>
+                        <span class="stat-value">TOXIS VEN</span>
+                    </div>
+                    <div class="description">Envenena al objetivo, causando daño gradual durante varios segundos.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NPCs -->
+        <section id="npcs">
+            <h2>🏪 NPCs y Servicios</h2>
+            
+            <h3>🛒 Comerciantes</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🏪</span>
+                        <span>Mercader Andrés</span>
+                    </div>
+                    <span class="tag tag-consumable">Comerciante General</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad de Ullathorpe<br>
+                        <strong>Productos:</strong><br>
+                        • Pociones Rojas (100 oro)<br>
+                        • Pociones Azules (80 oro)<br>
+                        • Pociones Verdes (50 oro)<br>
+                        • Flechas (5 oro c/u)
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🔨</span>
+                        <span>Herrero Goliath</span>
+                    </div>
+                    <span class="tag tag-weapon">Herrero</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad de Ullathorpe<br>
+                        <strong>Especialidad:</strong> Armas y armaduras<br>
+                        <strong>Productos destacados:</strong><br>
+                        • Espadas y escudos<br>
+                        • Armaduras de cuero, placas y doradas<br>
+                        • Cascos de todos los tipos<br>
+                        <strong>Servicios:</strong> También puede forjar items especiales
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🪓</span>
+                        <span>Carpintero Eleuterio</span>
+                    </div>
+                    <span class="tag tag-weapon">Carpintero</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad<br>
+                        <strong>Especialidad:</strong> Arcos y flechas<br>
+                        <strong>Productos:</strong><br>
+                        • Arco básico (600 oro)<br>
+                        • Arco Élfico (1500 oro)<br>
+                        • Flechas (3 oro c/u)<br>
+                        <strong>Servicios:</strong> Puede fabricar arcos personalizados
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧪</span>
+                        <span>Alquimista Morgana</span>
+                    </div>
+                    <span class="tag tag-consumable">Alquimista</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Mercado<br>
+                        <strong>Especialidad:</strong> Pociones y elixires<br>
+                        <strong>Productos:</strong><br>
+                        • Pociones de salud premium<br>
+                        • Pociones de mana<br>
+                        • Antídotos<br>
+                        <strong>Servicios:</strong> Puede crear pociones especiales
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧙</span>
+                        <span>Mago Nemesius</span>
+                    </div>
+                    <span class="tag tag-spell">Vendedor de Hechizos</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad de Ullathorpe<br>
+                        <strong>Especialidad:</strong> Libros de hechizos y pergaminos<br>
+                        <strong>Productos:</strong><br>
+                        • Libros de hechizos permanentes<br>
+                        • Pergaminos de un solo uso<br>
+                        • Pociones de mana (75 oro)<br>
+                        <strong>Diálogo:</strong> "¡Saludos, buscador de conocimientos arcanos!"
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🧘</span>
+                        <span>Maestro Zennin</span>
+                    </div>
+                    <span class="tag tag-spell">Maestro de Meditación</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad / Campos<br>
+                        <strong>Especialidad:</strong> Enseñanza de meditación<br>
+                        <strong>Siempre está meditando</strong>, mostrando el ejemplo.<br>
+                        Te enseña a meditar presionando la tecla "M" para recuperar mana rápidamente.<br>
+                        Vende pociones de mana a buen precio (50 oro).
+                    </div>
+                </div>
+            </div>
+
+            <h3>🏦 Servicios</h3>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🏦</span>
+                        <span>Banquero Martín</span>
+                    </div>
+                    <span class="tag tag-armor">Banquero</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad de Ullathorpe<br>
+                        <strong>Servicios:</strong><br>
+                        • Depositar oro<br>
+                        • Retirar oro<br>
+                        • Consultar balance<br>
+                        Tu oro estará seguro en el banco.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">⚕️</span>
+                        <span>Sacerdote Marcos</span>
+                    </div>
+                    <span class="tag tag-heal">Sacerdote</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad / Campos<br>
+                        <strong>Servicios:</strong><br>
+                        • Curación completa (50 oro)<br>
+                        • Resurrección (100 oro)<br>
+                        • Bendiciones<br>
+                        "La paz sea contigo, viajero."
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🛡️</span>
+                        <span>Guardia Real</span>
+                    </div>
+                    <span class="tag tag-weapon">Guardia</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Ciudad de Ullathorpe<br>
+                        <strong>Función:</strong> Mantener el orden<br>
+                        <strong>Estadísticas:</strong><br>
+                        • HP: 150<br>
+                        • Daño: 15-25<br>
+                        • Defensa: 20<br>
+                        ⚠️ Atacará a criminales
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">🎯</span>
+                        <span>Maestro Karim</span>
+                    </div>
+                    <span class="tag tag-buff">Entrenador</span>
+                    <div class="description">
+                        <strong>Ubicación:</strong> Campos de Entrenamiento<br>
+                        <strong>Servicios:</strong><br>
+                        • Entrenamiento de Magia<br>
+                        • Entrenamiento de Combate<br>
+                        • Entrenamiento de Defensa<br>
+                        <strong>Costo:</strong> 500 oro por nivel<br>
+                        "La práctica hace al maestro."
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAPAS -->
+        <section id="mapas">
+            <h2>🗺️ Mundo y Mapas</h2>
+            
+            <h3>🏘️ Zona Inicial</h3>
+            <ul class="map-list">
+                <li class="map-item">
+                    <div class="map-name">🏘️ Ciudad de Ullathorpe</div>
+                    <div class="map-zone">Zona: Ciudad</div>
+                    <div class="description">
+                        Ciudad inicial para aventureros novatos. Aquí encontrarás todos los servicios básicos:
+                        comerciantes, herreros, banco, sacerdotes, y acceso a los campos de entrenamiento.
+                        Es una zona segura donde no hay enemigos.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🏞️ Campos de Entrenamiento</div>
+                    <div class="map-zone">Zona: Campos</div>
+                    <div class="description">
+                        Campos abiertos perfectos para entrenar habilidades básicas. Enemigos de nivel bajo
+                        como slimes, murciélagos y bandidos. Conecta con la ciudad y el bosque exterior.
+                    </div>
+                </div>
+            </ul>
+
+            <h3>🌲 Zona de Bosques</h3>
+            <ul class="map-list">
+                <li class="map-item">
+                    <div class="map-name">🌲 Bosque Exterior Norte</div>
+                    <div class="map-zone">Zona: Bosque</div>
+                    <div class="description">
+                        El límite norte de los campos. Los árboles comienzan a densificarse. Enemigos:
+                        arañas, lobos y algunos goblins. Nivel recomendado: 5-10.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🌲 Bosque Exterior Este</div>
+                    <div class="map-zone">Zona: Bosque</div>
+                    <div class="description">
+                        Bosque más denso al este. Los árboles se hacen más abundantes y los enemigos
+                        más peligrosos. Nivel recomendado: 7-12.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🌲 Bosque Exterior Extremo</div>
+                    <div class="map-zone">Zona: Bosque</div>
+                    <div class="description">
+                        La zona más densa del bosque exterior. Los árboles casi bloquean el paso.
+                        Enemigos más fuertes. Nivel recomendado: 10-15.
+                    </div>
+                </li>
+            </ul>
+
+            <h3>🌑 Zona del Bosque Oscuro</h3>
+            <ul class="map-list">
+                <li class="map-item">
+                    <div class="map-name">🌲🌑 Bosque Oscuro Norte</div>
+                    <div class="map-zone">Zona: Bosque Oscuro</div>
+                    <div class="description">
+                        El bosque se vuelve más oscuro y peligroso. Los lobos acechan entre las sombras.
+                        Nivel recomendado: 12-18.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🌲🌑 Bosque Oscuro Centro</div>
+                    <div class="map-zone">Zona: Bosque Oscuro</div>
+                    <div class="description">
+                        El corazón del bosque oscuro. Más denso y peligroso, con entrada a la Cueva
+                        del Bosque. Nivel recomendado: 15-20.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🌲🌑 Bosque Oscuro Sur</div>
+                    <div class="map-zone">Zona: Bosque Oscuro</div>
+                    <div class="description">
+                        Zona sur del bosque oscuro, más cerca de las montañas. Menos árboles pero mayor
+                        peligro con orcos y elementales. Nivel recomendado: 18-22.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🌲🌑 Bosque Oscuro Este</div>
+                    <div class="map-zone">Zona: Bosque Oscuro</div>
+                    <div class="description">
+                        Límite oriental del bosque oscuro. Transición hacia las montañas.
+                        Nivel recomendado: 16-20.
+                    </div>
+                </li>
+            </ul>
+
+            <h3>⛰️ Zona de Montañas</h3>
+            <ul class="map-list">
+                <li class="map-item">
+                    <div class="map-name">⛰️ Paso de Montaña Inferior</div>
+                    <div class="map-zone">Zona: Montaña</div>
+                    <div class="description">
+                        El inicio de las peligrosas montañas. Caminos estrechos y peligros abundantes.
+                        Enemigos: cabras montesas, osos, trolls. Nivel recomendado: 20-25.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">⛰️ Paso de Montaña Medio</div>
+                    <div class="map-zone">Zona: Montaña</div>
+                    <div class="description">
+                        Zona intermedia del paso. Pendientes más pronunciadas y enemigos más fuertes.
+                        Nivel recomendado: 22-27.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">⛰️ Paso de Montaña Alto</div>
+                    <div class="map-zone">Zona: Montaña</div>
+                    <div class="description">
+                        Alturas extremas del paso de montaña. Aire frío y vientos intensos. Solo los más
+                        valientes llegan aquí. Nivel recomendado: 25-30.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">⛰️ Cima de la Montaña</div>
+                    <div class="map-zone">Zona: Montaña</div>
+                    <div class="description">
+                        La cumbre más alta de las montañas. Desde aquí se divisa todo el mundo. El aire es
+                        extremadamente frío y las vistas espectaculares. Nivel recomendado: 28-35.
+                    </div>
+                </li>
+            </ul>
+
+            <h3>🏔️ Mazmorras</h3>
+            <ul class="map-list">
+                <li class="map-item">
+                    <div class="map-name">🏔️ Cueva del Bosque Oscuro</div>
+                    <div class="map-zone">Zona: Mazmorra</div>
+                    <div class="description">
+                        Una mazmorra subterránea llena de peligros. Corredores estrechos conectan varias salas
+                        grandes. Enemigos: trolls de cueva, demonios, gólem. <strong>Entrada:</strong> Bosque
+                        Oscuro Centro. Nivel recomendado: 18-25.
+                    </div>
+                </li>
+                <li class="map-item">
+                    <div class="map-name">🏔️ Mazmorra de la Montaña</div>
+                    <div class="map-zone">Zona: Mazmorra</div>
+                    <div class="description">
+                        Antigua mazmorra excavada en las profundidades de las montañas. Corredores estrechos
+                        conectan salas amplias llenas de peligros y tesoros. Enemigos: guardianes ancestrales,
+                        gigantes de montaña. <strong>Entrada:</strong> Paso de Montaña Alto. Nivel recomendado: 30-40.
+                    </div>
+                </li>
+            </ul>
+
+            <h3>🗺️ Mapa del Mundo</h3>
+            <div class="intro" style="margin-top: 20px;">
+                <p><strong>Sistema de Conexiones:</strong></p>
+                <p style="margin-top: 10px;">El mundo de Calima Online está formado por múltiples mapas interconectados:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>🏘️ <strong>Ciudad de Ullathorpe</strong> → Campos de Entrenamiento</li>
+                    <li>🏞️ <strong>Campos</strong> → Bosques Exteriores Norte y Este</li>
+                    <li>🌲 <strong>Bosques Exteriores</strong> → Bosque Oscuro</li>
+                    <li>🌑 <strong>Bosque Oscuro</strong> → Montañas y Cueva del Bosque</li>
+                    <li>⛰️ <strong>Montañas</strong> → Cima y Mazmorra de la Montaña</li>
+                </ul>
+                <p style="margin-top: 15px;">Los mapas tienen <strong>portales de transición</strong> en sus bordes que te permiten viajar entre zonas. Busca los puntos de acceso marcados para explorar nuevas áreas.</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>🎮 <strong>Calima Online</strong> - Manual del Aventurero 🎮</p>
+            <p style="margin-top: 10px;">Versión 1.0 - Enero 2026</p>
+            <p style="margin-top: 5px; font-size: 0.9em; font-style: italic;">
+                Inspirado en Argentum Online - Un juego de rol multijugador online
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

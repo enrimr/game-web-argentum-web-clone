@@ -35,7 +35,8 @@ export const STATIC_WORLD_MAPS = {
             { type: 'merchant_general', x: 35, y: 15, dialogue: 'shop_armor' },
             { type: 'alchemist_market', x: 25, y: 25, dialogue: 'healing' },
             { type: 'trainer_skills', x: 10, y: 30, dialogue: 'training' },
-            { type: 'guard_city', x: 25, y: 5, dialogue: 'guard_north' }
+            { type: 'guard_city', x: 25, y: 5, dialogue: 'guard_north' },
+            { type: 'healer_city', x: 30, y: 20, dialogue: 'healing' }
         ],
         enemies: { enabled: false },
         objects: {

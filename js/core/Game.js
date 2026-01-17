@@ -289,8 +289,13 @@ function gameLoopWrapper(timestamp) {
         updateMinimap();
     }
 
-    // Continue the loop if player is alive
+    // Continue the loop always (even for ghosts)
+    // isPlayerAlive() retorna true tanto para jugadores vivos como fantasmas
     if (isPlayerAlive()) {
+        requestAnimationFrame(gameLoopWrapper);
+    } else {
+        // Caso especial: si el jugador acaba de morir pero aún no es fantasma,
+        // continuar el loop para que se active el modo fantasma
         requestAnimationFrame(gameLoopWrapper);
     }
 }

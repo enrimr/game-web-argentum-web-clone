@@ -136,6 +136,18 @@
     font-size: 24px;
 }
 
+.manual-button {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+    border-color: #818cf8;
+    text-decoration: none;
+}
+
+.manual-button:hover, .manual-button:focus {
+    background: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
 .auth-form {
     display: flex;
     flex-direction: column;

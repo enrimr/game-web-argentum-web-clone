@@ -148,8 +148,8 @@ function handleMovement(timestamp) {
     // Aplicar super velocidad al delay de movimiento si está activada
     const moveDelay = superSpeedEnabled ? MOVE_DELAY / superSpeedMultiplier : MOVE_DELAY;
     if (moved && timestamp - lastMoveTime >= moveDelay && isWalkable(gameState.map, newX, newY)) {
-        // Check if there's an enemy in the target position (ghosts can pass through enemies)
-        const enemyInPosition = !gameState.player.isGhost && gameState.enemies.some(e => e.x === newX && e.y === newY);
+        // Check if there's an enemy in the target position (fantasmas también tienen colisión con enemigos)
+        const enemyInPosition = gameState.enemies.some(e => e.x === newX && e.y === newY);
 
         // Check if there's an NPC in the target position
         const npcInPosition = gameState.npcs.some(npc => npc.x === newX && npc.y === newY);
@@ -181,12 +181,14 @@ function handleMovement(timestamp) {
         }
     }
 
-    // Handle interactions (restricted in ghost mode)
+    // Handle interactions
     if (isKeyPressed(' ')) {
-        if (!gameState.player.isGhost) {
-            handleInteractions();
+        if (gameState.player.isGhost) {
+            // Los fantasmas solo pueden interactuar con NPCs (especialmente sacerdotes)
+            handleGhostInteractions();
         } else {
-            addChatMessage('system', '👻 Como fantasma no puedes recoger objetos ni atacar.');
+            // Jugadores vivos pueden interactuar con todo
+            handleInteractions();
         }
         clearKey(' '); // Prevent repeated interactions
     }
@@ -304,6 +306,12 @@ function handleInteractions() {
                 // Portal interaction - change map
                 changeMap(obj.targetMap, obj.targetX, obj.targetY);
                 return; // Exit immediately after map change
+            } else if (obj.type === 'dropped_item') {
+                // Recoger objeto caído - usar el sistema centralizado
+                import('./ObjectInteraction.js').then(({ handleObjectInteraction }) => {
+                    handleObjectInteraction(obj);
+                });
+                interacted = true;
             }
         }
     }
@@ -417,6 +425,33 @@ function enemyAttacks(timestamp) {
             enemy.lastAttackTime = timestamp;
         }
     }
+}
+
+/**
+ * Handle ghost interactions (only NPCs, especially healers)
+ */
+function handleGhostInteractions() {
+    const px = gameState.player.x;
+    const py = gameState.player.y;
+    const playerFacing = gameState.player.facing;
+
+    // Check for NPCs - fantasmas pueden hablar con NPCs (especialmente sacerdotes)
+    for (let npc of gameState.npcs) {
+        const dist = Math.abs(npc.x - px) + Math.abs(npc.y - py);
+        if (dist === 1 || (npc.x === px && npc.y === py)) {
+            // Check if player is facing the NPC
+            if (isTargetInFacingDirection(npc.x, npc.y, playerFacing)) {
+                // Mostrar diálogo interactivo con NPC
+                if (!isDialogueOpen()) {
+                    showDialogue(npc);
+                }
+                return;
+            }
+        }
+    }
+
+    // Los fantasmas no pueden interactuar con objetos, enemigos, etc.
+    addChatMessage('system', '👻 Como fantasma solo puedes hablar con NPCs. Busca un sacerdote.');
 }
 
 /**

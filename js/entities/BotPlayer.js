@@ -493,7 +493,32 @@ export class BotPlayer extends Character {
      */
     attackEnemy(enemy, gameState) {
         const damage = 10 + Math.floor(Math.random() * this.level * 5);
-        enemy.takeDamage(damage);
+        
+        // Reducir HP del enemigo directamente (los enemigos no tienen método takeDamage)
+        enemy.hp -= damage;
+        
+        // Verificar si el enemigo murió
+        if (enemy.hp <= 0) {
+            // Remover enemigo y dar recompensas al bot
+            const goldDrop = Math.floor(Math.random() * (enemy.goldDrop.max - enemy.goldDrop.min + 1)) + enemy.goldDrop.min;
+            
+            // Remover enemigo del juego
+            const enemyIndex = gameState.enemies.indexOf(enemy);
+            if (enemyIndex !== -1) {
+                gameState.enemies.splice(enemyIndex, 1);
+            }
+            
+            // Añadir a lista de enemigos muertos para respawn
+            gameState.deadEnemies.push({
+                type: enemy.type,
+                map: this.currentMap,
+                deathTime: Date.now(),
+                originalEnemy: enemy
+            });
+            
+            // Limpiar objetivo
+            this.target = null;
+        }
         
         // Orientarse hacia el enemigo
         const dx = enemy.x - this.x;
