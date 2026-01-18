@@ -98,8 +98,7 @@ export const MAP_DEFINITIONS = {
         worldX: 450, worldY: 250,
         zone: 'dark_forest',
         portals: [
-            { x: 1, y: 20, targetMap: 'dark_forest_center', targetX: 59, targetY: 20, name: 'Bosque Oscuro Oeste' },
-            { x: 59, y: 20, targetMap: 'mountain_pass_lower', targetX: 1, targetY: 20, name: 'Paso de Montaña Este' }
+            { x: 1, y: 20, targetMap: 'dark_forest_center', targetX: 59, targetY: 20, name: 'Bosque Oscuro Oeste' }
         ]
     },
 
@@ -111,8 +110,7 @@ export const MAP_DEFINITIONS = {
         zone: 'mountain',
         portals: [
             { x: 30, y: 39, targetMap: 'dark_forest_south', targetX: 30, targetY: 1, name: 'Bosque Oscuro Norte' },
-            { x: 30, y: 1, targetMap: 'mountain_pass_middle', targetX: 30, targetY: 39, name: 'Paso de Montaña Medio' },
-            { x: 59, y: 20, targetMap: 'dark_forest_east', targetX: 1, targetY: 20, name: 'Bosque Oscuro Oeste' }
+            { x: 30, y: 1, targetMap: 'mountain_pass_middle', targetX: 30, targetY: 39, name: 'Paso de Montaña Medio' }
         ]
     },
 
@@ -192,7 +190,6 @@ export const WORLD_CONNECTIONS = [
 
     // ===== MONTAÑAS =====
     ['dark_forest_south', 'mountain_pass_lower'],
-    ['dark_forest_east', 'mountain_pass_lower'],
     ['mountain_pass_lower', 'mountain_pass_middle'],
     ['mountain_pass_middle', 'mountain_pass_upper'],
     ['mountain_pass_upper', 'mountain_peak'],
