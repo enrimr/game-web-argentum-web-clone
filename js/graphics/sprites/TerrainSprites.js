@@ -168,7 +168,15 @@ export function generateTerrainSprites(TILE_SIZE) {
         
         // Roca normal
         rock: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
-            ctx.clearRect(0, 0, w, h);
+            // Fondo de césped para que se vea sobre el terreno
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, w, h);
+            
+            // Sombra de la roca
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(w/2 + 2, h/2 + h/3, w/2 - 2, h/6, 0, 0, Math.PI * 2);
+            ctx.fill();
             
             // Base de la roca
             ctx.fillStyle = '#6b7280';
@@ -191,6 +199,12 @@ export function generateTerrainSprites(TILE_SIZE) {
             ctx.fillStyle = '#4b5563';
             ctx.beginPath();
             ctx.ellipse(w/2 + w/5, h/2 + h/8, w/10, h/8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Brillo para dar más volumen
+            ctx.fillStyle = '#d1d5db';
+            ctx.beginPath();
+            ctx.ellipse(w/2 - w/8, h/2 - h/8, w/12, h/12, 0, 0, Math.PI * 2);
             ctx.fill();
         }),
         
@@ -489,20 +503,48 @@ export function generateTerrainSprites(TILE_SIZE) {
         
         // NEW SPRITES - Decoration
         deadTree: createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
-            ctx.clearRect(0, 0, w, h);
+            // Fondo de césped para que se vea sobre el terreno
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, w, h);
             
-            // Tronco muerto
-            ctx.fillStyle = '#78716c';
+            // Sombra del árbol
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(w/2 + 1, h - 4, 8, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Tronco muerto (más oscuro y con textura)
+            ctx.fillStyle = '#57534e';
             ctx.fillRect(w/2-3, h/2, 6, h/2);
             
-            // Ramas muertas
-            ctx.strokeStyle = '#78716c';
-            ctx.lineWidth = 2;
+            // Textura del tronco (grietas)
+            ctx.strokeStyle = '#292524';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(w/2 - 2, h/2 + 5);
+            ctx.lineTo(w/2 - 1, h/2 + 12);
+            ctx.moveTo(w/2 + 1, h/2 + 8);
+            ctx.lineTo(w/2 + 2, h/2 + 16);
+            ctx.stroke();
+            
+            // Ramas muertas (más gruesas y oscuras)
+            ctx.strokeStyle = '#57534e';
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(w/2, h/2);
             ctx.lineTo(w/4, h/3);
             ctx.moveTo(w/2, h/2);
             ctx.lineTo(3*w/4, h/4);
+            ctx.stroke();
+            
+            // Detalles de ramas rotas
+            ctx.strokeStyle = '#292524';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(w/2, h/2 + 8);
+            ctx.lineTo(w/3, h/2 + 5);
+            ctx.moveTo(w/2, h/2 + 15);
+            ctx.lineTo(2*w/3, h/2 + 12);
             ctx.stroke();
         }),
         

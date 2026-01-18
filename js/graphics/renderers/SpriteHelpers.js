@@ -47,6 +47,19 @@ export function getTileSprite(tileType) {
         case TILES.SEASHELL: return sprites.seashell;
         case TILES.VOLCANO: return sprites.volcano;
         
+        // Volcanic/Mountain tiles (Canarias style)
+        case TILES.OBSIDIAN: return sprites.obsidian;
+        case TILES.ASH: return sprites.ash;
+        case TILES.PUMICE: return sprites.pumice;
+        case TILES.GEYSER: return sprites.geyser;
+        
+        // Decoration and ruins
+        case TILES.DEAD_TREE: return sprites.deadTree;
+        case TILES.CORAL: return sprites.coral;
+        case TILES.RUINS_WALL: return sprites.ruinsWall;
+        case TILES.COLUMN: return sprites.column;
+        case TILES.BRIDGE: return sprites.bridge;
+        
         default: return sprites.grass;
     }
 }
@@ -58,14 +71,28 @@ export function getTileSprite(tileType) {
  */
 export function getEnemySprite(enemyType) {
     switch (enemyType) {
-        case 'goblin': return sprites.enemy;
-        case 'skeleton': return sprites.enemySkeleton;
-        case 'orc': return sprites.enemy; // Reuse goblin sprite for orcs
-        case 'bandit': return sprites.enemy; // Reuse goblin sprite for bandits
-        case 'troll': return sprites.enemyTroll;
-        case 'dragon': return sprites.enemyDragon;
-        case 'elemental': return sprites.enemyElemental;
-        case 'demon': return sprites.enemyDemon;
+        case 'goblin': return sprites.goblin || sprites.enemy;
+        case 'skeleton': return sprites.skeleton || sprites.enemy;
+        case 'orc': return sprites.orc || sprites.enemy;
+        case 'bandit': return sprites.bandit || sprites.enemy;
+        case 'troll': return sprites.troll || sprites.enemy;
+        case 'dragon': return sprites.dragon || sprites.enemy;
+        case 'elemental': return sprites.elemental || sprites.enemy;
+        case 'demon': return sprites.demon || sprites.enemy;
+        
+        // New enemy types
+        case 'slime': return sprites.slime || sprites.enemy;
+        case 'wolf': return sprites.wolf || sprites.enemy;
+        case 'spider': return sprites.spider || sprites.enemy;
+        case 'bear': return sprites.bear || sprites.enemy;
+        case 'mountain_goat': return sprites.mountain_goat || sprites.enemy;
+        case 'cave_golem': return sprites.cave_golem || sprites.enemy;
+        case 'ancient_guardian': return sprites.ancient_guardian || sprites.enemy;
+        case 'mountain_troll': return sprites.mountain_troll || sprites.enemy;
+        case 'bat': return sprites.bat || sprites.enemy;
+        case 'cave_troll': return sprites.cave_troll || sprites.enemy;
+        case 'mountain_giant': return sprites.mountain_giant || sprites.enemy;
+        
         default: return sprites.enemy;
     }
 }
