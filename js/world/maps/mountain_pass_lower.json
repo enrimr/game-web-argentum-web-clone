@@ -68,7 +68,6 @@
   ],
   "adjacentMaps": {
     "north": "dark_forest_south",
-    "east": "dark_forest_east",
     "south": "mountain_pass_middle"
   },
   "enemies": {

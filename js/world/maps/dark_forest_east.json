@@ -60,8 +60,7 @@
   "portals": [],
   "npcs": [],
   "adjacentMaps": {
-    "west": "dark_forest_center",
-    "east": "mountain_pass_lower"
+    "west": "dark_forest_center"
   },
   "enemies": {
     "enabled": true,
