@@ -164,7 +164,7 @@ export function renderWorldMap() {
 
     // Aumentar significativamente el tamaño del canvas para mejor visibilidad
     canvas.width = 1000;
-    canvas.height = 700;
+    canvas.height = 900;
 
     // Clear canvas completely before drawing anything
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -224,38 +224,38 @@ function drawZoneBackgrounds(ctx) {
 
     // Zona de ciudad (verde claro)
     ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
-    ctx.fillRect(150, 520, 150, 80);
+    ctx.fillRect(150, 720, 150, 80);
 
     // Zona de campos (amarillo)
     ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
-    ctx.fillRect(250, 520, 400, 80);
+    ctx.fillRect(250, 720, 400, 80);
 
     // Zona de bosques exteriores (verde oscuro)
     ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
-    ctx.fillRect(300, 420, 300, 80);
+    ctx.fillRect(300, 620, 300, 80);
 
     // Zona de bosque oscuro (morado oscuro)
     ctx.fillStyle = 'rgba(139, 92, 246, 0.15)';
-    ctx.fillRect(300, 120, 200, 280);
+    ctx.fillRect(300, 320, 200, 280);
 
-    // Zona de montañas (gris)
+    // Zona de montañas (gris) - ahora mucho más separada
     ctx.fillStyle = 'rgba(148, 163, 184, 0.1)';
-    ctx.fillRect(300, 20, 120, 280);
+    ctx.fillRect(300, 40, 120, 240);
 
     // Zona de mazmorras (rojo)
     ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
-    ctx.fillRect(600, 90, 120, 200);
+    ctx.fillRect(600, 90, 120, 400);
 
     // Etiquetas de zona
     ctx.fillStyle = '#fbbf24';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'left';
 
-    ctx.fillText('🏘️ Ciudad Inicial', 160, 510);
-    ctx.fillText('🏞️ Campos', 260, 510);
-    ctx.fillText('🌲 Bosques', 310, 410);
-    ctx.fillText('🌑 Bosque Oscuro', 310, 110);
-    ctx.fillText('⛰️ Montañas', 310, 10);
+    ctx.fillText('🏘️ Ciudad Inicial', 160, 710);
+    ctx.fillText('🏞️ Campos', 260, 710);
+    ctx.fillText('🌲 Bosques', 310, 610);
+    ctx.fillText('🌑 Bosque Oscuro', 310, 310);
+    ctx.fillText('⛰️ Montañas', 310, 30);
     ctx.fillText('🏔️ Mazmorras', 610, 80);
 }
 
