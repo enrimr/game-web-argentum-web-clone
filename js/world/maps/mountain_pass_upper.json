@@ -58,8 +58,8 @@
   "portals": [],
   "npcs": [],
   "adjacentMaps": {
-    "north": "mountain_pass_middle",
-    "south": "mountain_peak"
+    "north": "mountain_peak",
+    "south": "mountain_pass_middle"
   },
   "enemies": {
     "enabled": true,
