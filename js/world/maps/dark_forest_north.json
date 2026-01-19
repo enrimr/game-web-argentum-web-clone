@@ -60,7 +60,7 @@
   "portals": [],
   "npcs": [],
   "adjacentMaps": {
-    "north": "mountain_peak",
+    "north": "dark_forest_center",
     "south": "forest_outskirts_1"
   },
   "enemies": {
