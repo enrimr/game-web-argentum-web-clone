@@ -103,6 +103,16 @@ export const MAP_DEFINITIONS = {
     },
 
     // ===== ZONA 4: MONTAÑAS =====
+    'mountain_city': {
+        name: '⛰️🏘️ Ciudad de Piedra Alta',
+        description: 'Una ciudad fortificada construida en las montañas. Refugio de comerciantes, aventureros y mineros.',
+        worldX: 250, worldY: 250,
+        zone: 'city',
+        portals: [
+            { x: 59, y: 20, targetMap: 'mountain_pass_lower', targetX: 1, targetY: 20, name: 'Paso de Montaña Este' }
+        ]
+    },
+
     'mountain_pass_lower': {
         name: '⛰️ Paso de Montaña Inferior',
         description: 'El inicio de las peligrosas montañas. Los caminos son estrechos y los peligros abundan.',
@@ -110,7 +120,8 @@ export const MAP_DEFINITIONS = {
         zone: 'mountain',
         portals: [
             { x: 30, y: 39, targetMap: 'dark_forest_south', targetX: 30, targetY: 1, name: 'Bosque Oscuro Norte' },
-            { x: 30, y: 1, targetMap: 'mountain_pass_middle', targetX: 30, targetY: 39, name: 'Paso de Montaña Medio' }
+            { x: 30, y: 1, targetMap: 'mountain_pass_middle', targetX: 30, targetY: 39, name: 'Paso de Montaña Medio' },
+            { x: 1, y: 20, targetMap: 'mountain_city', targetX: 59, targetY: 20, name: 'Ciudad de Piedra Alta' }
         ]
     },
 
@@ -189,6 +200,7 @@ export const WORLD_CONNECTIONS = [
     ['dark_forest_center', 'dark_forest_east'],
 
     // ===== MONTAÑAS =====
+    ['mountain_city', 'mountain_pass_lower'],
     ['dark_forest_south', 'mountain_pass_lower'],
     ['mountain_pass_lower', 'mountain_pass_middle'],
     ['mountain_pass_middle', 'mountain_pass_upper'],
