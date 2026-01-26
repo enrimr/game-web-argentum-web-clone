@@ -305,6 +305,17 @@ export const MAP_CONFIG = {
         fileSource: 'mountain_dungeon.json'
     },
 
+    // Mapas de prueba
+    guard_test_arena: {
+        type: 'static',
+        generator: 'StaticMapLoader',
+        cache: false,
+        safeZone: false,
+        description: 'Arena de combate 12x12 para probar sistema de guardias',
+        worldPosition: { x: 250, y: 250 },
+        fileSource: 'guard_test_arena.json'
+    },
+
     // Mapas legacy
     dark_forest: {
         type: 'procedural',
