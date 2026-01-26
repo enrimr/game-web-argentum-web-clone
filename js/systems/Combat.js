@@ -88,13 +88,19 @@ function dropAllBotItems(bot) {
     const botY = bot.y;
     const currentMap = bot.currentMap;
     
+    console.log(`📦 dropAllBotItems llamado para ${bot.name}:`);
+    console.log(`  - Inventario:`, bot.inventory);
+    console.log(`  - Equipamiento:`, bot.equipment);
+    
     let itemsDropped = 0;
     const allItems = [];
 
     // Recopilar todos los items del inventario del bot
     if (bot.inventory && bot.inventory.length > 0) {
+        console.log(`  📋 Procesando ${bot.inventory.length} items del inventario`);
         bot.inventory.forEach(item => {
             if (item && item.type) {
+                console.log(`    - ${item.type} x${item.quantity}`);
                 allItems.push({
                     type: item.type,
                     quantity: item.quantity,
@@ -102,13 +108,17 @@ function dropAllBotItems(bot) {
                 });
             }
         });
+    } else {
+        console.log(`  ⚠️ Bot no tiene inventario o está vacío`);
     }
 
     // Recopilar todos los items equipados del bot
     if (bot.equipment) {
+        console.log(`  ⚔️ Procesando equipamiento:`);
         Object.keys(bot.equipment).forEach(slot => {
             const itemType = bot.equipment[slot];
             if (itemType) {
+                console.log(`    - ${slot}: ${itemType}`);
                 allItems.push({
                     type: itemType,
                     quantity: 1,
@@ -116,7 +126,11 @@ function dropAllBotItems(bot) {
                 });
             }
         });
+    } else {
+        console.log(`  ⚠️ Bot no tiene equipamiento`);
     }
+    
+    console.log(`  📦 Total items a dropear: ${allItems.length}`);
 
     // Dropear cada item en una posición diferente alrededor del bot
     allItems.forEach((item, index) => {
