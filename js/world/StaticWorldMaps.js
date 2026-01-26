@@ -429,18 +429,20 @@ export const STATIC_WORLD_MAPS = {
     // ===== MAPA DE PRUEBA - SISTEMA DE GUARDIAS =====
     'guard_test_arena': {
         name: '⚔️ Arena de Prueba de Guardias',
-        description: 'Arena 12x12 en centro del mapa para probar guardias atacando criminales',
+        description: 'Arena 12x12 centrada en (30,20) para probar guardias vs criminales',
         type: 'test_arena',
         safeZone: false,
         worldPosition: { x: 250, y: 250 },
         fileSource: 'js/world/maps/guard_test_arena.json',
+        spawnX: 30,
+        spawnY: 20,
         npcs: [
-            { type: 'guard_city', x: 26, y: 16 },
-            { type: 'guard_city', x: 33, y: 16 },
-            { type: 'guard_city', x: 26, y: 23 },
-            { type: 'guard_city', x: 33, y: 23 },
-            { type: 'guard_city', x: 29, y: 19 },
-            { type: 'guard_city', x: 31, y: 21 }
+            { type: 'guard_city', x: 25, y: 15 },
+            { type: 'guard_city', x: 34, y: 15 },
+            { type: 'guard_city', x: 25, y: 24 },
+            { type: 'guard_city', x: 34, y: 24 },
+            { type: 'guard_city', x: 27, y: 20 },
+            { type: 'guard_city', x: 32, y: 20 }
         ],
         enemies: { enabled: false },
         objects: {
