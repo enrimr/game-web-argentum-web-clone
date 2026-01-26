@@ -65,6 +65,11 @@ export function gameLoop(timestamp) {
         // Update bots
         botManager.update(effectiveTimestamp - (gameLoop.lastTimestamp || effectiveTimestamp), gameState);
         gameLoop.lastTimestamp = effectiveTimestamp;
+        
+        // Update NPCs (guards patrol and attack criminals)
+        for (const npc of gameState.npcs) {
+            npc.update(effectiveTimestamp, gameState);
+        }
 
         // Check for enemy respawns (every 5 seconds)
         if (effectiveTimestamp - (gameLoop.lastRespawnCheck || 0) > 5000) {

@@ -13,6 +13,7 @@ import { getAnimatedPlayerSprite } from './AnimationHelpers.js';
 import { layerVisibility, sprites, TILE_SIZE } from './RendererCore.js';
 import { drawDBZMeditationEffects } from './EffectRenderers.js';
 import { renderEquipmentLayers, getPlayerVisualEquipment } from '../../systems/EquipmentSystem.js';
+import { getFactionColor, isEvilFaction } from '../../systems/Factions.js';
 
 /**
  * Render player with animations
@@ -77,38 +78,19 @@ export function renderBots(camera, ctx) {
                 }
                 
                 // Draw bot nickname below sprite with color based on faction
-                // Caos = rojo, otros = azul
-                if (bot.faction === 'Caos') {
-                    ctx.fillStyle = '#ef4444'; // Red color for Caos
+                // Evil factions (Caos, Legión) = rojo, otros = azul
+                const factionColor = getFactionColor(bot.faction);
+                if (isEvilFaction(bot.faction)) {
+                    ctx.fillStyle = factionColor; // Red for evil factions
                 } else {
-                    ctx.fillStyle = '#60a5fa'; // Blue color for other factions
+                    ctx.fillStyle = '#60a5fa'; // Blue color for good/neutral factions
                 }
                 ctx.font = 'bold 10px monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(bot.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
                 
-                // Draw faction below the name with color based on faction
+                // Draw faction below the name with color from faction system
                 if (bot.faction) {
-                    let factionColor;
-                    switch(bot.faction) {
-                        case 'Caos':
-                            factionColor = '#ef4444'; // Red
-                            break;
-                        case 'Legión':
-                            factionColor = '#9ca3af'; // Gray
-                            break;
-                        case 'Reino':
-                            factionColor = '#3b82f6'; // Blue
-                            break;
-                        case 'Armada':
-                            factionColor = '#06b6d4'; // Cyan
-                            break;
-                        case 'Neutral':
-                            factionColor = '#a3a3a3'; // Neutral gray
-                            break;
-                        default:
-                            factionColor = '#9ca3af'; // Default gray
-                    }
                     ctx.fillStyle = factionColor;
                     ctx.font = '8px monospace';
                     ctx.fillText(`<${bot.faction}>`, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 20);

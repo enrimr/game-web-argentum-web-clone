@@ -484,8 +484,67 @@ export class NPC extends Character {
     
     /**
      * Update NPC (for guards that patrol, etc.)
+     * @param {number} timestamp - Current timestamp
+     * @param {object} gameState - Game state object
      */
-    update(timestamp) {
+    update(timestamp, gameState) {
+        // Guards actively hunt evil faction members
+        if (this.type === 'guard' && this.attacksOnCriminal) {
+            this.guardBehavior(gameState);
+        }
+        
         // Future: implement patrol routes, reactions, etc.
+    }
+    
+    /**
+     * Guard behavior - detect and attack evil faction members
+     * @param {object} gameState - Game state object
+     */
+    guardBehavior(gameState) {
+        // Import faction check function
+        import('../systems/Factions.js').then(({ shouldGuardAttack }) => {
+            // Check bots in range
+            const detectionRange = 8; // 8 tiles de rango de detección
+            
+            for (const bot of gameState.bots) {
+                // Skip if bot is not in current map
+                if (bot.currentMap !== this.currentMap) continue;
+                
+                // Check distance
+                const distance = Math.abs(bot.x - this.x) + Math.abs(bot.y - this.y);
+                if (distance > detectionRange) continue;
+                
+                // Check if bot is from evil faction
+                if (shouldGuardAttack(bot.faction)) {
+                    // TODO: Implement actual attack behavior
+                    // For now, just log detection
+                    if (!bot.attackedByGuard) {
+                        console.log(`⚔️ Guardia ${this.name} detectó criminal de facción ${bot.faction}: ${bot.name}`);
+                        bot.attackedByGuard = true;
+                        
+                        // Mark bot as hostile
+                        bot.hostile = true;
+                        
+                        // Future: Move towards bot and attack
+                        // For now, instant damage at close range
+                        if (distance <= 1) {
+                            const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
+                            bot.hp -= damage;
+                            console.log(`⚔️ Guardia ${this.name} ataca a ${bot.name} causando ${damage} de daño`);
+                            
+                            // Check if bot died
+                            if (bot.hp <= 0) {
+                                console.log(`💀 ${bot.name} ha sido eliminado por la guardia`);
+                                // Remove bot from game
+                                const botIndex = gameState.bots.indexOf(bot);
+                                if (botIndex !== -1) {
+                                    gameState.bots.splice(botIndex, 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 }
