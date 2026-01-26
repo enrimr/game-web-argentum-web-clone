@@ -505,7 +505,7 @@ export class NPC extends Character {
     }
     
     /**
-     * Guard behavior - detect, chase, and attack evil faction members
+     * Guard behavior - detect, chase, and attack evil faction members and criminals
      * @param {object} gameState - Game state object
      */
     guardBehavior(gameState) {
@@ -519,9 +519,20 @@ export class NPC extends Character {
         ]).then(([{ shouldGuardAttack }, { botEnterGhostMode }, { isWalkable }]) => {
             const detectionRange = 8; // 8 tiles de rango de detección
             
-            // Find nearest criminal
+            // Find nearest criminal (player or bot)
             let nearestCriminal = null;
             let minDistance = Infinity;
+            let isPlayer = false;
+            
+            // Check if player is criminal
+            if (!gameState.player.isGhost && shouldGuardAttack(gameState.player.faction, gameState.player.criminalStatus)) {
+                const distance = Math.abs(gameState.player.x - this.x) + Math.abs(gameState.player.y - this.y);
+                if (distance <= detectionRange) {
+                    nearestCriminal = gameState.player;
+                    minDistance = distance;
+                    isPlayer = true;
+                }
+            }
             
             for (const bot of gameState.bots) {
                 // Skip if bot is already a ghost

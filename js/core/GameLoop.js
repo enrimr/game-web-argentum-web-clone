@@ -86,6 +86,11 @@ export function gameLoop(timestamp) {
             gameLoop.lastManaRecovery = effectiveTimestamp;
         }
         
+        // Update criminality decay (every 5 minutes)
+        import('../systems/CriminalitySystem.js').then(({ updateCriminalityDecay }) => {
+            updateCriminalityDecay(effectiveTimestamp);
+        });
+        
         // Update overhead messages (remove expired ones)
         updateOverheadMessages();
     }
@@ -348,6 +353,43 @@ function handleInteractions() {
             // Check if player is facing the enemy
             if (isTargetInFacingDirection(enemy.x, enemy.y, playerFacing)) {
                 playerAttack(enemy);
+                break;
+            }
+        }
+    }
+    
+    // Check for bots - PvP attack if facing the bot
+    for (let bot of gameState.bots) {
+        // Skip if bot is not in current map
+        if (bot.currentMap !== gameState.currentMap) continue;
+        
+        const dist = Math.abs(bot.x - px) + Math.abs(bot.y - py);
+        if (dist === 1) {
+            // Check if player is facing the bot
+            if (isTargetInFacingDirection(bot.x, bot.y, playerFacing)) {
+                // Importar sistema de criminalidad
+                import('../systems/CriminalitySystem.js').then(({ handlePlayerAttackOnBot }) => {
+                    // Verificar si el ataque está permitido
+                    const allowed = handlePlayerAttackOnBot(gameState.player, bot);
+                    
+                    if (allowed) {
+                        // Atacar al bot (igual que a un enemigo)
+                        const damage = Math.floor(Math.random() * 20) + 10;
+                        bot.hp -= damage;
+                        addChatMessage('player', `¡Atacas a ${bot.name} causando ${damage} de daño!`);
+                        
+                        // Check if bot died
+                        if (bot.hp <= 0) {
+                            import('../systems/CriminalitySystem.js').then(({ handlePlayerKillBot }) => {
+                                handlePlayerKillBot(gameState.player, bot);
+                            });
+                            
+                            import('../systems/Combat.js').then(({ botEnterGhostMode }) => {
+                                botEnterGhostMode(bot);
+                            });
+                        }
+                    }
+                });
                 break;
             }
         }
