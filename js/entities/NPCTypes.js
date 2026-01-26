@@ -261,6 +261,63 @@ export const NPC_DEFINITIONS = {
         inventory: [
             { itemType: 'POTION_BLUE', quantity: 100, price: 50 }  // Vende pociones de maná a buen precio
         ]
+    },
+    
+    // Reclutadores de Facciones
+    recruiter_kingdom: {
+        name: 'Capitán Rodrigo',
+        type: NPC_TYPE.QUEST_GIVER,
+        sprite: 'npc_guard',
+        dialogue: {
+            greeting: '¡Saludos, aventurero! Soy el Capitán Rodrigo, reclutador del Reino.',
+            recruit: 'El Reino busca ciudadanos valientes y honorables. ¿Te unirás a nosotros?',
+            benefits: 'Como miembro del Reino recibirás: descuentos en tiendas, protección de guardias, y acceso a zonas exclusivas.',
+            requirements: 'Requisitos: Nivel 5+, No ser criminal, 500 de oro',
+            farewell: '¡Que la luz del Reino te guíe!'
+        },
+        faction: 'Reino'
+    },
+    
+    recruiter_legion: {
+        name: 'Comandante Oscuro',
+        type: NPC_TYPE.QUEST_GIVER,
+        sprite: 'npc_guard', // TODO: sprite oscuro
+        dialogue: {
+            greeting: 'Hmm... veo potencial en ti. Soy el Comandante de la Legión Oscura.',
+            recruit: 'La Legión ofrece poder a quienes no temen la oscuridad. ¿Te atreves?',
+            benefits: 'Como legionario: +10% daño vs Reino/Armada, acceso a fortalezas oscuras.',
+            requirements: 'Requisitos: Nivel 5+, 500 de oro. Los guardias te atacarán.',
+            farewell: 'La oscuridad te espera...'
+        },
+        faction: 'Legión'
+    },
+    
+    recruiter_chaos: {
+        name: 'Heraldo del Caos',
+        type: NPC_TYPE.QUEST_GIVER,
+        sprite: 'npc_mage', // TODO: sprite caótico
+        dialogue: {
+            greeting: '¡JAJAJA! El caos te llama, mortal. Únete a nosotros.',
+            recruit: 'El Caos no tiene reglas. Poder absoluto sin restricciones. ¿Aceptas?',
+            benefits: '+15% daño contra todos, sin penalización por crímenes, acceso a zonas prohibidas.',
+            requirements: 'Requisitos: Nivel 5+, 500 de oro. TODOS te considerarán enemigo.',
+            farewell: '¡Que el caos reine!'
+        },
+        faction: 'Caos'
+    },
+    
+    recruiter_armada: {
+        name: 'Almirante Silva',
+        type: NPC_TYPE.QUEST_GIVER,
+        sprite: 'npc_guard',
+        dialogue: {
+            greeting: 'Bienvenido a bordo, marinero. Soy el Almirante Silva de la Armada Real.',
+            recruit: 'La Armada protege los mares del reino. ¿Navegarás con nosotros?',
+            benefits: 'Como miembro de la Armada: bonus marítimo, acceso a puertos exclusivos, alianza con Reino.',
+            requirements: 'Requisitos: Nivel 5+, No ser criminal, 500 de oro',
+            farewell: '¡Viento en popa!'
+        },
+        faction: 'Armada'
     }
 };
 

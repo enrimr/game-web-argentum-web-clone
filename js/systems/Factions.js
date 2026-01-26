@@ -196,3 +196,76 @@ export function addCriminalPoints(player, points) {
 export function reduceCriminalPoints(player, points) {
     player.criminalStatus = Math.max(0, player.criminalStatus - points);
 }
+
+/**
+ * Une al jugador a una facción
+ * @param {object} player - Objeto jugador
+ * @param {string} factionName - Nombre de la facción
+ * @param {number} cost - Costo en oro
+ * @returns {object} {success: boolean, message: string}
+ */
+export function joinFaction(player, factionName, cost = 500) {
+    // Validar que la facción existe
+    const faction = getFaction(factionName);
+    if (!faction || faction === FACTIONS.NEUTRAL) {
+        return { success: false, message: 'Facción no válida.' };
+    }
+    
+    // Validar nivel mínimo
+    if (player.level < 5) {
+        return { success: false, message: 'Necesitas nivel 5 o superior para unirte a una facción.' };
+    }
+    
+    // Validar que no sea criminal (para facciones buenas)
+    if (isGoodFaction(factionName) && player.criminalStatus >= 20) {
+        return { success: false, message: 'No puedes unirte al Reino o Armada siendo criminal.' };
+    }
+    
+    // Validar oro
+    if (player.gold < cost) {
+        return { success: false, message: `Necesitas ${cost} de oro para unirte.` };
+    }
+    
+    // Si ya tiene facción, verificar traición
+    if (player.faction) {
+        return { success: false, message: `Ya perteneces a ${player.faction}. Debes abandonarla primero.` };
+    }
+    
+    // Procesar unión
+    player.gold -= cost;
+    player.faction = factionName;
+    
+    // Establecer reputación inicial
+    player.factionReputation[factionName.toUpperCase()] = 50; // Empieza como amigable
+    
+    return {
+        success: true,
+        message: `¡Te has unido a ${factionName}! Bienvenido.`,
+        faction: factionName
+    };
+}
+
+/**
+ * Abandona la facción actual
+ * @param {object} player - Objeto jugador
+ * @returns {object} {success: boolean, message: string}
+ */
+export function leaveFaction(player) {
+    if (!player.faction) {
+        return { success: false, message: 'No perteneces a ninguna facción.' };
+    }
+    
+    const oldFaction = player.faction;
+    
+    // Penalización: la facción anterior te considera enemigo
+    player.factionReputation[oldFaction.toUpperCase()] = -50;
+    
+    // Abandonar facción
+    player.faction = null;
+    
+    return {
+        success: true,
+        message: `Has abandonado ${oldFaction}. Ahora te consideran enemigo.`,
+        oldFaction: oldFaction
+    };
+}
