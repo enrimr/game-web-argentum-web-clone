@@ -53,6 +53,14 @@ export class NPC extends Character {
         // Interaction state
         this.interacting = false;
         this.lastInteraction = 0;
+        
+        // Movement properties (for guards that chase criminals)
+        this.targetX = null;
+        this.targetY = null;
+        this.lastMoveTime = 0;
+        this.moveSpeed = 400; // ms per tile (slower than player)
+        this.chasing = false;
+        this.chasingTarget = null;
     }
     
     /**
@@ -497,17 +505,23 @@ export class NPC extends Character {
     }
     
     /**
-     * Guard behavior - detect and attack evil faction members
+     * Guard behavior - detect, chase, and attack evil faction members
      * @param {object} gameState - Game state object
      */
     guardBehavior(gameState) {
+        const currentTime = Date.now();
+        
         // Import faction check function and bot death handler
         Promise.all([
             import('../systems/Factions.js'),
-            import('../systems/Combat.js')
-        ]).then(([{ shouldGuardAttack }, { botEnterGhostMode }]) => {
-            // Check bots in range
+            import('../systems/Combat.js'),
+            import('../world/MapGenerator.js')
+        ]).then(([{ shouldGuardAttack }, { botEnterGhostMode }, { isWalkable }]) => {
             const detectionRange = 8; // 8 tiles de rango de detección
+            
+            // Find nearest criminal
+            let nearestCriminal = null;
+            let minDistance = Infinity;
             
             for (const bot of gameState.bots) {
                 // Skip if bot is already a ghost
@@ -516,34 +530,109 @@ export class NPC extends Character {
                 // Skip if bot is not in current map
                 if (bot.currentMap !== this.currentMap) continue;
                 
-                // Check distance
-                const distance = Math.abs(bot.x - this.x) + Math.abs(bot.y - this.y);
-                if (distance > detectionRange) continue;
-                
                 // Check if bot is from evil faction
                 if (shouldGuardAttack(bot.faction)) {
-                    // Mark bot as detected if first time
-                    if (!bot.attackedByGuard) {
-                        console.log(`⚔️ Guardia ${this.name} detectó criminal de facción ${bot.faction}: ${bot.name}`);
-                        bot.attackedByGuard = true;
-                        bot.hostile = true;
-                    }
+                    const distance = Math.abs(bot.x - this.x) + Math.abs(bot.y - this.y);
                     
-                    // Attack if within melee range
-                    if (distance <= 1) {
-                        const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
-                        bot.hp -= damage;
-                        console.log(`⚔️ Guardia ${this.name} ataca a ${bot.name} causando ${damage} de daño (${bot.hp}/${bot.maxHp} HP)`);
-                        
-                        // Check if bot died
-                        if (bot.hp <= 0) {
-                            console.log(`💀 ${bot.name} ha sido eliminado por la guardia - convirtiéndose en fantasma`);
-                            // Convert bot to ghost and drop items
-                            botEnterGhostMode(bot);
-                        }
+                    // Only consider bots within detection range
+                    if (distance <= detectionRange && distance < minDistance) {
+                        minDistance = distance;
+                        nearestCriminal = bot;
                     }
                 }
             }
+            
+            // If there's a criminal in range
+            if (nearestCriminal) {
+                const distance = Math.abs(nearestCriminal.x - this.x) + Math.abs(nearestCriminal.y - this.y);
+                
+                // Mark bot as detected if first time
+                if (!nearestCriminal.attackedByGuard) {
+                    console.log(`⚔️ Guardia ${this.name} detectó criminal: ${nearestCriminal.name} (${nearestCriminal.faction})`);
+                    nearestCriminal.attackedByGuard = true;
+                    nearestCriminal.hostile = true;
+                }
+                
+                // Set as chasing target
+                this.chasing = true;
+                this.chasingTarget = nearestCriminal;
+                
+                // Attack if within melee range
+                if (distance <= 1) {
+                    const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
+                    nearestCriminal.hp -= damage;
+                    console.log(`⚔️ Guardia ${this.name} ataca a ${nearestCriminal.name} - ${damage} daño (${nearestCriminal.hp}/${nearestCriminal.maxHp} HP)`);
+                    
+                    // Check if bot died
+                    if (nearestCriminal.hp <= 0) {
+                        console.log(`💀 ${nearestCriminal.name} eliminado por guardia → fantasma`);
+                        botEnterGhostMode(nearestCriminal);
+                        this.chasing = false;
+                        this.chasingTarget = null;
+                    }
+                } else {
+                    // Chase the criminal - move towards them
+                    if (currentTime - this.lastMoveTime >= this.moveSpeed) {
+                        this.moveTowardsTarget(nearestCriminal.x, nearestCriminal.y, gameState, isWalkable);
+                        this.lastMoveTime = currentTime;
+                    }
+                }
+            } else {
+                // No criminals in range - stop chasing
+                this.chasing = false;
+                this.chasingTarget = null;
+            }
         });
+    }
+    
+    /**
+     * Move towards a target position (simple pathfinding)
+     * @param {number} targetX - Target X coordinate
+     * @param {number} targetY - Target Y coordinate
+     * @param {object} gameState - Game state object
+     * @param {function} isWalkable - Function to check if tile is walkable
+     */
+    moveTowardsTarget(targetX, targetY, gameState, isWalkable) {
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        
+        // Try to move on the axis with greater distance first
+        let moved = false;
+        
+        if (Math.abs(dx) > Math.abs(dy)) {
+            // Try moving horizontally first
+            const newX = this.x + Math.sign(dx);
+            if (isWalkable(gameState.map, newX, this.y) && this.canMoveTo(newX, this.y, gameState)) {
+                this.x = newX;
+                moved = true;
+            }
+            // If blocked, try vertical
+            else if (dy !== 0) {
+                const newY = this.y + Math.sign(dy);
+                if (isWalkable(gameState.map, this.x, newY) && this.canMoveTo(this.x, newY, gameState)) {
+                    this.y = newY;
+                    moved = true;
+                }
+            }
+        } else {
+            // Try moving vertically first
+            const newY = this.y + Math.sign(dy);
+            if (isWalkable(gameState.map, this.x, newY) && this.canMoveTo(this.x, newY, gameState)) {
+                this.y = newY;
+                moved = true;
+            }
+            // If blocked, try horizontal
+            else if (dx !== 0) {
+                const newX = this.x + Math.sign(dx);
+                if (isWalkable(gameState.map, newX, this.y) && this.canMoveTo(newX, this.y, gameState)) {
+                    this.x = newX;
+                    moved = true;
+                }
+            }
+        }
+        
+        if (moved) {
+            console.log(`👮 Guardia ${this.name} persigue criminal → (${this.x}, ${this.y})`);
+        }
     }
 }
