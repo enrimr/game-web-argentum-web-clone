@@ -112,23 +112,10 @@ function dropAllBotItems(bot) {
         console.log(`  ⚠️ Bot no tiene inventario o está vacío`);
     }
 
-    // Recopilar todos los items equipados del bot
-    if (bot.equipment) {
-        console.log(`  ⚔️ Procesando equipamiento:`);
-        Object.keys(bot.equipment).forEach(slot => {
-            const itemType = bot.equipment[slot];
-            if (itemType) {
-                console.log(`    - ${slot}: ${itemType}`);
-                allItems.push({
-                    type: itemType,
-                    quantity: 1,
-                    equippedSlot: slot
-                });
-            }
-        });
-    } else {
-        console.log(`  ⚠️ Bot no tiene equipamiento`);
-    }
+    // NOTA: bot.equipment contiene sprites visuales (weaponHammer, helmetFull)
+    // NO items de ITEM_TYPES, así que NO se droppean
+    // Solo se droppea el inventario que sí contiene items válidos de ITEM_TYPES
+    console.log(`  ℹ️ Equipamiento visual (no dropeado): ${bot.equipment ? Object.keys(bot.equipment).length + ' slots' : 'ninguno'}`);
     
     console.log(`  📦 Total items a dropear: ${allItems.length}`);
 

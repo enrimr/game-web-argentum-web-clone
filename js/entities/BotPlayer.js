@@ -125,25 +125,11 @@ export class BotPlayer extends Character {
     
     /**
      * Genera un inventario aleatorio para el bot
-     * Incluye copias del equipamiento y objetos adicionales
+     * Solo items válidos en ITEM_TYPES
      * @returns {Array} Array de items
      */
     generateRandomInventory() {
         const items = [];
-        
-        // Añadir copias del equipamiento al inventario
-        // (así cuando muera, dropea tanto lo equipado como extras)
-        if (this.equipment) {
-            Object.keys(this.equipment).forEach(slot => {
-                const itemType = this.equipment[slot];
-                if (itemType) {
-                    // 50% de probabilidad de tener copia en inventario
-                    if (Math.random() > 0.5) {
-                        items.push({ type: itemType, quantity: 1 });
-                    }
-                }
-            });
-        }
         
         // Pociones rojas (HP) - 1 a 5
         const redPotions = Math.floor(Math.random() * 5) + 1;
@@ -161,15 +147,45 @@ export class BotPlayer extends Character {
             items.push({ type: 'POTION_GREEN', quantity: greenPotions });
         }
         
-        // Flechas (si es arquero o tiene arco) - 10 a 50
-        if (this.class === 'Arquero' || (this.equipment && this.equipment.weapon && this.equipment.weapon.includes('BOW'))) {
+        // Flechas (si es arquero) - 10 a 50
+        if (this.class === 'Arquero') {
             const arrows = Math.floor(Math.random() * 41) + 10;
             items.push({ type: 'ARROW', quantity: arrows });
         }
         
-        // Objetos aleatorios adicionales (30% probabilidad cada uno)
-        const randomItems = ['WOOD', 'IRON_ORE', 'COAL', 'ROPE'];
-        randomItems.forEach(itemType => {
+        // Items de equipamiento extra (formato ITEM_TYPES correcto)
+        const extraWeapons = ['SWORD', 'SWORD_IRON', 'BOW'];
+        const extraArmor = ['ARMOR_LEATHER', 'ARMOR_PLATE'];
+        const extraShields = ['SHIELD', 'SHIELD_IRON'];
+        const extraHelmets = ['HELMET_LEATHER', 'HELMET_FULL'];
+        
+        // 30% probabilidad de arma extra
+        if (Math.random() > 0.7) {
+            const weapon = extraWeapons[Math.floor(Math.random() * extraWeapons.length)];
+            items.push({ type: weapon, quantity: 1 });
+        }
+        
+        // 20% probabilidad de armadura extra
+        if (Math.random() > 0.8) {
+            const armor = extraArmor[Math.floor(Math.random() * extraArmor.length)];
+            items.push({ type: armor, quantity: 1 });
+        }
+        
+        // 20% probabilidad de escudo extra
+        if (Math.random() > 0.8) {
+            const shield = extraShields[Math.floor(Math.random() * extraShields.length)];
+            items.push({ type: shield, quantity: 1 });
+        }
+        
+        // 20% probabilidad de casco extra
+        if (Math.random() > 0.8) {
+            const helmet = extraHelmets[Math.floor(Math.random() * extraHelmets.length)];
+            items.push({ type: helmet, quantity: 1 });
+        }
+        
+        // Objetos aleatorios de crafting (30% probabilidad cada uno)
+        const craftingItems = ['WOOD', 'IRON_ORE', 'COAL', 'ROPE'];
+        craftingItems.forEach(itemType => {
             if (Math.random() > 0.7) {
                 const quantity = Math.floor(Math.random() * 5) + 1;
                 items.push({ type: itemType, quantity });
