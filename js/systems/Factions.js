@@ -269,3 +269,36 @@ export function leaveFaction(player) {
         oldFaction: oldFaction
     };
 }
+
+/**
+ * Obtiene el bonus de daño según facción
+ * @param {string} attackerFaction - Facción del atacante
+ * @param {string} targetFaction - Facción del objetivo
+ * @returns {number} Multiplicador de daño (1.0 = sin bonus, 1.15 = +15%)
+ */
+export function getDamageBonus(attackerFaction, targetFaction) {
+    if (!attackerFaction) return 1.0; // Sin facción, sin bonus
+    
+    const normalizedAttacker = attackerFaction.toUpperCase();
+    const normalizedTarget = targetFaction?.toUpperCase();
+    
+    switch (normalizedAttacker) {
+        case 'CAOS':
+            // Caos: +15% daño contra TODOS
+            return 1.15;
+            
+        case 'LEGIÓN':
+            // Legión: +10% daño contra Reino y Armada
+            if (normalizedTarget === 'REINO' || normalizedTarget === 'ARMADA') {
+                return 1.10;
+            }
+            return 1.0;
+            
+        case 'REINO':
+        case 'ARMADA':
+        case 'NEUTRAL':
+        default:
+            // Sin bonus especial
+            return 1.0;
+    }
+}

@@ -57,6 +57,28 @@ function updatePlayerStats() {
     if (playerPosEl) {
         playerPosEl.textContent = `${gameState.player.x},${gameState.player.y}`;
     }
+    
+    // Update faction and criminal status
+    import('../systems/Factions.js').then(({ getCriminalStatusText, getFactionColor }) => {
+        const factionEl = document.getElementById('playerFaction');
+        const criminalStatusEl = document.getElementById('criminalStatus');
+        
+        if (factionEl) {
+            if (gameState.player.faction) {
+                const factionColor = getFactionColor(gameState.player.faction);
+                factionEl.innerHTML = `<span style="color: ${factionColor}">${gameState.player.faction}</span>`;
+            } else {
+                factionEl.textContent = 'Sin Facción';
+            }
+        }
+        
+        if (criminalStatusEl) {
+            const statusText = getCriminalStatusText(gameState.player.criminalStatus);
+            const statusColor = gameState.player.criminalStatus >= 50 ? '#ef4444' : 
+                               gameState.player.criminalStatus >= 20 ? '#f59e0b' : '#22c55e';
+            criminalStatusEl.innerHTML = `<span style="color: ${statusColor}">${statusText}</span> (${gameState.player.criminalStatus})`;
+        }
+    });
 
     // Update character stats
     const enemiesKilledEl = document.getElementById('enemiesKilled');

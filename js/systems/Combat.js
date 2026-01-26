@@ -298,9 +298,10 @@ export function handleEnemyDeath(enemy) {
 
 /**
  * Calculate player damage
+ * @param {object} target - Target being attacked (optional, for faction bonus)
  * @returns {number} Damage dealt by player
  */
-export function calculatePlayerDamage() {
+export function calculatePlayerDamage(target = null) {
     let baseDamage = Math.floor(Math.random() * (CONFIG.PLAYER.BASE_DAMAGE_MAX - CONFIG.PLAYER.BASE_DAMAGE_MIN + 1)) + CONFIG.PLAYER.BASE_DAMAGE_MIN;
     baseDamage += CONFIG.PLAYER.DAMAGE_PER_LEVEL * (gameState.player.level - 1);
 
@@ -308,6 +309,17 @@ export function calculatePlayerDamage() {
     const weaponDamage = getEquippedWeaponDamage();
     if (weaponDamage > CONFIG.PLAYER.BASE_DAMAGE_MIN) {
         baseDamage = weaponDamage; // Replace base damage with weapon damage
+    }
+    
+    // Apply faction damage bonus
+    if (target && target.faction) {
+        import('./Factions.js').then(({ getDamageBonus }) => {
+            const bonus = getDamageBonus(gameState.player.faction, target.faction);
+            if (bonus > 1.0) {
+                baseDamage = Math.floor(baseDamage * bonus);
+                console.log(`⚔️ Bonus de facción aplicado: x${bonus} (${gameState.player.faction} vs ${target.faction})`);
+            }
+        });
     }
 
     return Math.max(1, baseDamage); // Minimum 1 damage
