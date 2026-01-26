@@ -43,6 +43,16 @@ export const gameState = {
         facing: 'down', // Dirección del jugador: 'up', 'down', 'left', 'right'
         isGhost: false, // Si el jugador está en modo fantasma (muerto)
         meditating: false, // Si el jugador está meditando
+        // Sistema de facciones y criminalidad
+        faction: null, // Facción del jugador (null = sin facción, 'Reino', 'Armada', 'Neutral', 'Legión', 'Caos')
+        criminalStatus: 0, // Puntos criminales (0-100): 0-19 ciudadano, 50-79 criminal, 80+ asesino
+        factionReputation: { // Reputación con cada facción (-100 a +100)
+            'Reino': 0,
+            'Armada': 0,
+            'Neutral': 0,
+            'Legión': 0,
+            'Caos': 0
+        },
         animation: {
             state: 'idle', // 'idle', 'walking', 'attacking', 'talking', 'meditating'
             frame: 0, // Frame actual de animación

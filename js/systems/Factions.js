@@ -131,8 +131,68 @@ export function getFactionColor(factionName) {
 /**
  * Verifica si un guardia debería atacar a un jugador/bot según su facción
  * @param {string} targetFaction - Facción del objetivo
+ * @param {number} criminalStatus - Puntos criminales del objetivo (0-100)
  * @returns {boolean} True si el guardia debería atacar
  */
-export function shouldGuardAttack(targetFaction) {
-    return isEvilFaction(targetFaction);
+export function shouldGuardAttack(targetFaction, criminalStatus = 0) {
+    // Atacar si es facción malvada
+    if (isEvilFaction(targetFaction)) return true;
+    
+    // Atacar si es criminal (>= 50 puntos)
+    if (criminalStatus >= 50) return true;
+    
+    return false;
+}
+
+/**
+ * Obtiene el status criminal como texto
+ * @param {number} criminalStatus - Puntos criminales (0-100)
+ * @returns {string} Descripción del status
+ */
+export function getCriminalStatusText(criminalStatus) {
+    if (criminalStatus >= 80) return 'Asesino';
+    if (criminalStatus >= 50) return 'Criminal';
+    if (criminalStatus >= 20) return 'Criminal Menor';
+    return 'Ciudadano';
+}
+
+/**
+ * Obtiene el color del nombre según criminalidad
+ * @param {number} criminalStatus - Puntos criminales (0-100)
+ * @param {string} faction - Facción del jugador
+ * @returns {string} Color hexadecimal
+ */
+export function getNameColor(criminalStatus, faction) {
+    // Criminales siempre en rojo, independiente de facción
+    if (criminalStatus >= 50) return '#ef4444';
+    
+    // Si no es criminal, usar color de facción
+    return getFactionColor(faction);
+}
+
+/**
+ * Verifica si un jugador es considerado criminal
+ * @param {number} criminalStatus - Puntos criminales (0-100)
+ * @returns {boolean} True si es criminal
+ */
+export function isCriminal(criminalStatus) {
+    return criminalStatus >= 50;
+}
+
+/**
+ * Añade puntos criminales a un jugador
+ * @param {object} player - Objeto jugador
+ * @param {number} points - Puntos a añadir
+ */
+export function addCriminalPoints(player, points) {
+    player.criminalStatus = Math.min(100, player.criminalStatus + points);
+}
+
+/**
+ * Reduce puntos criminales (decay o redención)
+ * @param {object} player - Objeto jugador
+ * @param {number} points - Puntos a reducir
+ */
+export function reduceCriminalPoints(player, points) {
+    player.criminalStatus = Math.max(0, player.criminalStatus - points);
 }
