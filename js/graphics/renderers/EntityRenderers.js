@@ -76,16 +76,48 @@ export function renderBots(camera, ctx) {
                     renderEquipmentLayers(ctx, screenPos, bot.equipment, sprites);
                 }
                 
-                // Draw bot nickname below sprite with different color
-                ctx.fillStyle = '#60a5fa'; // Blue color for bots
+                // Draw bot nickname below sprite with color based on faction
+                // Caos = rojo, otros = azul
+                if (bot.faction === 'Caos') {
+                    ctx.fillStyle = '#ef4444'; // Red color for Caos
+                } else {
+                    ctx.fillStyle = '#60a5fa'; // Blue color for other factions
+                }
                 ctx.font = 'bold 10px monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(bot.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
                 
-                // Draw level indicator below the name
+                // Draw faction below the name with color based on faction
+                if (bot.faction) {
+                    let factionColor;
+                    switch(bot.faction) {
+                        case 'Caos':
+                            factionColor = '#ef4444'; // Red
+                            break;
+                        case 'Legión':
+                            factionColor = '#9ca3af'; // Gray
+                            break;
+                        case 'Reino':
+                            factionColor = '#3b82f6'; // Blue
+                            break;
+                        case 'Armada':
+                            factionColor = '#06b6d4'; // Cyan
+                            break;
+                        case 'Neutral':
+                            factionColor = '#a3a3a3'; // Neutral gray
+                            break;
+                        default:
+                            factionColor = '#9ca3af'; // Default gray
+                    }
+                    ctx.fillStyle = factionColor;
+                    ctx.font = '8px monospace';
+                    ctx.fillText(`<${bot.faction}>`, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 20);
+                }
+                
+                // Draw level indicator below the faction
                 ctx.fillStyle = '#22c55e'; // Green for level
                 ctx.font = '8px monospace';
-                ctx.fillText(`Lv.${bot.level}`, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 20);
+                ctx.fillText(`Lv.${bot.level}`, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 30);
             }
         }
     }
@@ -212,6 +244,47 @@ export function renderObjects(camera, ctx) {
                     ctx.globalAlpha = 1.0;
                     ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
                     ctx.fillRect(screenPos.x + TILE_SIZE - 4, screenPos.y, 4, 4);
+                }
+            } else if (obj.type === 'resource') {
+                // Draw resource gathering objects (trees, veins, etc.)
+                // Solo mostrar como agotado si realmente está depleted
+                const isFullyDepleted = obj.depleted && (obj.remainingResources === undefined || obj.remainingResources <= 0);
+                const resourceSprite = isFullyDepleted ? sprites.treeStump : sprites[obj.sprite];
+                
+                if (resourceSprite) {
+                    // Mostrar sprite agotado (tocón) solo si está completamente agotado
+                    if (isFullyDepleted) {
+                        ctx.globalAlpha = 0.6; // Semi-transparente si está agotado
+                    }
+                    ctx.drawImage(resourceSprite, screenPos.x, screenPos.y);
+                    ctx.globalAlpha = 1.0; // Restaurar opacidad
+                    
+                    // Mostrar barra de recursos restantes si no está completamente agotado
+                    if (!isFullyDepleted && obj.remainingResources !== undefined && obj.totalResources) {
+                        const maxResources = obj.totalResources;
+                        const percentage = obj.remainingResources / maxResources;
+                        
+                        // Dibujar barra de progreso encima del recurso
+                        const barWidth = TILE_SIZE - 4;
+                        const barHeight = 4;
+                        const barX = screenPos.x + 2;
+                        const barY = screenPos.y - 6;
+                        
+                        // Fondo de la barra (negro)
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                        ctx.fillRect(barX, barY, barWidth, barHeight);
+                        
+                        // Barra de recursos restantes (verde a rojo según porcentaje)
+                        const r = Math.floor(255 * (1 - percentage));
+                        const g = Math.floor(255 * percentage);
+                        ctx.fillStyle = `rgb(${r}, ${g}, 0)`;
+                        ctx.fillRect(barX, barY, barWidth * percentage, barHeight);
+                        
+                        // Borde de la barra
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(barX, barY, barWidth, barHeight);
+                    }
                 }
             }
         }
