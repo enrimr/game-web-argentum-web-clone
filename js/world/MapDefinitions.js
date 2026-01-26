@@ -157,6 +157,16 @@ export const MAP_DEFINITIONS = {
         ]
     },
 
+    // ===== MAPAS DE PRUEBA =====
+    'guard_test_arena': {
+        name: '⚔️ Arena de Prueba de Guardias',
+        description: 'Arena pequeña para probar el sistema de guardias atacando criminales (10x10)',
+        worldX: 900, worldY: 900,
+        zone: 'test',
+        isDungeon: false,
+        portals: []
+    },
+
     // ===== MAZMORRAS =====
     'forest_cave': {
         name: '🏔️ Cueva del Bosque Oscuro',
