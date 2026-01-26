@@ -244,6 +244,61 @@ function executeTargetAction() {
                 addChatMessage('system', '❌ El portal ya no existe');
             }
             break;
+            
+        case 'resource':
+            // Recolectar recurso - verificar que sigue existiendo y está en rango
+            if (target.target && gameState.objects.includes(target.target)) {
+                const dist = Math.abs(target.target.x - gameState.player.x) + Math.abs(target.target.y - gameState.player.y);
+                if (dist <= 1) {
+                    // Actualizar dirección del jugador
+                    updatePlayerFacingTowardsTarget(target.target.x, target.target.y);
+                    // Intentar recolectar
+                    import('../systems/ResourceGathering.js').then(({ attemptGathering }) => {
+                        const success = attemptGathering(target.target);
+                        if (!success) {
+                            console.log(`❌ No se pudo recolectar el recurso`);
+                        }
+                    });
+                } else {
+                    addChatMessage('system', '❌ Recurso no está en rango');
+                }
+            } else {
+                addChatMessage('system', '❌ Recurso ya no existe');
+            }
+            break;
+            
+        case 'water_fishing':
+            // Llegamos al agua para pescar
+            if (target.target) {
+                const waterX = target.target.x;
+                const waterY = target.target.y;
+                const dist = Math.abs(waterX - gameState.player.x) + Math.abs(waterY - gameState.player.y);
+                
+                if (dist === 1) {
+                    // El jugador está adyacente al agua, puede pescar
+                    console.log(`🎣 Llegaste al agua, comenzando a pescar`);
+                    
+                    // Actualizar dirección hacia el agua
+                    updatePlayerFacingTowardsTarget(waterX, waterY);
+                    
+                    // Crear zona de pesca temporal
+                    const fishingSpot = {
+                        type: 'resource',
+                        resourceType: 'FISHING_SPOT',
+                        x: waterX,
+                        y: waterY,
+                        sprite: 'water'
+                    };
+                    
+                    // Intentar pescar
+                    import('../systems/ResourceGathering.js').then(({ attemptGathering }) => {
+                        attemptGathering(fishingSpot);
+                    });
+                } else {
+                    addChatMessage('system', '❌ No estás lo suficientemente cerca del agua');
+                }
+            }
+            break;
     }
 
     cancelAutoMovement();

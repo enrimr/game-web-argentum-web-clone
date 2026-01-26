@@ -31,6 +31,7 @@ export const gameState = {
     player: {
         x: CONFIG.PLAYER.STARTING_X,
         y: CONFIG.PLAYER.STARTING_Y,
+        class: 'WORKER', // Clase del personaje (por defecto: WORKER)
         hp: 100,
         maxHp: 100,
         mana: 50,
@@ -48,13 +49,62 @@ export const gameState = {
             frameTime: 0, // Tiempo acumulado para el frame
             frameDelay: 150 // Milisegundos entre frames
         },
-        inventory: [],
+        inventory: [
+            { type: 'AXE', quantity: 1 },
+            { type: 'PICKAXE', quantity: 1 },
+            { type: 'FISHING_ROD', quantity: 1 },
+            { type: 'POTION_RED', quantity: 5 }
+        ],
         equipped: {
             weapon: null,
             shield: null,
             ammunition: null,
             body: null,      // Armadura corporal
             head: null       // Casco
+        },
+        skills: {
+            COMBAT: 1,
+            DEFENSE: 1,
+            RANGED: 1,
+            WRESTLING: 1,
+            TACTICS: 1,
+            MAGIC: 1,
+            MEDITATE: 1,
+            MINING: 1,
+            WOODCUTTING: 1,
+            FISHING: 1,
+            BLACKSMITHING: 1,
+            CARPENTRY: 1,
+            TRADING: 1,
+            LEADERSHIP: 1,
+            STEALING: 1,
+            HIDING: 1,
+            STABBING: 1,
+            TAMING: 1,
+            SURVIVAL: 1,
+            NAVIGATION: 1
+        },
+        skillExp: {
+            COMBAT: 0,
+            DEFENSE: 0,
+            RANGED: 0,
+            WRESTLING: 0,
+            TACTICS: 0,
+            MAGIC: 0,
+            MEDITATE: 0,
+            MINING: 0,
+            WOODCUTTING: 0,
+            FISHING: 0,
+            BLACKSMITHING: 0,
+            CARPENTRY: 0,
+            TRADING: 0,
+            LEADERSHIP: 0,
+            STEALING: 0,
+            HIDING: 0,
+            STABBING: 0,
+            TAMING: 0,
+            SURVIVAL: 0,
+            NAVIGATION: 0
         },
         // Propiedades exclusivas para jugador online
         id: null, // ID único del jugador en el servidor
@@ -99,6 +149,7 @@ export function resetGameState() {
     gameState.player = {
         x: CONFIG.PLAYER.STARTING_X,
         y: CONFIG.PLAYER.STARTING_Y,
+        class: 'WORKER', // Clase por defecto
         hp: CONFIG.PLAYER.STARTING_HP,
         maxHp: CONFIG.PLAYER.STARTING_HP,
         mana: CONFIG.PLAYER.STARTING_MANA,
@@ -123,6 +174,50 @@ export function resetGameState() {
             frame: 0,
             frameTime: 0,
             frameDelay: 150
+        },
+        skills: {
+            COMBAT: 1,
+            DEFENSE: 1,
+            RANGED: 1,
+            WRESTLING: 1,
+            TACTICS: 1,
+            MAGIC: 1,
+            MEDITATE: 1,
+            MINING: 1,
+            WOODCUTTING: 1,
+            FISHING: 1,
+            BLACKSMITHING: 1,
+            CARPENTRY: 1,
+            TRADING: 1,
+            LEADERSHIP: 1,
+            STEALING: 1,
+            HIDING: 1,
+            STABBING: 1,
+            TAMING: 1,
+            SURVIVAL: 1,
+            NAVIGATION: 1
+        },
+        skillExp: {
+            COMBAT: 0,
+            DEFENSE: 0,
+            RANGED: 0,
+            WRESTLING: 0,
+            TACTICS: 0,
+            MAGIC: 0,
+            MEDITATE: 0,
+            MINING: 0,
+            WOODCUTTING: 0,
+            FISHING: 0,
+            BLACKSMITHING: 0,
+            CARPENTRY: 0,
+            TRADING: 0,
+            LEADERSHIP: 0,
+            STEALING: 0,
+            HIDING: 0,
+            STABBING: 0,
+            TAMING: 0,
+            SURVIVAL: 0,
+            NAVIGATION: 0
         }
     };
     gameState.stats = {

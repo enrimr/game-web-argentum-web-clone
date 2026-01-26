@@ -153,6 +153,12 @@ export function generateObjects(mapType) {
         }
     }
 
+    // Add resource gathering objects (trees, veins, etc.)
+    addResourceObjects(objects, mapType);
+    
+    // Convert prop tiles to harvestable resources
+    convertPropTilesToResources(objects);
+
     // Add items on ground (different amounts per map)
     const itemTypes = Object.keys(ITEM_TYPES);
     let itemCount = 40; // Default for field
@@ -789,4 +795,182 @@ function isWalkableOnMap(map, x, y) {
 
     const tile = map[y][x];
     return tile === TILES.GRASS || tile === TILES.FLOOR || tile === TILES.PATH;
+}
+
+/**
+ * Add resource gathering objects to the map
+ * @param {Array} objects - Array of objects to add resources to
+ * @param {string} mapType - Current map type
+ */
+function addResourceObjects(objects, mapType) {
+    // Determine which resources to add based on map type
+    const resourceConfig = {
+        'field': [
+            { type: 'TREE', count: 15, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 5, tile: TILES.GRASS }
+        ],
+        'newbie_field': [
+            { type: 'TREE', count: 20, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 3, tile: TILES.GRASS }
+        ],
+        'forest': [
+            { type: 'TREE', count: 30, tile: TILES.GRASS }
+        ],
+        'dark_forest': [
+            { type: 'TREE', count: 25, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 8, tile: TILES.GRASS }
+        ],
+        'dungeon': [
+            { type: 'IRON_VEIN', count: 10, tile: TILES.FLOOR },
+            { type: 'SILVER_VEIN', count: 5, tile: TILES.FLOOR }
+        ],
+        'deep_dungeon': [
+            { type: 'SILVER_VEIN', count: 8, tile: TILES.FLOOR },
+            { type: 'GOLD_VEIN', count: 5, tile: TILES.FLOOR }
+        ],
+        'mountain_pass_lower': [
+            { type: 'TREE', count: 10, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 8, tile: TILES.GRASS }
+        ],
+        'mountain_pass_middle': [
+            { type: 'TREE', count: 5, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 10, tile: TILES.GRASS },
+            { type: 'SILVER_VEIN', count: 5, tile: TILES.GRASS }
+        ],
+        'mountain_pass_upper': [
+            { type: 'IRON_VEIN', count: 12, tile: TILES.GRASS },
+            { type: 'SILVER_VEIN', count: 8, tile: TILES.GRASS },
+            { type: 'GOLD_VEIN', count: 3, tile: TILES.GRASS }
+        ],
+        'mountain_peak': [
+            { type: 'SILVER_VEIN', count: 10, tile: TILES.GRASS },
+            { type: 'GOLD_VEIN', count: 6, tile: TILES.GRASS }
+        ],
+        'newbie_city': [
+            { type: 'TREE', count: 8, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 5, tile: TILES.GRASS }
+        ],
+        'city': [
+            { type: 'TREE', count: 5, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 3, tile: TILES.GRASS }
+        ],
+        'training_fields': [
+            { type: 'TREE', count: 12, tile: TILES.GRASS },
+            { type: 'IRON_VEIN', count: 6, tile: TILES.GRASS }
+        ]
+    };
+
+    const resources = resourceConfig[mapType];
+    if (!resources) return; // No resources for this map type
+
+    // Add each type of resource
+    for (const resourceDef of resources) {
+        const maxAttempts = 100;
+        let added = 0;
+
+        while (added < resourceDef.count) {
+            let x, y;
+            let attempts = 0;
+
+            do {
+                x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+                y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+                attempts++;
+            } while (
+                (gameState.map[y][x] !== resourceDef.tile || 
+                 objects.some(obj => obj.x === x && obj.y === y)) && 
+                attempts < maxAttempts
+            );
+
+            if (attempts >= maxAttempts) {
+                console.warn(`Could not place resource ${resourceDef.type}, stopping after ${added} placed`);
+                break;
+            }
+
+            // Add resource object
+            objects.push({
+                type: 'resource',
+                resourceType: resourceDef.type,
+                x: x,
+                y: y,
+                depleted: false,
+                sprite: getResourceSprite(resourceDef.type)
+            });
+
+            added++;
+        }
+
+        console.log(`Added ${added} ${resourceDef.type} resources to ${mapType}`);
+    }
+}
+
+/**
+ * Get the sprite name for a resource type
+ * @param {string} resourceType - Resource type
+ * @returns {string} Sprite name
+ */
+function getResourceSprite(resourceType) {
+    const spriteMap = {
+        'TREE': 'tree',
+        'IRON_VEIN': 'ironVein',
+        'GOLD_VEIN': 'goldVein',
+        'SILVER_VEIN': 'silverVein',
+        'SHEEP': 'sheep'
+    };
+    return spriteMap[resourceType] || 'tree';
+}
+
+/**
+ * Convert prop layer tiles to harvestable resources
+ * Reads the propLayer and creates resource objects for specific tiles
+ * @param {Array} objects - Array of objects to add resources to
+ */
+function convertPropTilesToResources(objects) {
+    // Mapping of tile IDs to resource types
+    const tileToResource = {
+        2: 'TREE',      // Tile 2 = árbol pequeño
+        3: 'TREE',      // Tile 3 = árbol grande
+        // Puedes agregar más mappings aquí en el futuro
+        // 10: 'IRON_VEIN', etc.
+    };
+
+    // Verificar que propLayer existe
+    if (!gameState.propLayer || !Array.isArray(gameState.propLayer)) {
+        return; // No prop layer to process
+    }
+
+    let converted = 0;
+
+    // Recorrer la capa de props
+    for (let y = 0; y < gameState.propLayer.length; y++) {
+        if (!gameState.propLayer[y]) continue;
+        
+        for (let x = 0; x < gameState.propLayer[y].length; x++) {
+            const propTile = gameState.propLayer[y][x];
+            
+            // Si el tile está en el mapping, convertirlo a recurso
+            if (propTile && tileToResource[propTile]) {
+                const resourceType = tileToResource[propTile];
+                
+                // Verificar que no haya ya un objeto en esta posición
+                const hasObject = objects.some(obj => obj.x === x && obj.y === y);
+                if (!hasObject) {
+                    objects.push({
+                        type: 'resource',
+                        resourceType: resourceType,
+                        x: x,
+                        y: y,
+                        depleted: false,
+                        sprite: getResourceSprite(resourceType),
+                        fromPropLayer: true  // Marcador para saber que viene de propLayer
+                    });
+                    converted++;
+                }
+            }
+        }
+    }
+
+    if (converted > 0) {
+        console.log(`✅ Convertidos ${converted} tiles de propLayer en recursos talables`);
+    }
 }

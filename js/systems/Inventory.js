@@ -64,8 +64,8 @@ export function toggleEquipItem(slotIndex) {
         return;
     }
 
-    // Handle equipment (weapons, armor)
-    if (itemDef.type === 'weapon' || itemDef.type === 'armor') {
+    // Handle equipment (weapons, armor, tools)
+    if (itemDef.type === 'weapon' || itemDef.type === 'armor' || itemDef.type === 'tool') {
         equipItem(slotIndex);
         return;
     }
@@ -97,25 +97,25 @@ export function useConsumable(slotIndex) {
             const hpBefore = gameState.player.hp;
             gameState.player.hp = Math.min(gameState.player.hp + itemDef.value, gameState.player.maxHp);
             const hpHealed = gameState.player.hp - hpBefore;
-            addChatMessage('system', `💚 Has usado ${item.name}! +${hpHealed} HP`);
+            addChatMessage('system', `💚 Has usado ${itemDef.name}! +${hpHealed} HP`);
             break;
 
         case 'heal_mana':
             const manaBefore = gameState.player.mana;
             gameState.player.mana = Math.min(gameState.player.mana + itemDef.value, gameState.player.maxMana);
             const manaRestored = gameState.player.mana - manaBefore;
-            addChatMessage('system', `💙 Has usado ${item.name}! +${manaRestored} Mana`);
+            addChatMessage('system', `💙 Has usado ${itemDef.name}! +${manaRestored} Mana`);
             break;
 
         case 'cure_poison':
-            addChatMessage('system', `💚 Has usado ${item.name}! Veneno curado`);
+            addChatMessage('system', `💚 Has usado ${itemDef.name}! Veneno curado`);
             // En el futuro: gameState.player.poisoned = false;
             break;
             
         case 'cast_spell':
             // Lanza un hechizo desde un pergamino
             if (itemDef.spellKey) {
-                addChatMessage('system', `📜 Has usado ${item.name}!`);
+                addChatMessage('system', `📜 Has usado ${itemDef.name}!`);
                 // No consume maná al usar el pergamino
                 const target = { isPlayer: true }; // Por defecto se lanza sobre uno mismo
                 // Aquí podríamos implementar selección de objetivo
@@ -126,7 +126,7 @@ export function useConsumable(slotIndex) {
             break;
 
         default:
-            addChatMessage('system', `✨ Has usado ${item.name}!`);
+            addChatMessage('system', `✨ Has usado ${itemDef.name}!`);
     }
 
     // Consume one item
@@ -165,14 +165,14 @@ export function equipItem(slotIndex) {
     if (currentlyEquipped === item.type) {
         // Unequip
         gameState.player.equipped[equipSlot] = null;
-        addChatMessage('system', `📤 Has desequipado: ${item.name}`);
+        addChatMessage('system', `📤 Has desequipado: ${itemDef.name}`);
     } else {
         // Equip (replace if something else was equipped)
         if (currentlyEquipped) {
             const oldItemDef = ITEM_TYPES[currentlyEquipped];
-            addChatMessage('system', `📤 ${oldItemDef.name} reemplazado por ${item.name}`);
+            addChatMessage('system', `📤 ${oldItemDef.name} reemplazado por ${itemDef.name}`);
         } else {
-            addChatMessage('system', `⚔️ Has equipado: ${item.name}`);
+            addChatMessage('system', `⚔️ Has equipado: ${itemDef.name}`);
         }
         gameState.player.equipped[equipSlot] = item.type;
     }
@@ -217,8 +217,12 @@ export function dropItem(slotIndex, quantity = null) {
         gameState.player.inventory.splice(slotIndex, 1);
     }
 
+    // Get item definition for the message
+    const itemDef = ITEM_TYPES[item.type];
+    const itemName = itemDef ? itemDef.name : 'Item';
+    
     // Message
-    addChatMessage('system', `🗑️ Has tirado ${quantity}x ${item.name} al suelo`);
+    addChatMessage('system', `🗑️ Has tirado ${quantity}x ${itemName} al suelo`);
     
     // Update UI
     updateUI();

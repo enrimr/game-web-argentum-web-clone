@@ -366,17 +366,6 @@ export function renderRoofLayer(camera, ctx) {
         return;
     }
 
-    let roofTilesFound = 0;
-    let roofsRendered = 0;
-    let roofsTested = 0;
-    
-    // Log para diagnóstico una sola vez
-    if (!window._roofDebugLogged) {
-        console.log('🏠 Iniciando render de techos - Camera:', camera);
-        console.log('🏠 Muestra roofLayer[5][5-10]:', gameState.roofLayer[5]?.slice(5, 11));
-        window._roofDebugLogged = true;
-    }
-
     for (let vy = 0; vy < VIEWPORT_HEIGHT; vy++) {
         for (let vx = 0; vx < VIEWPORT_WIDTH; vx++) {
             const worldX = camera.x + vx;
@@ -393,8 +382,6 @@ export function renderRoofLayer(camera, ctx) {
                     continue;
                 }
 
-                roofTilesFound++;
-
                 // Check if this roof should be rendered
                 // If player is in this building, on a door, or has visited it before, don't render the roof
                 const shouldShow = shouldRenderRoof(worldX, worldY);
@@ -404,16 +391,9 @@ export function renderRoofLayer(camera, ctx) {
                     if (sprite) {
                         const screenPos = worldToScreen(worldX, worldY);
                         ctx.drawImage(sprite, screenPos.x, screenPos.y);
-                        roofsRendered++;
-                    } else {
-                        console.log(`🏠 Sprite no encontrado para roof tile ${roofTile}`);
                     }
-                } else {
-                    console.log(`🏠 Roof oculto en [${worldX},${worldY}] por shouldRenderRoof()`);
                 }
             }
         }
     }
-
-    console.log(`🏠 Encontrados ${roofTilesFound} tiles de techo, renderizados ${roofsRendered}`);
 }

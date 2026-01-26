@@ -308,10 +308,61 @@ export const PROFESSIONS = {
 
 /**
  * Calcula la experiencia necesaria para el siguiente nivel de skill
- * Fórmula similar a AO
+ * Fórmula similar a AO - progresión exponencial
  */
 export function calculateSkillExpRequired(currentLevel) {
+    // Formula exponencial: cada nivel requiere más exp
     return Math.floor(currentLevel * 50 * (1 + currentLevel / 100));
+}
+
+/**
+ * Calcula la probabilidad de éxito basada en el nivel de skill
+ * Usa la fórmula cuadrática de Argentum Online
+ * @param {number} skillLevel - Nivel actual de la skill (1-100)
+ * @returns {number} Probabilidad de éxito (menor número = más fácil)
+ */
+export function calculateSuccessChance(skillLevel) {
+    // Formula cuadrática de AO: -0.00125*x^2 - 0.3*x + 49
+    // Skill 1: ~48 (difícil, 1/48 = 2% chance)
+    // Skill 50: ~19 (medio, 1/19 = 5% chance)
+    // Skill 100: ~5 (fácil, 1/5 = 20% chance)
+    return Math.floor(-0.00125 * skillLevel * skillLevel - 0.3 * skillLevel + 49);
+}
+
+/**
+ * Gana experiencia en una skill y sube de nivel si corresponde
+ * @param {Object} player - Objeto del jugador
+ * @param {string} skillName - Nombre de la skill (ej: 'WOODCUTTING')
+ * @param {boolean} success - Si la acción fue exitosa
+ * @returns {boolean} True si subió de nivel
+ */
+export function gainSkillExperience(player, skillName, success) {
+    // Importar el modificador de clase
+    const { getSkillModifier } = require('./Classes.js');
+    const classModifier = getSkillModifier(player.class, skillName);
+    
+    // Exp ganada: 10 si éxito, 5 si fallo
+    // El modificador de clase afecta la exp ganada (más difícil = menos exp efectiva)
+    const baseExp = success ? 10 : 5;
+    const expGained = Math.max(1, Math.floor(baseExp / classModifier));
+    
+    // Añadir experiencia
+    player.skillExp[skillName] = (player.skillExp[skillName] || 0) + expGained;
+    
+    // Calcular exp necesaria para siguiente nivel (multiplicada por modificador de clase)
+    const currentLevel = player.skills[skillName] || 1;
+    const baseExpNeeded = calculateSkillExpRequired(currentLevel);
+    const expNeeded = Math.floor(baseExpNeeded * classModifier);
+    
+    // ¿Subió de nivel?
+    if (player.skillExp[skillName] >= expNeeded) {
+        // Subir nivel
+        player.skills[skillName] = Math.min(100, currentLevel + 1);
+        player.skillExp[skillName] = 0; // Resetear experiencia
+        return true; // Indicar que subió de nivel
+    }
+    
+    return false; // No subió de nivel
 }
 
 /**

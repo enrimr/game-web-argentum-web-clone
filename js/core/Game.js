@@ -186,9 +186,10 @@ async function initGame() {
         gameState.roofLayer = mapResult.roofLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = mapResult.doorLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = mapResult.windowLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.propLayer = mapResult.propLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
 
         // Verificación adicional de asignación
-        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos(${gameState.roofLayer.length}x${gameState.roofLayer[0]?.length}), puertas(${gameState.doorLayer.length}x${gameState.doorLayer[0]?.length}), ventanas(${gameState.windowLayer.length}x${gameState.windowLayer[0]?.length})`);
+        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos(${gameState.roofLayer.length}x${gameState.roofLayer[0]?.length}), puertas(${gameState.doorLayer.length}x${gameState.doorLayer[0]?.length}), ventanas(${gameState.windowLayer.length}x${gameState.windowLayer[0]?.length}), props(${gameState.propLayer.length}x${gameState.propLayer[0]?.length})`);
     } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple (array 2D directo)
         console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
@@ -198,6 +199,7 @@ async function initGame() {
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.propLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
 
         console.log(`✅ Mapa cargado con estructura simple. Generadas capas vacías adicionales.`);
     } else {
@@ -223,6 +225,7 @@ async function initGame() {
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.propLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         
         console.log(`⚠️ Creado mapa fallback ${gameState.map.length}x${gameState.map[0]?.length} con bordes sólidos`);
     }
@@ -383,9 +386,10 @@ export function changeMap(targetMap, targetX, targetY) {
         gameState.roofLayer = mapResult.roofLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = mapResult.doorLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = mapResult.windowLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.propLayer = mapResult.propLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
 
         // Verificación adicional de asignación
-        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos(${gameState.roofLayer.length}x${gameState.roofLayer[0]?.length}), puertas(${gameState.doorLayer.length}x${gameState.doorLayer[0]?.length}), ventanas(${gameState.windowLayer.length}x${gameState.windowLayer[0]?.length})`);
+        console.log(`✅ Mapa cargado con estructura multicapa. Capas: base(${gameState.map.length}x${gameState.map[0]?.length}), techos(${gameState.roofLayer.length}x${gameState.roofLayer[0]?.length}), puertas(${gameState.doorLayer.length}x${gameState.doorLayer[0]?.length}), ventanas(${gameState.windowLayer.length}x${gameState.windowLayer[0]?.length}), props(${gameState.propLayer.length}x${gameState.propLayer[0]?.length})`);
     } else if (mapResult && Array.isArray(mapResult)) {
         // Es un mapa simple
         console.log(`🗺️ Asignando mapa con formato simple: ${mapResult.length}x${mapResult[0]?.length}`);
@@ -395,6 +399,7 @@ export function changeMap(targetMap, targetX, targetY) {
         gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
         gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+        gameState.propLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
 
         console.log(`✅ Mapa cargado con estructura simple. Generadas capas vacías adicionales.`);
     } else {

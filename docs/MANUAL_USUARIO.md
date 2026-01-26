@@ -37,9 +37,11 @@ Bienvenido a **Argentum Demo**, un MMORPG 2D inspirado en Argentum Online. Este 
 - **Nivel**: Nivel actual del personaje
 - **Experiencia**: Progreso hacia el siguiente nivel
 - **Oro**: Moneda del juego
+- **Clase**: Determina tus habilidades y bonificaciones
 
 ### **Progresión**
 - Mata enemigos para ganar **experiencia** y **oro**
+- Realiza trabajos para subir **habilidades (skills)**
 - Cada nivel aumenta:
   - +20 HP máximo
   - +10 Mana máximo
@@ -52,6 +54,130 @@ Bienvenido a **Argentum Demo**, un MMORPG 2D inspirado en Argentum Online. Este 
   - No puedes atacar ni recoger objetos
   - Tus objetos caen al suelo
 - **Resucitar**: Visita al Sacerdote Marcos (500 oro)
+
+---
+
+## 🎭 Sistema de Clases
+
+### **Clases Disponibles**
+
+El juego ofrece **12 clases únicas**, cada una con fortalezas y debilidades:
+
+#### **Clases de Combate**
+
+**⚔️ Guerrero (Warrior)**
+- **Especialidad**: Combate cuerpo a cuerpo
+- **HP**: +30% | **Mana**: -50%
+- **Experto en**: Combate, Defensa
+- **Equipamiento**: Armaduras pesadas, armas grandes
+- **Rol**: Tanque frontal
+
+**🛡️ Paladín (Paladin)**
+- **Especialidad**: Guerrero sagrado
+- **HP**: +20% | **Mana**: -20%
+- **Experto en**: Combate, Defensa, Liderazgo, Magia divina
+- **Equipamiento**: Armaduras pesadas, armas y magia
+- **Rol**: Tanque con curación
+
+#### **Clases Mágicas**
+
+**🔮 Mago (Mage)**
+- **Especialidad**: Hechicería arcana
+- **HP**: -30% | **Mana**: +100%
+- **Experto en**: Magia, Meditar
+- **Equipamiento**: Túnicas, bastones mágicos
+- **Rol**: DPS mágico, requiere bastón para lanzar
+
+**✝️ Clérigo (Cleric)**
+- **Especialidad**: Sanación y protección
+- **HP**: Normal | **Mana**: +20%
+- **Experto en**: Magia divina, Liderazgo
+- **Equipamiento**: Túnicas, mazas, escudos
+- **Rol**: Sanador y soporte
+- **Bonus**: +30% curación
+
+#### **Clases Versátiles**
+
+**🌿 Druida (Druid)**
+- **Especialidad**: Magia natural y transformación
+- **HP**: -10% | **Mana**: +50%
+- **Experto en**: Magia natural, Domar, Supervivencia
+- **Equipamiento**: Túnicas naturales, bastones
+- **Rol**: Soporte/DPS con habilidades de naturaleza
+
+**🎵 Bardo (Bard)**
+- **Especialidad**: Música y apoyo social
+- **HP**: -15% | **Mana**: Normal
+- **Experto en**: Comercio, Liderazgo, Magia
+- **Equipamiento**: Instrumentos, dagas
+- **Rol**: Soporte con buffs y comercio
+
+#### **Clases Furtivas**
+
+**🗡️ Asesino (Assassin)**
+- **Especialidad**: Asesinato desde las sombras
+- **HP**: -10% | **Mana**: -30%
+- **Experto en**: Ocultarse, Apuñalar, Sigilo
+- **Equipamiento**: Armadura ligera, dagas, arcos
+- **Rol**: DPS burst con críticos (+40%)
+- **Bonus**: +50% tiempo oculto
+
+**🦹 Ladrón (Thief)**
+- **Especialidad**: Robo y evasión
+- **HP**: -15% | **Mana**: -40%
+- **Experto en**: Robar, Ocultarse, Apuñalar
+- **Equipamiento**: Armadura ligera, dagas
+- **Rol**: Soporte con robo y evasión
+- **Bonus**: +50% efectividad de robo
+
+**🏴‍☠️ Bandido (Bandit)**
+- **Especialidad**: Guerrero pícaro
+- **HP**: +10% | **Mana**: -40%
+- **Experto en**: Combate, Wrestling, Robar
+- **Equipamiento**: Armaduras medias, armas variadas
+- **Rol**: DPS físico con críticos (+20%)
+- **Bonus**: Tiempo de ocultar reducido 50%
+
+#### **Clases Especializadas**
+
+**🏹 Cazador (Hunter)**
+- **Especialidad**: Combate a distancia
+- **HP**: Normal | **Mana**: -40%
+- **Experto en**: Arco, Domar, Supervivencia
+- **Equipamiento**: Armadura de cuero, arcos
+- **Rol**: DPS a distancia
+- **Bonus**: +30% daño con arco, +20% domar
+
+**🔨 Trabajador (Worker)**
+- **Especialidad**: Oficios y crafteo
+- **HP**: Normal | **Mana**: -50%
+- **Experto en**: Minería, Talar, Pesca, Herrería, Carpintería
+- **Equipamiento**: Herramientas de trabajo
+- **Rol**: Recolección y crafteo
+- **Bonus**: +100% recursos extraídos, +50% velocidad crafteo
+
+**🏴‍☠️ Pirata (Pirate)**
+- **Especialidad**: Navegación y saqueo
+- **HP**: +10% | **Mana**: -40%
+- **Experto en**: Navegación, Combate naval
+- **Equipamiento**: Sables, pistolas
+- **Rol**: DPS naval
+- **Bonus**: +50% velocidad en barcos, puede ocultarse en agua
+
+### **Modificadores de Clase**
+
+Cada clase tiene modificadores que afectan qué tan rápido aprende cada habilidad:
+
+- **1.0** = Normal (experto)
+- **1.5** = +50% más difícil
+- **2.0** = Doble de difícil
+- **3.0+** = Casi imposible
+
+**Ejemplos:**
+- **Trabajador** + Talar = 1.0 (experto, aprende rápido)
+- **Guerrero** + Talar = 2.0 (tarda el doble)
+- **Mago** + Combate = 2.5 (muy difícil)
+- **Clérigo** + Robar = 4.0 (imposible)
 
 ---
 
@@ -221,7 +347,285 @@ Jugadores AI que pueblan el mundo, simulando otros jugadores.
 
 ---
 
-## 🗺️ Sistema de Mapas
+## 🎯 Sistema de Habilidades (Skills)
+
+### **¿Qué son las Habilidades?**
+
+Las **habilidades (skills)** son capacidades que mejoran con la práctica. Cada clase tiene facilidad para aprender diferentes skills.
+
+### **20 Habilidades Disponibles**
+
+#### **⚔️ Combate (Combat Skills)**
+
+**⚔️ Combate con Armas**
+- Efectividad en combate cuerpo a cuerpo
+- Aumenta daño y precisión con armas
+- Se sube: Atacando con armas equipadas
+
+**🛡️ Defensa con Escudos**
+- Capacidad de bloquear ataques
+- Reduce daño recibido
+- Se sube: Recibiendo ataques con escudo
+
+**🏹 Combate a Distancia**
+- Puntería con arcos y proyectiles
+- Aumenta daño y precisión a distancia
+- Se sube: Disparando flechas
+
+**👊 Wrestling (Cuerpo a Cuerpo)**
+- Lucha sin armas
+- Permite desarmar enemigos
+- Se sube: Peleando sin arma
+
+**🤸 Tácticas (Evasión)**
+- Esquivar ataques enemigos
+- Reduce probabilidad de ser golpeado
+- Se sube: Recibiendo ataques
+
+#### **✨ Magia (Magic Skills)**
+
+**✨ Magia**
+- Poder de hechizos
+- Aumenta daño mágico
+- Se sube: Lanzando hechizos
+
+**🧘 Meditar**
+- Velocidad de recuperación de mana
+- Esencial para magos
+- Se sube: Meditando (tecla M)
+
+#### **⛏️ Trabajo (Work Skills)**
+
+**⛏️ Minería**
+- Extrae minerales de vetas
+- Nivel afecta éxito y cantidad
+- Se sube: Picando vetas con pico
+- **Requerido**: Pico equipado
+
+**🪓 Talar**
+- Corta árboles para madera
+- Nivel afecta éxito y cantidad
+- Se sube: Talando árboles con hacha
+- **Requerido**: Hacha equipada
+
+**🎣 Pesca**
+- Pesca en ríos y lagos
+- Nivel afecta tipo de peces
+- Se sube: Pescando con caña
+- **Requerido**: Caña de pescar
+
+#### **🔨 Crafteo (Crafting Skills)**
+
+**🔨 Herrería**
+- Forja armas y armaduras de metal
+- Requiere lingotes y carbón
+- Se sube: Forjando items
+
+**🪚 Carpintería**
+- Crea arcos, flechas y objetos de madera
+- Requiere madera
+- Se sube: Crafteando items de madera
+
+#### **👥 Social (Social Skills)**
+
+**💰 Comercio**
+- Mejores precios al comprar/vender
+- Descuentos con NPCs
+- Se sube: Comerciando
+
+**👑 Liderazgo**
+- Comandar grupos
+- Bonificación a party members
+- Se sube: Liderando grupos
+
+#### **🥷 Sigilo (Rogue Skills)**
+
+**🦹 Robar**
+- Roba items de otros jugadores
+- Probabilidad según skill
+- Se sube: Robando exitosamente
+
+**🥷 Ocultarse**
+- Vuélvete invisible temporalmente
+- Duración según skill
+- Se sube: Ocultándote
+
+**🗡️ Apuñalar**
+- Ataque crítico desde las sombras
+- Daño +40% (asesino: +50%)
+- Se sube: Apuñalando con daga
+
+#### **🐺 Especiales (Special Skills)**
+
+**🐺 Domar Animales**
+- Domestica criaturas como mascotas
+- Skill afecta qué puedes domar
+- Se sube: Domando criaturas
+
+**🏕️ Supervivencia**
+- Resistencia en ambientes hostiles
+- Hacer fogatas, buscar comida
+- Se sube: Sobreviviendo
+
+**⛵ Navegación**
+- Manejo de barcos
+- Requerido para embarcaciones
+- Se sube: Navegando
+
+### **Progresión de Habilidades**
+
+#### **Sistema de Experiencia**
+
+Cada habilidad tiene su propia experiencia:
+- **Nivel 1**: Requiere 50 exp
+- **Nivel 10**: Requiere 550 exp
+- **Nivel 50**: Requiere 3,750 exp
+- **Nivel 100**: Máximo (maestro)
+
+#### **Ganar Experiencia**
+
+- **Éxito**: +10 exp base
+- **Fallo**: +5 exp base
+- **Modificador de clase**: Afecta exp ganada
+
+**Ejemplo (Talar con Hacha):**
+- Trabajador: +10 exp por éxito (modificador 1.0)
+- Guerrero: +5 exp por éxito (modificador 2.0)
+- Mago: +4 exp por éxito (modificador 2.5)
+
+#### **Visualización**
+
+El juego muestra tu progreso:
+```
+📈 Exp de Talar: 45/50 (90%)
+⭐ ¡Tu habilidad de Talar ha mejorado a nivel 2!
+```
+
+---
+
+## 🎲 Sistema de Probabilidad y Suerte
+
+### **Fórmula de Éxito**
+
+El juego usa la fórmula cuadrática de Argentum Online:
+```
+Suerte = -0.00125 × (Skill²) - 0.3 × Skill + 49
+```
+
+### **Tabla de Probabilidades**
+
+| Nivel Skill | Suerte | Probabilidad Éxito |
+|-------------|--------|-------------------|
+| 1           | ~48    | ~2% (1/48)       |
+| 10          | ~43    | ~2.3%            |
+| 25          | ~31    | ~3.2%            |
+| 50          | ~19    | ~5.3%            |
+| 75          | ~11    | ~9%              |
+| 100         | ~5     | ~20%             |
+
+### **Cómo Funciona**
+
+1. **Cada acción** (talar, minar, pescar) hace un roll de dados
+2. **Roll entre 1 y Suerte**
+3. **Si roll ≤ 3**: Éxito
+4. **Si roll > 3**: Fallo
+
+**Ejemplo con Skill 50 (Suerte 19):**
+- Roll 1, 2 o 3 → ✅ Éxito (3/19 = ~16%)
+- Roll 4-19 → ❌ Fallo (16/19 = ~84%)
+
+### **Aprender de los Fallos**
+
+- Incluso fallando ganas experiencia (50% de la exp de éxito)
+- A nivel bajo, fallarás mucho pero subirás rápido
+- A nivel alto, casi siempre tienes éxito pero subes lento
+
+---
+
+## 🌲 Sistema de Recolección de Recursos
+
+### **Recursos Disponibles**
+
+#### **🌲 Árboles**
+- **Herramienta**: Hacha 🪓
+- **Skill**: Talar
+- **Recursos**: 50-10,000 unidades por árbol
+- **Extrae por golpe**: 1-5 (según skill)
+- **Tiempo**: 2.5 segundos base
+- **Productos**: Madera, Madera de Roble, Madera Élfica
+
+#### **⛰️ Vetas de Mineral**
+
+**Veta de Hierro**
+- **Herramienta**: Pico ⛏️
+- **Skill**: Minería
+- **Recursos**: 50-10,000 unidades
+- **Extrae**: 1-4 por golpe
+- **Productos**: Mineral de Hierro, Carbón
+
+**Veta de Plata**
+- **Requiere**: Skill 20+
+- **Recursos**: 50-10,000 unidades
+- **Productos**: Mineral de Plata
+
+**Veta de Oro**
+- **Requiere**: Skill 40+
+- **Recursos**: 50-10,000 unidades
+- **Productos**: Mineral de Oro
+
+### **Cómo Recolectar**
+
+1. **Equipa la herramienta** (hacha o pico)
+2. **Click en el recurso** (árbol o veta)
+3. **Espera** a completar la acción
+4. **Resultado**:
+   - ✅ Éxito: Obtienes recursos
+   - ❌ Fallo: No obtienes nada (pero ganas exp)
+
+### **Información en Pantalla**
+
+Cuando recolectas verás:
+```
+🪓 Comenzaste a talar el Árbol...
+📊 Recurso restante: 4950/5000 (99%)
+✅ ¡Obtuviste 1x Madera!
+📈 Exp de Talar: 10/50 (20%)
+```
+
+### **Barra Visual de Recursos**
+
+Cada recurso muestra una barra de progreso:
+- **Verde**: >70% recursos restantes
+- **Amarillo**: 30-70% recursos
+- **Rojo**: <30% recursos
+- **Tocón**: Recurso agotado (0%)
+
+### **Agotamiento de Recursos**
+
+- Los árboles y vetas NO desaparecen hasta estar completamente agotados
+- Mensaje cuando se agota: `💀 El Árbol se ha agotado completamente`
+- Recursos agotados se convierten en tocones (semi-transparentes)
+
+### **Bonificaciones por Clase**
+
+**Trabajador**: Extrae el **doble** de recursos por golpe
+```
+Skill 50 normal: 3 recursos/golpe
+Skill 50 trabajador: 6 recursos/golpe
+```
+
+**Otras clases**: Extracción normal pero más lenta para subir skill
+
+### **Velocidad de Recolección**
+
+El tiempo entre golpes mejora con el skill:
+- **Skill 1**: 100% del tiempo (2.5-3.5 seg)
+- **Skill 50**: 75% del tiempo
+- **Skill 100**: 50% del tiempo (1.25-1.75 seg)
+
+---
+
+## 🎒 Sistema de Inventario
 
 ### **Mapas Disponibles**
 

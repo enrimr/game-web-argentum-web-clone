@@ -1,0 +1,284 @@
+# Reglas de Cline para Argentum Demo
+
+## Ejecución del Juego
+
+Para probar el juego, es necesario ejecutar un servidor web local. Usa uno de estos comandos:
+
+```bash
+# Python 3
+python3 -m http.server 9000
+
+# Python 2
+python -m SimpleHTTPServer 9000
+
+# Node.js (si tienes http-server instalado)
+npx http-server -p 9000
+```
+
+Luego abre el navegador en: `http://localhost:9000`
+
+## Formato de Mapas JSON
+
+### Estructura de Capas
+Cuando trabajes con archivos JSON de mapas en `js/world/maps/*.json`, las capas DEBEN estar formateadas como matrices legibles:
+
+```json
+{
+  "layers": {
+    "base": [
+      [8,8,8,8,8,8,8,8],
+      [8,0,0,0,0,0,0,4],
+      [8,0,0,3,0,0,0,4],
+      [8,4,4,4,4,4,4,4]
+    ],
+    "props": [
+      [0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0],
+      [0,0,0,3,0,0,0,0],
+      [0,0,0,0,0,0,0,0]
+    ]
+  }
+}
+```
+
+**IMPORTANTE:**
+- ✅ Cada fila de la matriz en una línea separada
+- ✅ Elementos separados por comas sin espacios: `[8,0,0,3]`
+- ❌ NO colocar todo en una sola línea: `[8,0,0,3,8,0,0,4,...]`
+- ❌ NO usar formato comprimido de JSON
+
+### Script para Reformatear Mapas
+
+Si un mapa JSON está mal formateado, usa este script Python:
+
+```python
+import json
+
+with open('ruta/al/mapa.json', 'r', encoding='utf-8') as f:
+    data = json.load(f)
+
+def format_matrix(matrix):
+    lines = []
+    for row in matrix:
+        row_str = '      [' + ','.join(str(cell) for cell in row) + ']'
+        lines.append(row_str)
+    return ',\n'.join(lines)
+
+# Reformatear cada capa
+output = '{\n'
+output += '  "layers": {\n'
+output += '    "base": [\n'
+output += format_matrix(data["layers"]["base"])
+output += '\n    ],\n'
+output += '    "props": [\n'
+output += format_matrix(data["layers"]["props"])
+output += '\n    ]\n'
+output += '  }\n'
+output += '}'
+
+with open('ruta/al/mapa.json', 'w', encoding='utf-8') as f:
+    f.write(output)
+```
+
+## Sistema de Recursos Talables
+
+### Tiles en Capa Props
+Los tiles colocados en la capa `props` de un mapa JSON pueden convertirse automáticamente en recursos talables:
+
+- **Tile 2**: Árbol pequeño → talable con hacha
+- **Tile 3**: Árbol grande → talable con hacha
+- **Tile 10**: (futuro) Veta de hierro → minable con pico
+- **Tile 11**: (futuro) Veta de oro → minable con pico
+
+### Conversión Automática
+El sistema lee `gameState.propLayer` en `ObjectGenerator.js` → `convertPropTilesToResources()`:
+
+```javascript
+const tileToResource = {
+    2: 'TREE',      // Árbol pequeño
+    3: 'TREE',      // Árbol grande
+    10: 'IRON_VEIN', // Veta de hierro (futuro)
+    11: 'GOLD_VEIN'  // Veta de oro (futuro)
+};
+```
+
+### Generación Procedural vs Estática
+- **Props en JSON**: Posiciones fijas diseñadas (training_fields)
+- **Procedural**: Posiciones aleatorias dinámicas (otros mapas)
+- Ambos sistemas coexisten sin conflicto
+
+## Colisión de Recursos
+Los recursos (árboles, minerales) tienen colisión automática:
+- Bloquean el paso del jugador, NPCs y enemigos
+- Una vez talados/minados (depleted=true), dejan de bloquear
+- Se verifican en `BaseGenerator.js` → `isWalkable()`
+
+## Código de Referencia
+- Sistema de recolección: `js/systems/ResourceGathering.js`
+- Generación de objetos: `js/world/ObjectGenerator.js`
+- Colisión: `js/world/generators/BaseGenerator.js`
+- Items: `js/systems/ItemTypes.js`
+
+## Documentación
+
+### Actualización de Manuales
+
+Cuando se finalice una funcionalidad nueva o se modifique significativamente una existente, se DEBE actualizar:
+
+1. **Manual Markdown**: `docs/MANUAL_USUARIO.md`
+   - Formato Markdown para referencia técnica
+   - Secciones detalladas con ejemplos de código
+
+2. **Manual Web HTML**: `manual/index.html`
+   - Versión web visual con cards y estilos
+   - Accesible desde navegador en `/manual/`
+   - Incluye sprites generados con JavaScript
+
+**Ejemplos de cuándo actualizar:**
+- ✅ Nueva funcionalidad: Sistema de clases → Actualizar ambos manuales
+- ✅ Cambios en mecánicas: Sistema de recursos → Actualizar sección correspondiente
+- ✅ Nuevos items/enemigos: Añadir a las tablas de ambos manuales
+- ✅ Cambios en controles: Actualizar secciones de controles
+
+## Refactorización de Código
+
+### Límite de Líneas por Archivo
+
+Cuando un archivo supere las **600 líneas**, se DEBE:
+
+1. **Proponer refactorización**: Sugerir dividir el archivo
+2. **Identificar responsabilidades**: Separar funciones por dominio
+3. **Crear módulos**: Extraer lógica a archivos más pequeños
+4. **Mantener cohesión**: Agrupar funciones relacionadas
+
+**Estrategias de refactor:**
+- Extraer funciones auxiliares a archivos `*Helpers.js`
+- Separar tipos/constantes a archivos `*Types.js` o `*Config.js`
+- Dividir por responsabilidad (ej: `Game.js` → `GameInit.js`, `GameLoop.js`)
+- Crear subcarpetas si hay muchos archivos relacionados
+
+**Ejemplo de refactor:**
+```
+Antes:
+js/systems/Combat.js (850 líneas)
+
+Después:
+js/systems/Combat.js (300 líneas - lógica principal)
+js/systems/combat/CombatCalculations.js (200 líneas)
+js/systems/combat/CombatEffects.js (150 líneas)
+js/systems/combat/CombatTypes.js (200 líneas)
+```
+
+**Excepciones:**
+- Archivos de configuración/constantes extensos (ej: `ItemTypes.js`)
+- Archivos legacy que funcionan bien y no se modifican frecuentemente
+
+## Flujo de Trabajo con Git para Features
+
+### Desarrollo de Features Grandes
+
+Cuando inicies el desarrollo de una funcionalidad nueva grande o compleja:
+
+#### 1. Crear Rama Feature
+```bash
+git checkout -b feature/nombre-descriptivo
+```
+
+Ejemplos de nombres de rama:
+- `feature/sistema-tala-arboles`
+- `feature/sistema-combate-mejorado`
+- `feature/multiplayer-integration`
+
+#### 2. Commits Frecuentes
+Haz un commit después de cada cambio significativo o conjunto de cambios relacionados:
+
+```bash
+git add .
+git commit -m "feat: descripción clara del cambio"
+```
+
+Ejemplos de mensajes de commit:
+- `feat: agregar hacha y recursos de madera a ItemTypes`
+- `feat: implementar sistema de recolección en ResourceGathering`
+- `feat: agregar colisión a recursos en BaseGenerator`
+- `fix: corregir bug de undefined en mensajes de inventario`
+- `refactor: mover árboles a capa props en training_fields`
+
+#### 3. Validación y Testing
+Antes de hacer merge:
+- ✅ Probar todas las funcionalidades implementadas
+- ✅ Verificar que no hay errores en consola
+- ✅ Asegurar que no se rompió funcionalidad existente
+- ✅ Confirmar con el usuario que todo funciona correctamente
+
+#### 4. Merge a Main
+Una vez validado y aprobado:
+
+```bash
+# Asegurarse de estar en la rama feature
+git checkout feature/nombre-descriptivo
+
+# Actualizar main local
+git checkout main
+git pull origin main
+
+# Merge de la feature
+git merge feature/nombre-descriptivo
+
+# Push a repositorio remoto
+git push origin main
+
+# Opcional: Eliminar rama feature local
+git branch -d feature/nombre-descriptivo
+```
+
+#### 5. Estructura de Commits Recomendada
+Durante el desarrollo de una feature grande:
+- Commit 1: Estructura base y archivos nuevos
+- Commit 2-N: Implementación incremental
+- Commit N+1: Corrección de bugs
+- Commit N+2: Refinamientos y optimizaciones
+- Commit final: Documentación y cleanup
+
+### Convenciones de Mensajes de Commit
+
+Usar prefijos estándar:
+- `feat:` - Nueva funcionalidad
+- `fix:` - Corrección de bugs
+- `refactor:` - Refactorización de código
+- `docs:` - Cambios en documentación
+- `style:` - Formato de código (sin cambios funcionales)
+- `test:` - Agregar o modificar tests
+- `chore:` - Tareas de mantenimiento
+
+### Ejemplo de Flujo Completo
+
+```bash
+# Iniciar feature
+git checkout -b feature/sistema-pesca
+
+# Desarrollar con commits frecuentes
+git add js/systems/Fishing.js
+git commit -m "feat: crear sistema base de pesca"
+
+git add js/systems/ItemTypes.js
+git commit -m "feat: agregar cañas de pescar y peces"
+
+git add js/graphics/sprites/ItemSprites.js
+git commit -m "feat: crear sprites de cañas y peces"
+
+# ... más commits según avanza el desarrollo ...
+
+# Testing y validación
+git add .
+git commit -m "fix: corregir colisión de botes de pesca"
+
+# Feature completa y validada -> Merge
+git checkout main
+git pull origin main
+git merge feature/sistema-pesca
+git push origin main
+
+# Cleanup
+git branch -d feature/sistema-pesca
+```

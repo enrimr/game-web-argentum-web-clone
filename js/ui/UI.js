@@ -146,7 +146,17 @@ function updateInventorySection(selector) {
         slotEl.classList.remove('empty', 'equipped');
 
         if (item) {
-            slotEl.textContent = item.icon;
+            // Get item definition from ITEM_TYPES
+            const itemDef = ITEM_TYPES[item.type];
+            if (!itemDef) {
+                console.error(`Item type not found: ${item.type}`);
+                slotEl.textContent = '?';
+                slotEl.classList.add('empty');
+                slotEl.title = `Item desconocido: ${item.type}`;
+                continue;
+            }
+
+            slotEl.textContent = itemDef.icon;
 
             // Calculate total quantity of this item type in inventory
             let totalQuantity = 0;
@@ -174,7 +184,7 @@ function updateInventorySection(selector) {
 
             // Update title for tooltips
             const equipStatus = (isWeaponEquipped || isShieldEquipped || isBodyEquipped || isHeadEquipped) ? ' [EQUIPADO]' : '';
-            slotEl.title = `${item.name} (${totalQuantity} total)${equipStatus}\nSlot: ${actualIndex + 1}`;
+            slotEl.title = `${itemDef.name} (${totalQuantity} total)${equipStatus}\nSlot: ${actualIndex + 1}`;
         } else {
             slotEl.textContent = '-';
             slotEl.classList.add('empty');
@@ -389,7 +399,7 @@ function showContextMenu(e, slotIndex, item) {
     const useOption = document.createElement('div');
     useOption.className = 'context-menu-item';
     
-    if (itemDef.type === 'weapon' || itemDef.type === 'armor') {
+    if (itemDef.type === 'weapon' || itemDef.type === 'armor' || itemDef.type === 'tool') {
         const isEquipped = gameState.player.equipped.weapon === item.type || 
                           gameState.player.equipped.shield === item.type ||
                           gameState.player.equipped.body === item.type ||

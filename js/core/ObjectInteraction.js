@@ -14,7 +14,17 @@ export function handleObjectInteraction(obj) {
     const px = gameState.player.x;
     const py = gameState.player.y;
 
-    // Solo procesar si el objeto está en la posición del jugador
+    // Permitir interacción con recursos desde distancia adyacente
+    const isAdjacent = Math.abs(obj.x - px) <= 1 && Math.abs(obj.y - py) <= 1;
+    const isOnSamePosition = obj.x === px && obj.y === py;
+    
+    // Recursos recolectables pueden ser interactuados desde distancia adyacente
+    if (obj.type === 'resource' && isAdjacent) {
+        handleResourceGathering(obj);
+        return;
+    }
+
+    // Solo procesar otros objetos si está en la posición del jugador
     if (obj.x === px && obj.y === py) {
         if (obj.type === 'chest' && !obj.opened) {
             // Solo jugadores vivos pueden abrir cofres
@@ -73,6 +83,17 @@ export function handleObjectInteraction(obj) {
             updateUI();
         });
     }
+}
+
+/**
+ * Manejar recolección de recursos
+ * @param {Object} obj - Objeto de recurso a recolectar
+ */
+function handleResourceGathering(obj) {
+    // Importar el sistema de recolección
+    import('../systems/ResourceGathering.js').then(({ attemptGathering }) => {
+        attemptGathering(obj);
+    });
 }
 
 /**

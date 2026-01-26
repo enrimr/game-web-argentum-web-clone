@@ -46,6 +46,20 @@ export function isWalkable(map, x, y) {
         return false;
     }
 
+    // Verificar recursos recolectables (árboles, minerales, etc.)
+    // Si hay un recurso no agotado, no es caminable
+    if (gameState.objects) {
+        const resourceAtPosition = gameState.objects.find(obj => 
+            obj.type === 'resource' && 
+            obj.x === x && 
+            obj.y === y && 
+            !obj.depleted
+        );
+        if (resourceAtPosition) {
+            return false; // Recursos bloquean el paso (hasta que se talen/minen)
+        }
+    }
+
     // Puerta check
     if (gameState.doorLayer && gameState.doorLayer[y] && gameState.doorLayer[y][x] !== undefined && 
         gameState.doorLayer[y][x] !== 0) {

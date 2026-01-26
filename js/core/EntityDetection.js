@@ -60,6 +60,10 @@ export function getEntityAtPosition(x, y) {
             if (obj.type === 'portal') {
                 return { type: 'portal', entity: obj };
             }
+            // If it's a resource, return it with resource type for gathering
+            if (obj.type === 'resource') {
+                return { type: 'resource', entity: obj };
+            }
             return { type: 'object', entity: obj };
         }
     }

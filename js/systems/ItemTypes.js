@@ -119,6 +119,198 @@ export const ITEM_TYPES = {
         description: 'Munición para arcos'
     },
     
+    // Herramientas de recolección
+    AXE: {
+        name: 'Hacha',
+        icon: '🪓',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'axe',
+        type: 'tool',
+        slot: 'weapon',
+        damage: 8,
+        description: 'Herramienta para talar árboles (+8 daño)'
+    },
+    AXE_IRON: {
+        name: 'Hacha de Hierro',
+        icon: '🪓',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'axe',
+        type: 'tool',
+        slot: 'weapon',
+        damage: 12,
+        description: 'Hacha mejorada para talar (+12 daño)'
+    },
+    PICKAXE: {
+        name: 'Pico',
+        icon: '⛏️',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'pickaxe',
+        type: 'tool',
+        slot: 'weapon',
+        damage: 6,
+        description: 'Herramienta para minar (+6 daño)'
+    },
+    PICKAXE_IRON: {
+        name: 'Pico de Hierro',
+        icon: '⛏️',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'pickaxe',
+        type: 'tool',
+        slot: 'weapon',
+        damage: 10,
+        description: 'Pico mejorado para minar (+10 daño)'
+    },
+    FISHING_ROD: {
+        name: 'Caña de Pescar',
+        icon: '🎣',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'fishingRod',
+        type: 'tool',
+        slot: 'weapon',
+        damage: 2,
+        description: 'Caña para pescar en ríos y lagos (+2 daño)'
+    },
+    FISHING_ROD_GOOD: {
+        name: 'Caña de Pescar Buena',
+        icon: '🎣',
+        stackable: false,
+        maxStack: 1,
+        sprite: 'fishingRod',
+        type: 'tool',
+        slot: 'weapon',
+        damage: 4,
+        description: 'Caña mejorada para pescar (+4 daño)'
+    },
+    
+    // Recursos recolectables
+    WOOD: {
+        name: 'Madera',
+        icon: '🪵',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'wood',
+        type: 'resource',
+        description: 'Madera común para construcción'
+    },
+    OAK_WOOD: {
+        name: 'Madera de Roble',
+        icon: '🪵',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'oakWood',
+        type: 'resource',
+        description: 'Madera de roble de alta calidad'
+    },
+    ELVEN_WOOD: {
+        name: 'Madera Élfica',
+        icon: '✨',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'elvenWood',
+        type: 'resource',
+        description: 'Madera mágica de los bosques élficos'
+    },
+    IRON_ORE: {
+        name: 'Mineral de Hierro',
+        icon: '🪨',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'ironOre',
+        type: 'resource',
+        description: 'Mineral de hierro sin refinar'
+    },
+    COAL: {
+        name: 'Carbón',
+        icon: '⚫',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'coal',
+        type: 'resource',
+        description: 'Carbón para fundición'
+    },
+    SILVER_ORE: {
+        name: 'Mineral de Plata',
+        icon: '⚪',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'silverOre',
+        type: 'resource',
+        description: 'Mineral de plata sin refinar'
+    },
+    GOLD_ORE: {
+        name: 'Mineral de Oro',
+        icon: '🟡',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'goldOre',
+        type: 'resource',
+        description: 'Mineral de oro sin refinar'
+    },
+    WOOL: {
+        name: 'Lana',
+        icon: '🧶',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'wool',
+        type: 'resource',
+        description: 'Lana de oveja'
+    },
+    
+    // Peces (consumibles y vendibles)
+    FISH: {
+        name: 'Pez',
+        icon: '🐟',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'fish',
+        type: 'consumable',
+        effect: 'heal_hp',
+        value: 15,
+        sellPrice: 10,
+        description: 'Pez común que restaura 15 HP (vende: 10 oro)'
+    },
+    FISH_BIG: {
+        name: 'Pez Grande',
+        icon: '🐠',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'fishBig',
+        type: 'consumable',
+        effect: 'heal_hp',
+        value: 30,
+        sellPrice: 25,
+        description: 'Pez grande que restaura 30 HP (vende: 25 oro)'
+    },
+    FISH_RARE: {
+        name: 'Pez Raro',
+        icon: '🐡',
+        stackable: true,
+        maxStack: 100,
+        sprite: 'fishRare',
+        type: 'consumable',
+        effect: 'heal_hp',
+        value: 50,
+        sellPrice: 50,
+        description: 'Pez raro que restaura 50 HP (vende: 50 oro)'
+    },
+    FISH_GOLDEN: {
+        name: 'Pez Dorado',
+        icon: '🐡',
+        stackable: true,
+        maxStack: 50,
+        sprite: 'fishGolden',
+        type: 'consumable',
+        effect: 'heal_hp',
+        value: 75,
+        sellPrice: 100,
+        description: 'Pez dorado legendario, restaura 75 HP (vende: 100 oro)'
+    },
+    
     // Armas (aumentan daño)
     SWORD: {
         name: 'Espada',

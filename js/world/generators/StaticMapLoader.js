@@ -216,6 +216,7 @@ export function combineMapLayers(mapData) {
         gameState.roofLayer[y] = [];
         gameState.doorLayer[y] = [];
         gameState.windowLayer[y] = [];
+        gameState.propLayer[y] = [];
         combinedMap[y] = Array(width).fill(TILES.GRASS); // Inicializar con césped por defecto
     }
 
@@ -258,6 +259,14 @@ export function combineMapLayers(mapData) {
                     gameState.roofLayer[y][x] = roofsLayer[y][x];
                 } else {
                     gameState.roofLayer[y][x] = 0; // No roof
+                }
+                
+                // Process props layer (decorative and interactive objects)
+                const propsLayer = mapData.layers.props || [];
+                if (propsLayer[y] && propsLayer[y][x] !== undefined && propsLayer[y][x] !== 0) {
+                    gameState.propLayer[y][x] = propsLayer[y][x];
+                } else {
+                    gameState.propLayer[y][x] = 0; // No prop
                 }
             }
         }

@@ -123,7 +123,16 @@ export function handleCanvasClick(event) {
         setAutoMoveTarget(worldCoords.x, worldCoords.y, 'position', null);
         addChatMessage('system', `🎯 Moviendo hacia posición (${worldCoords.x}, ${worldCoords.y})`);
     } else {
-        console.log(`❌ Posición no walkable (tile: ${gameState.map[worldCoords.y][worldCoords.x]})`);
+        // Verificar si es un tile de agua para pescar
+        import('../world/TileTypes.js').then(({ TILES }) => {
+            const tile = gameState.map[worldCoords.y][worldCoords.x];
+            if (tile === TILES.WATER) {
+                console.log(`🎣 Tile de agua detectado`);
+                handleWaterTileClick(worldCoords.x, worldCoords.y);
+            } else {
+                console.log(`❌ Posición no walkable (tile: ${tile})`);
+            }
+        });
     }
 }
 
@@ -152,6 +161,130 @@ function handleEntityClick(clickedEntity, worldCoords) {
         case 'portal':
             handlePortalClick(clickedEntity.entity);
             break;
+        case 'resource':
+            handleResourceClick(clickedEntity.entity);
+            break;
+    }
+}
+
+/**
+ * Manejar clic en tile de agua para pescar
+ * @param {number} waterX - Coordenada X del agua
+ * @param {number} waterY - Coordenada Y del agua
+ */
+function handleWaterTileClick(waterX, waterY) {
+    // Verificar que el jugador no sea fantasma
+    if (gameState.player.isGhost) {
+        addChatMessage('system', '👻 Como fantasma no puedes pescar.');
+        return;
+    }
+
+    // Verificar que el jugador tiene caña equipada
+    const equippedWeapon = gameState.player.equipped.weapon;
+    const hasFishingRod = equippedWeapon === 'FISHING_ROD' || equippedWeapon === 'FISHING_ROD_GOOD';
+    
+    if (!hasFishingRod) {
+        addChatMessage('system', '❌ Necesitas equipar una caña de pescar para pescar.');
+        return;
+    }
+
+    // Calcular distancia al tile de agua
+    const dist = Math.abs(waterX - gameState.player.x) + Math.abs(waterY - gameState.player.y);
+
+    if (dist <= 1) {
+        // El jugador está adyacente al agua, puede pescar
+        console.log(`🎣 Pescando directamente en agua adyacente`);
+
+        // Actualizar dirección hacia el agua
+        updatePlayerFacingTowardsTarget(waterX, waterY);
+
+        // Crear una zona de pesca temporal como recurso
+        const fishingSpot = {
+            type: 'resource',
+            resourceType: 'FISHING_SPOT',
+            x: waterX,
+            y: waterY,
+            sprite: 'water', // Usamos el sprite de agua
+            // No se añade a gameState.objects, es temporal solo para la acción
+        };
+
+        // Intentar pescar usando el sistema de recolección
+        import('../systems/ResourceGathering.js').then(({ attemptGathering }) => {
+            attemptGathering(fishingSpot);
+        });
+
+        return;
+    } else {
+        // Moverse hacia el agua para pescar
+        console.log(`🚶 Moviéndose hacia agua para pescar`);
+        
+        // Buscar tile walkable adyacente al agua
+        const adjacentTiles = [
+            { x: waterX - 1, y: waterY },
+            { x: waterX + 1, y: waterY },
+            { x: waterX, y: waterY - 1 },
+            { x: waterX, y: waterY + 1 }
+        ];
+
+        // Encontrar el tile walkable más cercano
+        let closestWalkable = null;
+        let minDist = Infinity;
+
+        for (const tile of adjacentTiles) {
+            if (tile.x >= 0 && tile.x < CONFIG.MAP_WIDTH && 
+                tile.y >= 0 && tile.y < CONFIG.MAP_HEIGHT &&
+                isWalkable(gameState.map, tile.x, tile.y)) {
+                
+                const tileDist = Math.abs(tile.x - gameState.player.x) + Math.abs(tile.y - gameState.player.y);
+                if (tileDist < minDist) {
+                    minDist = tileDist;
+                    closestWalkable = tile;
+                }
+            }
+        }
+
+        if (closestWalkable) {
+            // Mover hacia el tile adyacente al agua
+            setAutoMoveTarget(closestWalkable.x, closestWalkable.y, 'water_fishing', {x: waterX, y: waterY});
+            addChatMessage('system', `🎯 Moviendo hacia el agua para pescar`);
+        } else {
+            addChatMessage('system', '❌ No puedes acceder a esa zona de agua.');
+        }
+    }
+}
+
+/**
+ * Manejar clic en recurso (árboles, vetas, etc.)
+ * @param {Object} resource - El recurso clickeado
+ */
+function handleResourceClick(resource) {
+    console.log(`🌲 Clic en recurso tipo: ${resource.resourceType}`);
+    
+    const dist = Math.abs(resource.x - gameState.player.x) + Math.abs(resource.y - gameState.player.y);
+
+    // Los recursos se pueden recolectar desde distancia adyacente (dist <= 1)
+    if (dist <= 1) {
+        console.log(`🪓 Interactuando directamente con recurso adyacente`);
+
+        // Actualizar la dirección del jugador para mirar hacia el recurso
+        if (dist > 0) {
+            updatePlayerFacingTowardsTarget(resource.x, resource.y);
+        }
+
+        // Importar y usar la función de recolección
+        import('../systems/ResourceGathering.js').then(({ attemptGathering }) => {
+            const success = attemptGathering(resource);
+            if (!success) {
+                console.log(`❌ No se pudo recolectar el recurso`);
+            }
+        });
+
+        return; // Salir sin iniciar movimiento automático
+    } else {
+        // Si no está adyacente, establecer objetivo de movimiento
+        console.log(`🚶 Moviéndose hacia recurso para recolectar`);
+        setAutoMoveTarget(resource.x, resource.y, 'resource', resource);
+        addChatMessage('system', `🎯 Moviendo hacia recurso para recolectar`);
     }
 }
 
