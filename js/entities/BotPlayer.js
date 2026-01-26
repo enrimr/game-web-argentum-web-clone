@@ -125,16 +125,29 @@ export class BotPlayer extends Character {
     
     /**
      * Genera un inventario aleatorio para el bot
+     * Incluye copias del equipamiento y objetos adicionales
      * @returns {Array} Array de items
      */
     generateRandomInventory() {
         const items = [];
         
-        // Pociones rojas (HP) - 0 a 5
-        const redPotions = Math.floor(Math.random() * 6);
-        if (redPotions > 0) {
-            items.push({ type: 'POTION_RED', quantity: redPotions });
+        // Añadir copias del equipamiento al inventario
+        // (así cuando muera, dropea tanto lo equipado como extras)
+        if (this.equipment) {
+            Object.keys(this.equipment).forEach(slot => {
+                const itemType = this.equipment[slot];
+                if (itemType) {
+                    // 50% de probabilidad de tener copia en inventario
+                    if (Math.random() > 0.5) {
+                        items.push({ type: itemType, quantity: 1 });
+                    }
+                }
+            });
         }
+        
+        // Pociones rojas (HP) - 1 a 5
+        const redPotions = Math.floor(Math.random() * 5) + 1;
+        items.push({ type: 'POTION_RED', quantity: redPotions });
         
         // Pociones azules (Mana) - 0 a 3
         const bluePotions = Math.floor(Math.random() * 4);
@@ -142,7 +155,28 @@ export class BotPlayer extends Character {
             items.push({ type: 'POTION_BLUE', quantity: bluePotions });
         }
         
-        // Oro aleatorio (no se dropea como item, pero está en el inventario)
+        // Pociones verdes (Veneno) - 0 a 2
+        const greenPotions = Math.floor(Math.random() * 3);
+        if (greenPotions > 0) {
+            items.push({ type: 'POTION_GREEN', quantity: greenPotions });
+        }
+        
+        // Flechas (si es arquero o tiene arco) - 10 a 50
+        if (this.class === 'Arquero' || (this.equipment && this.equipment.weapon && this.equipment.weapon.includes('BOW'))) {
+            const arrows = Math.floor(Math.random() * 41) + 10;
+            items.push({ type: 'ARROW', quantity: arrows });
+        }
+        
+        // Objetos aleatorios adicionales (30% probabilidad cada uno)
+        const randomItems = ['WOOD', 'IRON_ORE', 'COAL', 'ROPE'];
+        randomItems.forEach(itemType => {
+            if (Math.random() > 0.7) {
+                const quantity = Math.floor(Math.random() * 5) + 1;
+                items.push({ type: itemType, quantity });
+            }
+        });
+        
+        // Oro aleatorio
         this.gold = Math.floor(Math.random() * 1000) + 100;
         
         return items;
