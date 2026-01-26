@@ -442,7 +442,8 @@ export const STATIC_WORLD_MAPS = {
             { type: 'guard_city', x: 25, y: 24 },
             { type: 'guard_city', x: 34, y: 24 },
             { type: 'guard_city', x: 27, y: 20 },
-            { type: 'guard_city', x: 32, y: 20 }
+            { type: 'guard_city', x: 32, y: 20 },
+            { type: 'healer_city', x: 30, y: 15 }
         ],
         enemies: { enabled: false },
         objects: {

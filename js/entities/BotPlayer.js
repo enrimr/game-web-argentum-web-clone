@@ -24,11 +24,12 @@ const BOT_NAMES = [
 
 // Comportamientos posibles de los bots
 const BOT_BEHAVIORS = {
-    IDLE: 'idle',           // Sin hacer nada
-    WANDERING: 'wandering', // Caminando sin rumbo
-    HUNTING: 'hunting',     // Cazando enemigos
-    CHATTING: 'chatting',   // Hablando en el chat
-    TRAVELING: 'traveling'  // Viajando entre mapas
+    IDLE: 'idle',                    // Sin hacer nada
+    WANDERING: 'wandering',          // Caminando sin rumbo
+    HUNTING: 'hunting',              // Cazando enemigos
+    CHATTING: 'chatting',            // Hablando en el chat
+    TRAVELING: 'traveling',          // Viajando entre mapas
+    SEEKING_RESURRECTION: 'seeking_resurrection' // Buscando sacerdote para resucitar
 };
 
 // Mensajes aleatorios que pueden decir los bots
@@ -240,6 +241,14 @@ export class BotPlayer extends Character {
      * @param {object} gameState - Estado actual del juego
      */
     update(deltaTime, gameState) {
+        // Si el bot es fantasma, solo busca resurrección
+        if (this.isGhost) {
+            this.behavior = BOT_BEHAVIORS.SEEKING_RESURRECTION;
+            this.updateSeekingResurrection(deltaTime, gameState);
+            this.updateAnimation(deltaTime);
+            return;
+        }
+        
         // Actualizar temporizador de comportamiento
         this.behaviorTimer += deltaTime;
         
@@ -404,6 +413,92 @@ export class BotPlayer extends Character {
         } else {
             // No hay portales, cambiar a wandering
             this.behavior = BOT_BEHAVIORS.WANDERING;
+        }
+    }
+    
+    /**
+     * Actualiza el comportamiento seeking_resurrection (buscando sacerdote)
+     */
+    updateSeekingResurrection(deltaTime, gameState) {
+        const currentTime = Date.now();
+        
+        // Buscar sacerdote más cercano
+        const healer = this.findNearestHealer(gameState);
+        
+        if (!healer) {
+            console.log(`👻 ${this.name} no encuentra sacerdote para resucitar`);
+            return;
+        }
+        
+        const distance = this.getDistance(healer.x, healer.y);
+        
+        // Si está al lado del sacerdote, resucitar
+        if (distance <= 1) {
+            this.resurrectWithHealer(healer);
+        } else {
+            // Moverse hacia el sacerdote
+            if (currentTime - this.lastMoveTime >= this.movementSpeed) {
+                this.targetX = healer.x;
+                this.targetY = healer.y;
+                this.moveTowardsTarget(gameState);
+                this.lastMoveTime = currentTime;
+            }
+        }
+    }
+    
+    /**
+     * Encuentra el sacerdote (healer) más cercano
+     * @param {object} gameState - Estado del juego
+     * @returns {object|null} NPC sacerdote más cercano
+     */
+    findNearestHealer(gameState) {
+        if (!gameState.npcs || gameState.npcs.length === 0) return null;
+        
+        let nearest = null;
+        let minDistance = Infinity;
+        
+        for (const npc of gameState.npcs) {
+            // Verificar que sea un healer y esté en el mismo mapa
+            if (npc.type === 'healer' && npc.services && npc.services.canResurrect) {
+                if (!npc.currentMap || npc.currentMap === this.currentMap) {
+                    const distance = this.getDistance(npc.x, npc.y);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearest = npc;
+                    }
+                }
+            }
+        }
+        
+        return nearest;
+    }
+    
+    /**
+     * Resucita al bot mediante un sacerdote
+     * @param {object} healer - NPC sacerdote
+     */
+    resurrectWithHealer(healer) {
+        console.log(`⛪ ${this.name} resucita con ${healer.name}`);
+        
+        // Resucitar
+        this.isGhost = false;
+        this.hp = this.maxHp;
+        
+        // Limpiar estado de combate previo
+        this.attackedByGuard = false;
+        this.hostile = false;
+        
+        // Volver a comportamiento normal
+        this.behavior = BOT_BEHAVIORS.IDLE;
+        this.behaviorTimer = 0;
+        this.behaviorDuration = this.getRandomBehaviorDuration();
+        
+        // Regenerar inventario (perdió todo al morir)
+        this.inventory = this.generateRandomInventory();
+        
+        // Mensaje de chat
+        if (typeof window !== 'undefined' && window.addChatMessage) {
+            window.addChatMessage('system', `⛪ ${this.name} ha resucitado con ${healer.name}`);
         }
     }
     
