@@ -61,7 +61,10 @@ export function preloadAllMaps() {
 
         // ===== MAZMORRAS =====
         { id: 'forest_cave', path: 'js/world/maps/forest_cave.json' },
-        { id: 'mountain_dungeon', path: 'js/world/maps/mountain_dungeon.json' }
+        { id: 'mountain_dungeon', path: 'js/world/maps/mountain_dungeon.json' },
+
+        // ===== MAPAS DE PRUEBA =====
+        { id: 'guard_test_arena', path: 'js/world/maps/guard_test_arena.json' }
 
         // Los mapas de Canarias están en backup/ temporalmente
         // Se añadirán más mapas del mundo aquí conforme se creen
