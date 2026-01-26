@@ -118,6 +118,34 @@ export class BotPlayer extends Character {
         
         // Equipamiento visual basado en la clase
         this.equipment = createBotEquipment(this.class);
+        
+        // Inventario aleatorio con pociones y items básicos
+        this.inventory = this.generateRandomInventory();
+    }
+    
+    /**
+     * Genera un inventario aleatorio para el bot
+     * @returns {Array} Array de items
+     */
+    generateRandomInventory() {
+        const items = [];
+        
+        // Pociones rojas (HP) - 0 a 5
+        const redPotions = Math.floor(Math.random() * 6);
+        if (redPotions > 0) {
+            items.push({ type: 'POTION_RED', quantity: redPotions });
+        }
+        
+        // Pociones azules (Mana) - 0 a 3
+        const bluePotions = Math.floor(Math.random() * 4);
+        if (bluePotions > 0) {
+            items.push({ type: 'POTION_BLUE', quantity: bluePotions });
+        }
+        
+        // Oro aleatorio (no se dropea como item, pero está en el inventario)
+        this.gold = Math.floor(Math.random() * 1000) + 100;
+        
+        return items;
     }
     
     /**
