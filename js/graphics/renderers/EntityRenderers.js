@@ -69,12 +69,22 @@ export function renderBots(camera, ctx) {
             const playerSprite = sprites.player || sprites.playerDown;
             
             if (playerSprite) {
+                // Apply ghost transparency if bot is a ghost
+                if (bot.isGhost) {
+                    ctx.globalAlpha = 0.5; // 50% transparency for ghosts
+                }
+                
                 // Draw base character sprite
                 ctx.drawImage(playerSprite, screenPos.x, screenPos.y);
                 
-                // Draw equipment layers (armor, helmet, weapon, shield)
-                if (bot.equipment) {
+                // Draw equipment layers (armor, helmet, weapon, shield) - only if not a ghost
+                if (bot.equipment && !bot.isGhost) {
                     renderEquipmentLayers(ctx, screenPos, bot.equipment, sprites);
+                }
+                
+                // Restore full opacity
+                if (bot.isGhost) {
+                    ctx.globalAlpha = 1.0;
                 }
                 
                 // Draw bot nickname below sprite with color based on faction

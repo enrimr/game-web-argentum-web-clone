@@ -66,6 +66,115 @@ function enterGhostMode() {
 }
 
 /**
+ * Convert bot to ghost and drop all items
+ * @param {Object} bot - Bot that died
+ */
+export function botEnterGhostMode(bot) {
+    bot.isGhost = true;
+    bot.hp = bot.maxHp; // Fantasmas tienen HP completo pero no pueden ser atacados
+    
+    // Drop all bot items
+    dropAllBotItems(bot);
+    
+    addChatMessage('system', `💀 ${bot.name} ha muerto y se ha convertido en fantasma.`);
+}
+
+/**
+ * Drop all bot items to the ground at bot's position
+ * @param {Object} bot - Bot whose items to drop
+ */
+function dropAllBotItems(bot) {
+    const botX = bot.x;
+    const botY = bot.y;
+    const currentMap = bot.currentMap;
+    
+    let itemsDropped = 0;
+    const allItems = [];
+
+    // Recopilar todos los items del inventario del bot
+    if (bot.inventory && bot.inventory.length > 0) {
+        bot.inventory.forEach(item => {
+            if (item && item.type) {
+                allItems.push({
+                    type: item.type,
+                    quantity: item.quantity,
+                    equippedSlot: null
+                });
+            }
+        });
+    }
+
+    // Recopilar todos los items equipados del bot
+    if (bot.equipment) {
+        Object.keys(bot.equipment).forEach(slot => {
+            const itemType = bot.equipment[slot];
+            if (itemType) {
+                allItems.push({
+                    type: itemType,
+                    quantity: 1,
+                    equippedSlot: slot
+                });
+            }
+        });
+    }
+
+    // Dropear cada item en una posición diferente alrededor del bot
+    allItems.forEach((item, index) => {
+        // Calcular posición aleatoria en un radio de 2 casillas alrededor del bot
+        const offsetX = Math.floor(Math.random() * 5) - 2; // -2 a +2
+        const offsetY = Math.floor(Math.random() * 5) - 2; // -2 a +2
+        const dropX = botX + offsetX;
+        const dropY = botY + offsetY;
+
+        // Verificar que la posición es válida (dentro del mapa y caminable)
+        const isValidDrop = dropX >= 0 && dropX < CONFIG.MAP_WIDTH && 
+                           dropY >= 0 && dropY < CONFIG.MAP_HEIGHT &&
+                           isWalkable(gameState.map, dropX, dropY);
+
+        const finalX = isValidDrop ? dropX : botX;
+        const finalY = isValidDrop ? dropY : botY;
+
+        // Añadir a droppedItems para persistencia
+        const droppedItem = {
+            type: item.type,
+            quantity: item.quantity,
+            x: finalX,
+            y: finalY,
+            map: currentMap,
+            droppedByBot: true,
+            botName: bot.name,
+            dropTime: Date.now(),
+            equippedSlot: item.equippedSlot
+        };
+        gameState.droppedItems.push(droppedItem);
+        
+        // Añadir también a objects para renderizado inmediato
+        gameState.objects.push({
+            type: 'dropped_item',
+            x: finalX,
+            y: finalY,
+            droppedItem: droppedItem
+        });
+        
+        itemsDropped++;
+    });
+
+    // Clear bot's inventory and equipment
+    bot.inventory = [];
+    bot.equipment = {
+        weapon: null,
+        shield: null,
+        ammunition: null,
+        body: null,
+        head: null
+    };
+
+    if (itemsDropped > 0) {
+        addChatMessage('system', `📦 ${bot.name} ha soltado ${itemsDropped} objetos en (${botX}, ${botY}).`);
+    }
+}
+
+/**
  * Drop all player items to the ground at current position
  */
 function dropAllPlayerItems() {

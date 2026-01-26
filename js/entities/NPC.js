@@ -501,12 +501,18 @@ export class NPC extends Character {
      * @param {object} gameState - Game state object
      */
     guardBehavior(gameState) {
-        // Import faction check function
-        import('../systems/Factions.js').then(({ shouldGuardAttack }) => {
+        // Import faction check function and bot death handler
+        Promise.all([
+            import('../systems/Factions.js'),
+            import('../systems/Combat.js')
+        ]).then(([{ shouldGuardAttack }, { botEnterGhostMode }]) => {
             // Check bots in range
             const detectionRange = 8; // 8 tiles de rango de detección
             
             for (const bot of gameState.bots) {
+                // Skip if bot is already a ghost
+                if (bot.isGhost) continue;
+                
                 // Skip if bot is not in current map
                 if (bot.currentMap !== this.currentMap) continue;
                 
@@ -516,31 +522,24 @@ export class NPC extends Character {
                 
                 // Check if bot is from evil faction
                 if (shouldGuardAttack(bot.faction)) {
-                    // TODO: Implement actual attack behavior
-                    // For now, just log detection
+                    // Mark bot as detected if first time
                     if (!bot.attackedByGuard) {
                         console.log(`⚔️ Guardia ${this.name} detectó criminal de facción ${bot.faction}: ${bot.name}`);
                         bot.attackedByGuard = true;
-                        
-                        // Mark bot as hostile
                         bot.hostile = true;
+                    }
+                    
+                    // Attack if within melee range
+                    if (distance <= 1) {
+                        const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
+                        bot.hp -= damage;
+                        console.log(`⚔️ Guardia ${this.name} ataca a ${bot.name} causando ${damage} de daño (${bot.hp}/${bot.maxHp} HP)`);
                         
-                        // Future: Move towards bot and attack
-                        // For now, instant damage at close range
-                        if (distance <= 1) {
-                            const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
-                            bot.hp -= damage;
-                            console.log(`⚔️ Guardia ${this.name} ataca a ${bot.name} causando ${damage} de daño`);
-                            
-                            // Check if bot died
-                            if (bot.hp <= 0) {
-                                console.log(`💀 ${bot.name} ha sido eliminado por la guardia`);
-                                // Remove bot from game
-                                const botIndex = gameState.bots.indexOf(bot);
-                                if (botIndex !== -1) {
-                                    gameState.bots.splice(botIndex, 1);
-                                }
-                            }
+                        // Check if bot died
+                        if (bot.hp <= 0) {
+                            console.log(`💀 ${bot.name} ha sido eliminado por la guardia - convirtiéndose en fantasma`);
+                            // Convert bot to ghost and drop items
+                            botEnterGhostMode(bot);
                         }
                     }
                 }
