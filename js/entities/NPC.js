@@ -579,17 +579,34 @@ export class NPC extends Character {
                         console.log(`💀 ${nearestCriminal.name} eliminado por guardia → fantasma`);
                         
                         if (isPlayer) {
-                            // Jugador muere: pasar guardia para reducir criminalidad
-                            import('../systems/Combat.js').then((module) => {
-                                // Llamar directamente a la función de muerte del jugador
-                                // pasando el guardia como killedBy
-                                gameState.player.isGhost = true;
-                                gameState.player.hp = 0;
+                            // Jugador muere por guardia: aplicar justicia
+                            console.log('⚖️ Guardia mata jugador criminal - aplicando justicia');
+                            
+                            // Reducir criminalidad directamente (síncrono)
+                            if (gameState.player.criminalStatus > 0) {
+                                const oldStatus = gameState.player.criminalStatus;
+                                gameState.player.criminalStatus = Math.max(0, gameState.player.criminalStatus - 30);
                                 
-                                // Trigger enter ghost mode con el guardia
-                                window.dispatchEvent(new CustomEvent('playerKilledByGuard', { 
-                                    detail: { guard: this } 
-                                }));
+                                console.log(`⚖️ Criminalidad: ${oldStatus} → ${gameState.player.criminalStatus}`);
+                                
+                                // Importar UI para mensajes
+                                import('../ui/UI.js').then(({ addChatMessage }) => {
+                                    addChatMessage('system', `⚖️ La guardia te ha impartido justicia: -30 puntos criminales`);
+                                    addChatMessage('system', `⚖️ Criminalidad: ${oldStatus} → ${gameState.player.criminalStatus}`);
+                                    
+                                    if (gameState.player.criminalStatus < 50 && oldStatus >= 50) {
+                                        addChatMessage('system', '✅ Ya no eres criminal. Los guardias dejarán de atacarte.');
+                                    }
+                                });
+                            }
+                            
+                            // Convertir en fantasma
+                            gameState.player.isGhost = true;
+                            
+                            import('../ui/UI.js').then(({ addChatMessage }) => {
+                                addChatMessage('system', '💀 ¡Has muerto! Ahora eres un fantasma.');
+                                addChatMessage('system', '👻 Como fantasma puedes caminar y hablar con sacerdotes.');
+                                addChatMessage('system', '⛪ Busca un sacerdote para resucitarte.');
                             });
                         } else {
                             // Bot muere normalmente
