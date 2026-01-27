@@ -574,10 +574,28 @@ export class NPC extends Character {
                     nearestCriminal.hp -= damage;
                     console.log(`⚔️ Guardia ${this.name} ataca a ${nearestCriminal.name} - ${damage} daño (${nearestCriminal.hp}/${nearestCriminal.maxHp} HP)`);
                     
-                    // Check if bot died
+                    // Check if criminal died
                     if (nearestCriminal.hp <= 0) {
                         console.log(`💀 ${nearestCriminal.name} eliminado por guardia → fantasma`);
-                        botEnterGhostMode(nearestCriminal);
+                        
+                        if (isPlayer) {
+                            // Jugador muere: pasar guardia para reducir criminalidad
+                            import('../systems/Combat.js').then((module) => {
+                                // Llamar directamente a la función de muerte del jugador
+                                // pasando el guardia como killedBy
+                                gameState.player.isGhost = true;
+                                gameState.player.hp = 0;
+                                
+                                // Trigger enter ghost mode con el guardia
+                                window.dispatchEvent(new CustomEvent('playerKilledByGuard', { 
+                                    detail: { guard: this } 
+                                }));
+                            });
+                        } else {
+                            // Bot muere normalmente
+                            botEnterGhostMode(nearestCriminal);
+                        }
+                        
                         this.chasing = false;
                         this.chasingTarget = null;
                     }

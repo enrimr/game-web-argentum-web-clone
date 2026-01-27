@@ -53,12 +53,33 @@ export function enemyAttack(enemy) {
 
 /**
  * Enter ghost mode when player dies
+ * @param {object} killedBy - Entidad que mató al jugador (opcional)
  */
-function enterGhostMode() {
+function enterGhostMode(killedBy = null) {
     gameState.player.isGhost = true;
 
     // Drop all items to the ground
     dropAllPlayerItems();
+    
+    // Si fue matado por un guardia, reducir criminalidad (justicia)
+    if (killedBy && killedBy.type === 'guard' && gameState.player.criminalStatus > 0) {
+        import('./Factions.js').then(({ reduceCriminalPoints, getCriminalStatusText }) => {
+            const oldStatus = gameState.player.criminalStatus;
+            const oldStatusText = getCriminalStatusText(oldStatus);
+            
+            // Reducir 30 puntos por muerte a manos de la justicia
+            reduceCriminalPoints(gameState.player, 30);
+            
+            const newStatusText = getCriminalStatusText(gameState.player.criminalStatus);
+            
+            addChatMessage('system', `⚖️ La guardia te ha impartido justicia: -30 puntos criminales`);
+            addChatMessage('system', `⚖️ Status: ${oldStatusText} (${oldStatus}) → ${newStatusText} (${gameState.player.criminalStatus})`);
+            
+            if (gameState.player.criminalStatus < 50 && oldStatus >= 50) {
+                addChatMessage('system', '✅ Ya no eres un criminal. Los guardias dejarán de atacarte.');
+            }
+        });
+    }
 
     addChatMessage('system', '💀 ¡Has muerto! Ahora eres un fantasma.');
     addChatMessage('system', '👻 Como fantasma puedes caminar, usar teletransportadores y hablar con sacerdotes.');
