@@ -86,6 +86,17 @@ export class NPC extends Character {
     getInteractionOptions() {
         const options = [];
         
+        // Faction recruiters have special join option
+        const definition = NPC_DEFINITIONS[this.npcType];
+        if (definition && definition.faction) {
+            options.push({
+                id: 'join_faction',
+                label: `Unirme a ${definition.faction}`,
+                action: 'joinFaction',
+                faction: definition.faction
+            });
+        }
+        
         // Merchants can trade
         if (this.inventory && this.inventory.length > 0) {
             options.push({
