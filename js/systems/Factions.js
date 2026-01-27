@@ -226,8 +226,8 @@ export function joinFaction(player, factionName, cost = 500) {
         return { success: false, message: `Necesitas ${cost} de oro para unirte.` };
     }
     
-    // Si ya tiene facción, verificar traición
-    if (player.faction) {
+    // Si ya tiene facción (y no es Neutral), verificar traición
+    if (player.faction && player.faction !== 'Neutral') {
         return { success: false, message: `Ya perteneces a ${player.faction}. Debes abandonarla primero.` };
     }
     
@@ -251,23 +251,36 @@ export function joinFaction(player, factionName, cost = 500) {
  * @returns {object} {success: boolean, message: string}
  */
 export function leaveFaction(player) {
-    if (!player.faction) {
+    console.log('=== leaveFaction LLAMADO ===');
+    console.log('Player.faction:', player.faction);
+    console.log('Player object:', player);
+    
+    if (!player.faction || player.faction === 'Neutral') {
+        console.log('FALLO: Player sin facción o ya Neutral');
         return { success: false, message: 'No perteneces a ninguna facción.' };
     }
     
     const oldFaction = player.faction;
+    console.log('oldFaction guardada:', oldFaction);
     
     // Penalización: la facción anterior te considera enemigo
+    console.log('Estableciendo reputación -50 para:', oldFaction.toUpperCase());
     player.factionReputation[oldFaction.toUpperCase()] = -50;
     
-    // Abandonar facción
-    player.faction = null;
+    // Abandonar facción y volver a neutral
+    console.log('Cambiando player.faction de', player.faction, 'a Neutral');
+    player.faction = 'Neutral';
+    console.log('Player.faction después del cambio:', player.faction);
     
-    return {
+    const result = {
         success: true,
         message: `Has abandonado ${oldFaction}. Ahora te consideran enemigo.`,
         oldFaction: oldFaction
     };
+    console.log('Retornando resultado:', result);
+    console.log('=== leaveFaction FINALIZADO ===');
+    
+    return result;
 }
 
 /**

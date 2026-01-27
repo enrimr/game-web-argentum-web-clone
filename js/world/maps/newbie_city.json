@@ -272,6 +272,32 @@
         "trade": "Aquí están mis productos.",
         "farewell": "¡Vuelve pronto!"
       }
+    },
+    {
+      "type": "recruiter_kingdom",
+      "x": 20,
+      "y": 8,
+      "name": "Capitán Rodrigo",
+      "dialogue": {
+        "greeting": "¡Saludos, aventurero! Soy el Capitán Rodrigo, reclutador del Reino.",
+        "recruit": "El Reino busca ciudadanos valientes y honorables. ¿Te unirás a nosotros?",
+        "benefits": "Como miembro del Reino recibirás: descuentos en tiendas, protección de guardias, y acceso a zonas exclusivas.",
+        "requirements": "Requisitos: Nivel 5+, No ser criminal, 500 de oro",
+        "farewell": "¡Que la luz del Reino te guíe!"
+      }
+    },
+    {
+      "type": "recruiter_armada",
+      "x": 32,
+      "y": 12,
+      "name": "Almirante Silva",
+      "dialogue": {
+        "greeting": "Bienvenido a bordo, marinero. Soy el Almirante Silva de la Armada Real.",
+        "recruit": "La Armada protege los mares del reino. ¿Navegarás con nosotros?",
+        "benefits": "Como miembro de la Armada: bonus marítimo, acceso a puertos exclusivos, alianza con Reino.",
+        "requirements": "Requisitos: Nivel 5+, No ser criminal, 500 de oro",
+        "farewell": "¡Viento en popa!"
+      }
     }
   ],
   "playerSpawn": {

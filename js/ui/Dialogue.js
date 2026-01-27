@@ -8,6 +8,7 @@ import { ITEM_TYPES } from '../systems/ItemTypes.js';
 import { addChatMessage, updateUI } from './UI.js';
 import { setPlayerAnimationState } from '../core/Renderer.js';
 import { openTrade } from './Trading.js';
+import { joinFaction, leaveFaction } from '../systems/Factions.js';
 
 // Estado del diálogo actual
 let currentDialogue = null;
@@ -96,9 +97,22 @@ export function showDialogue(npc) {
  * @param {Object} option - Opción seleccionada
  */
 function selectDialogueOption(option) {
+    console.log('🔵 selectDialogueOption llamado');
+    console.log('Opción seleccionada:', option.text);
+    console.log('Tiene action?', !!option.action);
+    console.log('Tiene response?', !!option.response);
+    
     // Ejecutar acción de la opción
     if (option.action) {
+        console.log('🔵 Ejecutando action...');
         option.action();
+        
+        // Si no hay response, la acción puede haber actualizado las opciones
+        // o cerrado el diálogo, así que no continuamos
+        if (!option.response && !option.followUpOptions) {
+            console.log('🔵 Action ejecutada sin response/followUpOptions, finalizando');
+            return;
+        }
     }
 
     // Mostrar respuesta del NPC en el diálogo (no en chat)
@@ -172,6 +186,13 @@ function closeDialogue() {
  * @returns {Object} Datos del diálogo
  */
 function getNPCDialogue(npc) {
+    // Manejo especial para reclutadores de facciones
+    // Verificar npcType en lugar de type
+    if (npc.npcType === 'recruiter_kingdom' || npc.npcType === 'recruiter_armada' || 
+        npc.npcType === 'recruiter_legion' || npc.npcType === 'recruiter_chaos') {
+        return getRecruiterDialogue(npc);
+    }
+    
     const dialogues = {
         merchant: {
             text: "¡Hola aventurero! Tengo los mejores items y pociones para tu viaje. ¿Qué te interesa?",
@@ -443,14 +464,281 @@ function getNPCDialogue(npc) {
         }
     };
 
-    return dialogues[npc.type] || {
-        text: `${npc.name}: ${npc.dialogue}`,
+    // Fallback genérico para NPCs sin diálogo específico
+    if (dialogues[npc.type]) {
+        return dialogues[npc.type];
+    }
+    
+    // Si el NPC tiene diálogo definido como objeto, usarlo
+    if (npc.dialogue && typeof npc.dialogue === 'object') {
+        return {
+            text: npc.dialogue.greeting || `Hola, soy ${npc.name}`,
+            options: [
+                {
+                    text: "Entendido",
+                    response: npc.dialogue.farewell || "¡Hasta luego!"
+                }
+            ]
+        };
+    }
+    
+    // Fallback final
+    return {
+        text: `Hola, soy ${npc.name}`,
         options: [
             {
-                text: "Entendido",
+                text: "Adiós",
                 response: "¡Hasta luego!"
             }
         ]
+    };
+}
+
+/**
+ * Obtener diálogo de reclutador de facción
+ * @param {Object} npc - NPC reclutador
+ * @returns {Object} Datos del diálogo
+ */
+function getRecruiterDialogue(npc) {
+    // Mapeo de nombres de reclutadores a nombres de facciones
+    const factionMap = {
+        'recruiter_kingdom': 'Reino',
+        'recruiter_armada': 'Armada',
+        'recruiter_legion': 'Legión',
+        'recruiter_chaos': 'Caos'
+    };
+    
+    const factionName = factionMap[npc.npcType] || 'Neutral';
+    
+    // Construir texto completo con toda la información
+    const fullText = `${npc.dialogue.greeting}\n\n${npc.dialogue.recruit}\n\n📋 ${npc.dialogue.benefits}\n\n⚠️ ${npc.dialogue.requirements}`;
+    
+    // Determinar si el jugador ya tiene facción
+    const hasFaction = gameState.player.faction && gameState.player.faction !== 'Neutral';
+    
+    // Determinar si el jugador pertenece a ESTA facción específica
+    const isInThisFaction = gameState.player.faction === factionName;
+    
+    console.log('🟢 getRecruiterDialogue - Generando opciones');
+    console.log('factionName:', factionName);
+    console.log('gameState.player.faction:', gameState.player.faction);
+    console.log('isInThisFaction:', isInThisFaction);
+    console.log('hasFaction:', hasFaction);
+    
+    // Construir opciones dinámicas
+    const options = [
+            // Solo mostrar "Unirme" si NO está en esta facción
+            ...(!isInThisFaction ? [{
+                text: `Unirme a ${factionName}`,
+                response: null,
+                action: () => {
+                    console.log('Intentando unirse a facción:', factionName);
+                    console.log('Player state:', {
+                        faction: gameState.player.faction,
+                        level: gameState.player.level,
+                        gold: gameState.player.gold,
+                        criminalStatus: gameState.player.criminalStatus
+                    });
+                    
+                    const currentHasFaction = gameState.player.faction && gameState.player.faction !== 'Neutral';
+                    
+                    // Verificar requisitos y mostrar respuesta apropiada
+                    let responseText = '';
+                    let canJoin = true;
+                    
+                    if (currentHasFaction) {
+                        responseText = `Lo siento, pero ya perteneces a ${gameState.player.faction}. Debes abandonar tu facción actual antes de unirte a otra.\n\nVuelve cuando hayas dejado tu facción actual.`;
+                        canJoin = false;
+                    } else if (gameState.player.level < 5) {
+                        responseText = `Me temo que aún no estás listo. Necesitas ser al menos nivel 5 para unirte a ${factionName}.\n\nActualmente eres nivel ${gameState.player.level}. Sigue entrenando y vuelve cuando seas más fuerte.`;
+                        canJoin = false;
+                    } else {
+                        const isGoodFaction = factionName === 'Reino' || factionName === 'Armada';
+                        if (isGoodFaction && gameState.player.criminalStatus >= 20) {
+                            responseText = `Lo siento, pero tienes antecedentes criminales. ${factionName} solo acepta ciudadanos honorables.\n\nDebes redimirte primero. Tu criminalidad actual es de ${gameState.player.criminalStatus}/100. Necesitas estar por debajo de 20.`;
+                            canJoin = false;
+                        } else if (gameState.player.gold < 500) {
+                            responseText = `Me temo que no tienes suficiente oro. Unirse a ${factionName} cuesta 500 monedas de oro.\n\nActualmente tienes ${gameState.player.gold} oro. Consigue ${500 - gameState.player.gold} oro más y vuelve.`;
+                            canJoin = false;
+                        }
+                    }
+                    
+                    if (!canJoin) {
+                        // Mostrar respuesta de error
+                        dialogueContainer.querySelector('.dialogue-text').textContent = responseText;
+                        addChatMessage('npc', responseText);
+                        updateDialogueOptions([
+                            { text: "Entendido", response: null, action: () => closeDialogue() }
+                        ]);
+                        return;
+                    }
+                    
+                    // Si pasa todas las validaciones, unirse
+                    const result = joinFaction(gameState.player, factionName, 500);
+                    
+                    if (result.success) {
+                        const successText = `¡Bienvenido a ${factionName}! ${result.message}\n\n${npc.dialogue.farewell}`;
+                        dialogueContainer.querySelector('.dialogue-text').textContent = successText;
+                        addChatMessage('system', `✨ ${result.message}`);
+                        updateUI();
+                        updateDialogueOptions([
+                            { text: "¡Gracias!", response: null, action: () => closeDialogue() }
+                        ]);
+                    } else {
+                        const errorText = `Lo siento, ha ocurrido un problema: ${result.message}`;
+                        dialogueContainer.querySelector('.dialogue-text').textContent = errorText;
+                        addChatMessage('system', `❌ ${result.message}`);
+                        updateDialogueOptions([
+                            { text: "Entendido", response: null, action: () => closeDialogue() }
+                        ]);
+                    }
+                }
+            }] : []),
+            {
+                text: "Necesito más información",
+                response: `Por supuesto. Déjame explicarte más sobre ${factionName}...\n\n${npc.dialogue.benefits}\n\n${npc.dialogue.requirements}`,
+                followUpOptions: [
+                    {
+                        text: `Sí, quiero unirme a ${factionName}`,
+                        response: null,
+                        action: () => {
+                            const currentHasFaction = gameState.player.faction && gameState.player.faction !== 'Neutral';
+                            
+                            // Verificar requisitos y mostrar respuesta apropiada
+                            let responseText = '';
+                            let canJoin = true;
+                            
+                            if (currentHasFaction) {
+                                responseText = `Lo siento, pero ya perteneces a ${gameState.player.faction}. Debes abandonar tu facción actual antes de unirte a otra.\n\nVuelve cuando hayas dejado tu facción actual.`;
+                                canJoin = false;
+                            } else if (gameState.player.level < 5) {
+                                responseText = `Me temo que aún no estás listo. Necesitas ser al menos nivel 5 para unirte a ${factionName}.\n\nActualmente eres nivel ${gameState.player.level}. Sigue entrenando y vuelve cuando seas más fuerte.`;
+                                canJoin = false;
+                            } else {
+                                const isGoodFaction = factionName === 'Reino' || factionName === 'Armada';
+                                if (isGoodFaction && gameState.player.criminalStatus >= 20) {
+                                    responseText = `Lo siento, pero tienes antecedentes criminales. ${factionName} solo acepta ciudadanos honorables.\n\nDebes redimirte primero. Tu criminalidad actual es de ${gameState.player.criminalStatus}/100. Necesitas estar por debajo de 20.`;
+                                    canJoin = false;
+                                } else if (gameState.player.gold < 500) {
+                                    responseText = `Me temo que no tienes suficiente oro. Unirse a ${factionName} cuesta 500 monedas de oro.\n\nActualmente tienes ${gameState.player.gold} oro. Consigue ${500 - gameState.player.gold} oro más y vuelve.`;
+                                    canJoin = false;
+                                }
+                            }
+                            
+                            if (!canJoin) {
+                                // Mostrar respuesta de error
+                                dialogueContainer.querySelector('.dialogue-text').textContent = responseText;
+                                addChatMessage('npc', responseText);
+                                updateDialogueOptions([
+                                    { text: "Entendido", response: null, action: () => closeDialogue() }
+                                ]);
+                                return;
+                            }
+                            
+                            // Si pasa todas las validaciones, unirse
+                            const result = joinFaction(gameState.player, factionName, 500);
+                            
+                            if (result.success) {
+                                const successText = `¡Bienvenido a ${factionName}! ${result.message}\n\n${npc.dialogue.farewell}`;
+                                dialogueContainer.querySelector('.dialogue-text').textContent = successText;
+                                addChatMessage('system', `✨ ${result.message}`);
+                                updateUI();
+                                updateDialogueOptions([
+                                    { text: "¡Gracias!", response: null, action: () => closeDialogue() }
+                                ]);
+                            } else {
+                                const errorText = `Lo siento, ha ocurrido un problema: ${result.message}`;
+                                dialogueContainer.querySelector('.dialogue-text').textContent = errorText;
+                                addChatMessage('system', `❌ ${result.message}`);
+                                updateDialogueOptions([
+                                    { text: "Entendido", response: null, action: () => closeDialogue() }
+                                ]);
+                            }
+                        }
+                    },
+                    {
+                        text: "Déjame pensarlo",
+                        response: `Entiendo. Es una decisión importante. Vuelve cuando estés listo. ${npc.dialogue.farewell}`
+                    }
+                ]
+            },
+            ...(isInThisFaction ? [{
+                text: "Abandonar facción",
+                response: null,
+                action: () => {
+                    // Verificar si el jugador tiene facción
+                    if (!gameState.player.faction || gameState.player.faction === 'Neutral') {
+                        const noFactionText = `No perteneces a ninguna facción actualmente. Solo puedes abandonar una facción si ya estás en una.`;
+                        dialogueContainer.querySelector('.dialogue-text').textContent = noFactionText;
+                        addChatMessage('npc', noFactionText);
+                        updateDialogueOptions([
+                            { text: "Entendido", response: null, action: () => closeDialogue() }
+                        ]);
+                        return;
+                    }
+                    
+                    // Mostrar confirmación antes de abandonar
+                    const confirmText = `¿Estás seguro de que quieres abandonar ${gameState.player.faction}?\n\n⚠️ ADVERTENCIA: Tu facción anterior te considerará enemigo (reputación -50). Esta decisión es permanente.`;
+                    dialogueContainer.querySelector('.dialogue-text').textContent = confirmText;
+                    updateDialogueOptions([
+                        {
+                            text: "Sí, abandonar facción",
+                            response: null,
+                            action: () => {
+                                console.log('🔴 ACCIÓN DE ABANDONAR FACCIÓN EJECUTADA');
+                                console.log('gameState.player.faction:', gameState.player.faction);
+                                console.log('Llamando a leaveFaction...');
+                                
+                                const result = leaveFaction(gameState.player);
+                                console.log('Resultado de leaveFaction:', result);
+                                console.log('Player.faction después:', gameState.player.faction);
+                                
+                                if (result.success) {
+                                    const successText = `Has abandonado ${result.oldFaction}. Ahora eres neutral, pero ${result.oldFaction} te considera enemigo.\n\nPuedes unirte a otra facción cuando desees.`;
+                                    dialogueContainer.querySelector('.dialogue-text').textContent = successText;
+                                    addChatMessage('system', `⚠️ ${result.message}`);
+                                    updateUI();
+                                    updateDialogueOptions([
+                                        { text: "Entendido", response: null, action: () => closeDialogue() }
+                                    ]);
+                                } else {
+                                    const errorText = `Ha ocurrido un problema: ${result.message}`;
+                                    dialogueContainer.querySelector('.dialogue-text').textContent = errorText;
+                                    addChatMessage('system', `❌ ${result.message}`);
+                                    updateDialogueOptions([
+                                        { text: "Entendido", response: null, action: () => closeDialogue() }
+                                    ]);
+                                }
+                            }
+                        },
+                        {
+                            text: "No, mejor no",
+                            response: null,
+                            action: () => {
+                                dialogueContainer.querySelector('.dialogue-text').textContent = 
+                                    `Sabía decisión. Mantente leal a ${gameState.player.faction}. ${npc.dialogue.farewell}`;
+                                updateDialogueOptions([
+                                    { text: "Adiós", response: null, action: () => closeDialogue() }
+                                ]);
+                            }
+                        }
+                    ]);
+                }
+            }] : []),
+            {
+                text: "No, gracias",
+                response: npc.dialogue.farewell
+            }
+        ];
+    
+    console.log('📋 Opciones generadas:', options.length);
+    options.forEach((opt, i) => {
+        console.log(`  Opción ${i+1}:`, opt.text);
+    });
+    
+    return {
+        text: fullText,
+        options: options
     };
 }
 
