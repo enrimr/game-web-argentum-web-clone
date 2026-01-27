@@ -72,10 +72,19 @@ export class NPC extends Character {
         
         this.lastInteraction = now;
         
+        // Construct greeting message for recruiters
+        let greetingMessage = this.dialogue.greeting || 'Hola, aventurero.';
+        
+        // If this is a faction recruiter, add more info
+        const definition = NPC_DEFINITIONS[this.npcType];
+        if (definition && definition.faction) {
+            greetingMessage = `${this.dialogue.greeting}\n\n${this.dialogue.recruit}\n\nBeneficios: ${this.dialogue.benefits}\n\nRequisitos: ${this.dialogue.requirements}`;
+        }
+        
         // Return dialogue based on NPC type
         return {
             npc: this,
-            greeting: this.dialogue.greeting || 'Hola, aventurero.',
+            greeting: greetingMessage,
             options: this.getInteractionOptions()
         };
     }
