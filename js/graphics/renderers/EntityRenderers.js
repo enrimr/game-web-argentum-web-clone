@@ -40,6 +40,14 @@ export function renderPlayer(camera, ctx) {
     if (gameState.player.meditating) {
         drawDBZMeditationEffects(playerScreenPos, ctx);
     }
+    
+    // Draw player name below sprite if available (from character selection)
+    if (gameState.player.name) {
+        ctx.fillStyle = '#60a5fa'; // Blue color for player
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gameState.player.name, playerScreenPos.x + TILE_SIZE/2, playerScreenPos.y + TILE_SIZE + 10);
+    }
 }
 
 /**

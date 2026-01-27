@@ -3,6 +3,9 @@
  * Gestión de la pantalla de inicio y autenticación para el juego
  */
 
+import { characterManager, RACES, GENDERS, TUNIC_COLORS, SKIN_COLORS, HAIR_COLORS, HAIR_STYLES } from '../systems/CharacterManager.js';
+import { CHARACTER_CLASSES } from '../systems/Classes.js';
+
 // Mockup de respuestas del servidor para simular las llamadas API
 const AUTH_SERVER_RESPONSES = {
     login: {
@@ -59,55 +62,6 @@ const AUTH_SERVER_RESPONSES = {
     }
 };
 
-// Protocolo de autenticación para el futuro servidor
-const AUTH_PROTOCOL = {
-    // Formato de petición para login
-    loginRequest: {
-        endpoint: "/api/auth/login",
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: {
-            username: "nombre_usuario",
-            password: "contraseña_cifrada" // En implementación real se usaría HTTPS + hash en cliente
-        }
-    },
-    
-    // Formato de petición para registro
-    registerRequest: {
-        endpoint: "/api/auth/register",
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: {
-            username: "nombre_usuario",
-            password: "contraseña_cifrada", // En implementación real se usaría HTTPS + hash en cliente
-            email: "correo@ejemplo.com",
-            accept_terms: true // Aceptación de términos y condiciones
-        }
-    },
-    
-    // Formato de petición para verificar estado del servidor
-    serverStatusRequest: {
-        endpoint: "/api/server/status",
-        method: "GET",
-        headers: {
-            "Accept": "application/json"
-        }
-    },
-    
-    // Formato de petición para verificar autenticación
-    verifyTokenRequest: {
-        endpoint: "/api/auth/verify",
-        method: "GET",
-        headers: {
-            "Authorization": "Bearer TOKEN_JWT"
-        }
-    }
-};
-
 /**
  * Clase para gestionar la pantalla de inicio y autenticación
  */
@@ -118,6 +72,7 @@ export class LoginScreen {
         this.isServerOnline = true;
         this.token = localStorage.getItem('auth_token');
         this.user = null;
+        this.currentScreen = 'home'; // home, login, register, characters, createCharacter
         
         if (this.token) {
             try {
@@ -151,8 +106,6 @@ export class LoginScreen {
         // Verificar si hay que saltar la pantalla de login e iniciar en modo local
         if (this.checkUrlParams()) {
             console.log('URL parameter detected: skipping login screen and starting in local mode');
-            // No iniciamos el juego aquí, solo marcamos que se debe saltar la pantalla
-            // El juego se iniciará desde Game.js cuando esté listo
             this.skipLoginScreen = true;
             this.isInitialized = true;
             return;
@@ -323,6 +276,108 @@ export class LoginScreen {
                         ¿Ya tienes cuenta? <span id="goToLogin" class="form-link">Inicia sesión aquí</span>
                     </div>
                 </div>
+
+                <!-- Panel de Selección de Personajes -->
+                <div id="charactersPanel" class="login-panel">
+                    <div class="characters-header">
+                        <h2>Selecciona tu Personaje</h2>
+                        <button id="logoutButton" class="logout-button">Cerrar Sesión</button>
+                    </div>
+                    <div id="charactersList" class="characters-list">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Panel de Creación de Personaje -->
+                <div id="createCharacterPanel" class="login-panel">
+                    <div class="create-character-header">
+                        <button id="backToCharacters" class="back-button">← Volver</button>
+                        <h2>Crear Personaje</h2>
+                    </div>
+                    
+                    <div id="createCharacterError" class="error-message"></div>
+                    
+                    <form id="createCharacterForm" class="create-character-form">
+                        <!-- Nombre -->
+                        <div class="form-section">
+                            <label>Nombre del Personaje</label>
+                            <input type="text" id="characterName" class="auth-input" placeholder="Nombre (3-20 caracteres)" required>
+                            <small>Solo letras, números, guiones y guiones bajos</small>
+                        </div>
+
+                        <!-- Profesión/Clase -->
+                        <div class="form-section">
+                            <label>Profesión</label>
+                            <div id="classesList" class="options-grid">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Raza -->
+                        <div class="form-section">
+                            <label>Raza</label>
+                            <div id="racesList" class="options-grid">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Género -->
+                        <div class="form-section">
+                            <label>Género</label>
+                            <div id="gendersList" class="options-grid">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Apariencia -->
+                        <div class="form-section">
+                            <label>Apariencia</label>
+                            
+                            <div class="appearance-subsection">
+                                <label>Color de Túnica</label>
+                                <div id="tunicColorsList" class="color-options">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+
+                            <div class="appearance-subsection">
+                                <label>Color de Piel</label>
+                                <div id="skinColorsList" class="color-options">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+
+                            <div class="appearance-subsection">
+                                <label>Color de Cabello</label>
+                                <div id="hairColorsList" class="color-options">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+
+                            <div class="appearance-subsection">
+                                <label>Estilo de Cabello</label>
+                                <div id="hairStylesList" class="options-grid small">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview del personaje -->
+                        <div class="form-section">
+                            <label>Vista Previa</label>
+                            <div id="characterPreview" class="character-preview">
+                                <div class="preview-placeholder">
+                                    Configura tu personaje para ver una vista previa
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="createCharacterSubmit" class="submit-button">
+                            Crear Personaje
+                            <span id="createCharacterSpinner" class="spinner" style="display: none;"></span>
+                        </button>
+                    </form>
+                </div>
             </div>
             
             <div class="login-footer">
@@ -348,7 +403,7 @@ export class LoginScreen {
         document.getElementById('playLocalButton').addEventListener('click', () => this.startLocalGame());
         document.getElementById('playOnlineButton').addEventListener('click', () => {
             if (this.token && this.user) {
-                this.startOnlineGame();
+                this.showCharacterSelection();
             } else {
                 this.showPanel('login');
             }
@@ -364,6 +419,18 @@ export class LoginScreen {
         document.getElementById('registerForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleRegister();
+        });
+
+        // Botón de logout
+        document.getElementById('logoutButton').addEventListener('click', () => this.logout());
+
+        // Botón volver desde crear personaje
+        document.getElementById('backToCharacters').addEventListener('click', () => this.showCharacterSelection());
+
+        // Formulario de crear personaje
+        document.getElementById('createCharacterForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleCreateCharacter();
         });
     }
 
@@ -427,10 +494,12 @@ export class LoginScreen {
     }
     
     /**
-     * Mostrar un panel específico (home, login, register)
+     * Mostrar un panel específico (home, login, register, characters, createCharacter)
      * @param {string} panelName - Nombre del panel a mostrar
      */
     showPanel(panelName) {
+        this.currentScreen = panelName;
+
         // Ocultar todos los paneles y desactivar todas las tabs
         document.querySelectorAll('.login-panel').forEach(panel => {
             panel.classList.remove('active');
@@ -440,9 +509,16 @@ export class LoginScreen {
             tab.classList.remove('active');
         });
         
-        // Mostrar el panel seleccionado y activar su tab
-        document.getElementById(`${panelName}Panel`).classList.add('active');
-        document.getElementById(`${panelName}Tab`).classList.add('active');
+        // Mostrar el panel seleccionado y activar su tab si existe
+        const panel = document.getElementById(`${panelName}Panel`);
+        if (panel) {
+            panel.classList.add('active');
+        }
+
+        const tab = document.getElementById(`${panelName}Tab`);
+        if (tab) {
+            tab.classList.add('active');
+        }
         
         // Ocultar mensajes de error
         document.querySelectorAll('.error-message').forEach(msg => {
@@ -458,7 +534,6 @@ export class LoginScreen {
         const usernameInput = document.getElementById('loginUsername');
         const passwordInput = document.getElementById('loginPassword');
         const spinner = document.getElementById('loginSpinner');
-        const errorMessage = document.getElementById('loginError');
         
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
@@ -489,8 +564,8 @@ export class LoginScreen {
                 localStorage.setItem('auth_token', this.token);
                 localStorage.setItem('user_data', JSON.stringify(this.user));
                 
-                // Iniciar juego online
-                this.startOnlineGame();
+                // Mostrar selección de personajes
+                this.showCharacterSelection();
             } else {
                 // Error en login
                 this.showError('loginError', response.error);
@@ -566,6 +641,480 @@ export class LoginScreen {
         } finally {
             // Ocultar spinner
             spinner.style.display = 'none';
+        }
+    }
+
+    /**
+     * Mostrar pantalla de selección de personajes
+     */
+    showCharacterSelection() {
+        // Ocultar las tabs de login y registro cuando el usuario está autenticado
+        const loginTabs = document.querySelector('.login-tabs');
+        if (loginTabs) {
+            loginTabs.style.display = 'none';
+        }
+        
+        this.showPanel('characters');
+        this.renderCharactersList();
+    }
+
+    /**
+     * Renderizar lista de personajes
+     */
+    renderCharactersList() {
+        const charactersList = document.getElementById('charactersList');
+        const characters = characterManager.getCharacters();
+
+        let html = '';
+
+        // Botón para crear nuevo personaje
+        if (characters.length < characterManager.maxCharacters) {
+            html += `
+                <div class="character-slot create-new" id="createNewCharacter">
+                    <div class="create-icon">+</div>
+                    <div class="create-text">Crear Nuevo Personaje</div>
+                </div>
+            `;
+        }
+
+        // Personajes existentes
+        characters.forEach(char => {
+            const classData = CHARACTER_CLASSES[char.class.toUpperCase()];
+            const raceData = RACES[char.race.toUpperCase()];
+            
+            html += `
+                <div class="character-slot" data-character-id="${char.id}">
+                    <div class="character-info">
+                        <div class="character-avatar">
+                            <span class="character-class-icon">${classData.icon}</span>
+                            <span class="character-race-icon">${raceData.icon}</span>
+                        </div>
+                        <div class="character-details">
+                            <h3>${char.name}</h3>
+                            <p class="character-class">${classData.name} ${raceData.name}</p>
+                            <p class="character-level">Nivel ${char.level}</p>
+                            <p class="character-date">Última vez: ${this.formatDate(char.lastPlayed)}</p>
+                        </div>
+                    </div>
+                    <div class="character-actions">
+                        <button class="play-button" data-character-id="${char.id}">Jugar</button>
+                        <button class="delete-button" data-character-id="${char.id}">Eliminar</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Slots vacíos
+        for (let i = characters.length; i < characterManager.maxCharacters; i++) {
+            if (i > 0 || characters.length > 0) { // No mostrar slots vacíos si ya hay el botón de crear
+                html += `
+                    <div class="character-slot empty">
+                        <div class="empty-text">Slot vacío</div>
+                    </div>
+                `;
+            }
+        }
+
+        charactersList.innerHTML = html;
+
+        // Eventos
+        const createButton = document.getElementById('createNewCharacter');
+        if (createButton) {
+            createButton.addEventListener('click', () => this.showCreateCharacter());
+        }
+
+        document.querySelectorAll('.play-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const characterId = e.target.dataset.characterId;
+                this.playWithCharacter(characterId);
+            });
+        });
+
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const characterId = e.target.dataset.characterId;
+                this.deleteCharacter(characterId);
+            });
+        });
+    }
+
+    /**
+     * Mostrar pantalla de creación de personaje
+     */
+    showCreateCharacter() {
+        this.showPanel('createCharacter');
+        this.renderCreateCharacterForm();
+    }
+
+    /**
+     * Renderizar formulario de creación de personaje
+     */
+    renderCreateCharacterForm() {
+        // Renderizar clases
+        const classesList = document.getElementById('classesList');
+        let classesHTML = '';
+        Object.values(CHARACTER_CLASSES).forEach(classData => {
+            classesHTML += `
+                <div class="option-card" data-type="class" data-value="${classData.id}">
+                    <div class="option-icon">${classData.icon}</div>
+                    <div class="option-name">${classData.name}</div>
+                    <div class="option-description">${classData.description}</div>
+                </div>
+            `;
+        });
+        classesList.innerHTML = classesHTML;
+
+        // Renderizar razas
+        const racesList = document.getElementById('racesList');
+        let racesHTML = '';
+        Object.values(RACES).forEach(race => {
+            racesHTML += `
+                <div class="option-card" data-type="race" data-value="${race.id}">
+                    <div class="option-icon">${race.icon}</div>
+                    <div class="option-name">${race.name}</div>
+                    <div class="option-description">${race.description}</div>
+                </div>
+            `;
+        });
+        racesList.innerHTML = racesHTML;
+
+        // Renderizar géneros
+        const gendersList = document.getElementById('gendersList');
+        let gendersHTML = '';
+        Object.values(GENDERS).forEach(gender => {
+            gendersHTML += `
+                <div class="option-card" data-type="gender" data-value="${gender.id}">
+                    <div class="option-icon">${gender.icon}</div>
+                    <div class="option-name">${gender.name}</div>
+                </div>
+            `;
+        });
+        gendersList.innerHTML = gendersHTML;
+
+        // Renderizar colores de túnica
+        const tunicColorsList = document.getElementById('tunicColorsList');
+        let tunicColorsHTML = '';
+        Object.values(TUNIC_COLORS).forEach(color => {
+            tunicColorsHTML += `
+                <div class="color-option" data-type="tunicColor" data-value="${color.id}" 
+                     style="background-color: ${color.hex}" title="${color.name}">
+                </div>
+            `;
+        });
+        tunicColorsList.innerHTML = tunicColorsHTML;
+
+        // Renderizar colores de piel
+        const skinColorsList = document.getElementById('skinColorsList');
+        let skinColorsHTML = '';
+        Object.values(SKIN_COLORS).forEach(color => {
+            skinColorsHTML += `
+                <div class="color-option" data-type="skinColor" data-value="${color.id}" 
+                     style="background-color: ${color.hex}" title="${color.name}">
+                </div>
+            `;
+        });
+        skinColorsList.innerHTML = skinColorsHTML;
+
+        // Renderizar colores de cabello
+        const hairColorsList = document.getElementById('hairColorsList');
+        let hairColorsHTML = '';
+        Object.values(HAIR_COLORS).forEach(color => {
+            hairColorsHTML += `
+                <div class="color-option" data-type="hairColor" data-value="${color.id}" 
+                     style="background-color: ${color.hex}" title="${color.name}">
+                </div>
+            `;
+        });
+        hairColorsList.innerHTML = hairColorsHTML;
+
+        // Renderizar estilos de cabello
+        const hairStylesList = document.getElementById('hairStylesList');
+        let hairStylesHTML = '';
+        Object.values(HAIR_STYLES).forEach(style => {
+            hairStylesHTML += `
+                <div class="option-card small" data-type="hairStyle" data-value="${style.id}">
+                    <div class="option-icon">${style.icon}</div>
+                    <div class="option-name">${style.name}</div>
+                </div>
+            `;
+        });
+        hairStylesList.innerHTML = hairStylesHTML;
+
+        // Inicializar estado de selección
+        this.characterCreationData = {
+            name: '',
+            class: null,
+            race: null,
+            gender: null,
+            tunicColor: null,
+            skinColor: null,
+            hairColor: null,
+            hairStyle: null
+        };
+
+        // Eventos de selección
+        this.initCharacterCreationEvents();
+    }
+
+    /**
+     * Inicializar eventos del formulario de creación de personaje
+     */
+    initCharacterCreationEvents() {
+        // Eventos para opciones de clase, raza, género
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const type = card.dataset.type;
+                const value = card.dataset.value;
+
+                // Quitar selección anterior del mismo tipo
+                document.querySelectorAll(`.option-card[data-type="${type}"]`).forEach(c => {
+                    c.classList.remove('selected');
+                });
+
+                // Marcar como seleccionado
+                card.classList.add('selected');
+
+                // Guardar selección
+                this.characterCreationData[type] = value;
+
+                // Actualizar preview
+                this.updateCharacterPreview();
+            });
+        });
+
+        // Eventos para colores
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const type = option.dataset.type;
+                const value = option.dataset.value;
+
+                // Quitar selección anterior del mismo tipo
+                document.querySelectorAll(`.color-option[data-type="${type}"]`).forEach(o => {
+                    o.classList.remove('selected');
+                });
+
+                // Marcar como seleccionado
+                option.classList.add('selected');
+
+                // Guardar selección
+                this.characterCreationData[type] = value;
+
+                // Actualizar preview
+                this.updateCharacterPreview();
+            });
+        });
+
+        // Evento para nombre
+        document.getElementById('characterName').addEventListener('input', (e) => {
+            this.characterCreationData.name = e.target.value;
+        });
+    }
+
+    /**
+     * Actualizar vista previa del personaje
+     */
+    updateCharacterPreview() {
+        const preview = document.getElementById('characterPreview');
+        const data = this.characterCreationData;
+
+        // Verificar que se hayan seleccionado los campos necesarios
+        if (!data.class || !data.race || !data.tunicColor || !data.skinColor) {
+            preview.innerHTML = '<div class="preview-placeholder">Configura tu personaje para ver una vista previa</div>';
+            return;
+        }
+
+        const classData = CHARACTER_CLASSES[data.class.toUpperCase()];
+        const raceData = RACES[data.race.toUpperCase()];
+        const tunicColor = TUNIC_COLORS[data.tunicColor.toUpperCase()];
+        const skinColor = SKIN_COLORS[data.skinColor.toUpperCase()];
+        const hairColor = data.hairColor ? HAIR_COLORS[data.hairColor.toUpperCase()] : null;
+        const hairStyle = data.hairStyle ? HAIR_STYLES[data.hairStyle.toUpperCase()] : null;
+
+        preview.innerHTML = `
+            <div class="character-preview-display">
+                <div class="preview-icons">
+                    <span class="preview-class-icon" style="color: ${classData.color}">${classData.icon}</span>
+                    <span class="preview-race-icon">${raceData.icon}</span>
+                </div>
+                <div class="preview-info">
+                    <h3>${data.name || 'Tu Personaje'}</h3>
+                    <p><strong>Clase:</strong> ${classData.name}</p>
+                    <p><strong>Raza:</strong> ${raceData.name}</p>
+                    ${data.gender ? `<p><strong>Género:</strong> ${GENDERS[data.gender.toUpperCase()].name}</p>` : ''}
+                </div>
+                <div class="preview-appearance">
+                    <div class="appearance-item">
+                        <span>Túnica:</span>
+                        <div class="color-square" style="background-color: ${tunicColor.hex}"></div>
+                    </div>
+                    <div class="appearance-item">
+                        <span>Piel:</span>
+                        <div class="color-square" style="background-color: ${skinColor.hex}"></div>
+                    </div>
+                    ${hairColor ? `
+                        <div class="appearance-item">
+                            <span>Cabello:</span>
+                            <div class="color-square" style="background-color: ${hairColor.hex}"></div>
+                        </div>
+                    ` : ''}
+                    ${hairStyle ? `
+                        <div class="appearance-item">
+                            <span>Estilo:</span>
+                            <span>${hairStyle.icon} ${hairStyle.name}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Manejar creación de personaje
+     */
+    async handleCreateCharacter() {
+        const data = this.characterCreationData;
+        const spinner = document.getElementById('createCharacterSpinner');
+
+        // Validar datos
+        if (!data.name || data.name.length < 3 || data.name.length > 20) {
+            this.showError('createCharacterError', 'El nombre debe tener entre 3 y 20 caracteres');
+            return;
+        }
+
+        if (!data.class) {
+            this.showError('createCharacterError', 'Debes seleccionar una profesión');
+            return;
+        }
+
+        if (!data.race) {
+            this.showError('createCharacterError', 'Debes seleccionar una raza');
+            return;
+        }
+
+        if (!data.gender) {
+            this.showError('createCharacterError', 'Debes seleccionar un género');
+            return;
+        }
+
+        if (!data.tunicColor) {
+            this.showError('createCharacterError', 'Debes seleccionar un color de túnica');
+            return;
+        }
+
+        if (!data.skinColor) {
+            this.showError('createCharacterError', 'Debes seleccionar un color de piel');
+            return;
+        }
+
+        if (!data.hairColor) {
+            this.showError('createCharacterError', 'Debes seleccionar un color de cabello');
+            return;
+        }
+
+        if (!data.hairStyle) {
+            this.showError('createCharacterError', 'Debes seleccionar un estilo de cabello');
+            return;
+        }
+
+        // Verificar nombre disponible
+        if (!characterManager.isNameAvailable(data.name)) {
+            this.showError('createCharacterError', 'El nombre no está disponible o no es válido');
+            return;
+        }
+
+        // Mostrar spinner
+        spinner.style.display = 'inline-block';
+
+        try {
+            // Simular delay de red
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Crear personaje
+            const character = characterManager.createCharacter(data);
+
+            // Éxito
+            alert(`¡Personaje ${character.name} creado exitosamente!`);
+            
+            // Volver a la selección de personajes
+            this.showCharacterSelection();
+        } catch (error) {
+            this.showError('createCharacterError', error.message);
+        } finally {
+            spinner.style.display = 'none';
+        }
+    }
+
+    /**
+     * Jugar con un personaje
+     * @param {string} characterId - ID del personaje
+     */
+    playWithCharacter(characterId) {
+        const character = characterManager.getCharacterById(characterId);
+        
+        if (!character) {
+            alert('Error: Personaje no encontrado');
+            return;
+        }
+
+        // Establecer como personaje activo
+        characterManager.setActiveCharacter(character);
+
+        // Actualizar última vez jugado
+        characterManager.updateCharacter(characterId, {
+            lastPlayed: new Date().toISOString()
+        });
+
+        // Iniciar juego online
+        this.startOnlineGame();
+    }
+
+    /**
+     * Eliminar personaje
+     * @param {string} characterId - ID del personaje
+     */
+    deleteCharacter(characterId) {
+        const character = characterManager.getCharacterById(characterId);
+        
+        if (!character) {
+            alert('Error: Personaje no encontrado');
+            return;
+        }
+
+        const confirmed = confirm(`¿Estás seguro de que quieres eliminar a ${character.name}? Esta acción no se puede deshacer.`);
+        
+        if (confirmed) {
+            const success = characterManager.deleteCharacter(characterId);
+            
+            if (success) {
+                alert(`Personaje ${character.name} eliminado`);
+                this.renderCharactersList();
+            } else {
+                alert('Error al eliminar personaje');
+            }
+        }
+    }
+
+    /**
+     * Formatear fecha
+     * @param {string} dateString - Fecha en formato ISO
+     * @returns {string} Fecha formateada
+     */
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 60) {
+            return `Hace ${diffMins} minuto${diffMins !== 1 ? 's' : ''}`;
+        } else if (diffHours < 24) {
+            return `Hace ${diffHours} hora${diffHours !== 1 ? 's' : ''}`;
+        } else if (diffDays < 7) {
+            return `Hace ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+        } else {
+            return date.toLocaleDateString('es-ES');
         }
     }
     
@@ -657,16 +1206,17 @@ export class LoginScreen {
      */
     startOnlineGame() {
         console.log('Iniciando juego en modo online');
-        console.log('Usuario autenticado:', this.user.username);
+        console.log('Usuario autenticado:', this.user?.username);
+        
+        // Obtener personaje activo
+        const character = characterManager.getActiveCharacter();
+        console.log('Personaje seleccionado:', character?.name);
         
         // Verificar que el servidor esté online
         if (!this.isServerOnline) {
             alert('El servidor está offline. Por favor, inténtalo más tarde.');
             return;
         }
-        
-        // Aquí se conectaría con el servidor de WebSockets para el juego
-        // Por ahora, simplemente iniciar el juego en modo local
         
         // Ocultar pantalla de login con una animación
         const loginScreen = document.getElementById('loginScreen');
@@ -681,6 +1231,7 @@ export class LoginScreen {
                 detail: {
                     online: true,
                     user: this.user,
+                    character: character,
                     token: this.token
                 }
             }));
@@ -696,13 +1247,16 @@ export class LoginScreen {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
         
-        // Redireccionar a la pantalla de login
-        window.location.reload();
+        // Mostrar las tabs de login y registro de nuevo
+        const loginTabs = document.querySelector('.login-tabs');
+        if (loginTabs) {
+            loginTabs.style.display = 'flex';
+        }
+        
+        // Volver al panel de inicio
+        this.showPanel('home');
     }
 }
 
 // Exportar instancia singleton
 export const loginScreen = new LoginScreen();
-
-// Exportar protocolo de autenticación para uso en otros módulos
-export const AUTH_PROTOCOL_SPEC = AUTH_PROTOCOL;

@@ -105,6 +105,12 @@ function setupLoginEvents() {
             console.log('Iniciando en modo online con usuario:', event.detail.user.username);
             gameState.isOnline = true;
             gameState.onlineUser = event.detail.user;
+            
+            // Si hay un personaje seleccionado, asignar su nombre al jugador
+            if (event.detail.character) {
+                gameState.player.name = event.detail.character.name;
+                console.log('Personaje seleccionado:', event.detail.character.name);
+            }
         } else {
             console.log('Iniciando en modo local');
             gameState.isOnline = false;
