@@ -21,6 +21,7 @@ import { getSpellsUIState } from '../ui/SpellsUI.js';
 import { updateOverheadMessages } from '../ui/Chat.js';
 import { checkMapEdgeTransition } from '../world/MapTransitions.js';
 import { botManager } from '../systems/BotManager.js';
+import { cancelGathering, gatheringState } from '../systems/ResourceGathering.js';
 
 let lastMoveTime = 0;
 const MOVE_DELAY = CONFIG.PLAYER.MOVE_DELAY; // milliseconds
@@ -135,6 +136,13 @@ function handleMovement(timestamp) {
         gameState.player.meditating = false; // Cancelar meditación directamente
         setPlayerAnimationState('idle'); // Restaurar animación normal
         addChatMessage('system', '🧘 Has dejado de meditar para moverte.');
+    }
+
+    // Comprobar si el jugador está intentando moverse mientras recolecta recursos
+    // Cancelar recolección si el jugador intenta moverse
+    if (moved && gatheringState.isGathering) {
+        console.log("🏃 Movimiento detectado mientras recolectaba - cancelando recolección");
+        cancelGathering(true); // Silent cancel, la verificación en performGatheringAttempt mostrará el mensaje
     }
 
     // Update player direction

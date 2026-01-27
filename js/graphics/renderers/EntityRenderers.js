@@ -242,8 +242,8 @@ export function renderObjects(camera, ctx) {
                     ctx.drawImage(resourceSprite, screenPos.x, screenPos.y);
                     ctx.globalAlpha = 1.0; // Restaurar opacidad
                     
-                    // Mostrar barra de recursos restantes si no está completamente agotado
-                    if (!isFullyDepleted && obj.remainingResources !== undefined && obj.totalResources) {
+                    // Mostrar barra de recursos restantes SOLO si está siendo recolectado activamente
+                    if (!isFullyDepleted && obj.beingGathered && obj.remainingResources !== undefined && obj.totalResources) {
                         const maxResources = obj.totalResources;
                         const percentage = obj.remainingResources / maxResources;
                         

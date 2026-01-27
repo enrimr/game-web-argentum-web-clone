@@ -12,6 +12,7 @@ import { addChatMessage, updateUI } from '../ui/UI.js';
 import { setPlayerAnimationState } from '../core/Renderer.js';
 import { getStaticMap } from '../world/StaticWorldMaps.js';
 import { isWalkable } from '../world/MapGenerator.js';
+import { addExp } from './Experience.js';
 
 /**
  * Handle player attack interaction
@@ -472,39 +473,6 @@ export function updateProjectiles() {
     }
 }
 
-/**
- * Level up system
- */
-export function levelUp() {
-    gameState.player.level++;
-    gameState.player.exp = 0;
-    gameState.player.expToNextLevel = Math.floor(gameState.player.expToNextLevel * CONFIG.LEVEL.EXP_MULTIPLIER);
-
-    // Increase stats on level up
-    const hpIncrease = CONFIG.LEVEL.HP_GAIN_PER_LEVEL;
-    const manaIncrease = CONFIG.LEVEL.MANA_GAIN_PER_LEVEL;
-
-    gameState.player.maxHp += hpIncrease;
-    gameState.player.hp = gameState.player.maxHp; // Full heal on level up
-    gameState.player.maxMana += manaIncrease;
-    gameState.player.mana = gameState.player.maxMana;
-
-    addChatMessage('system', `🎉 ¡NIVEL ${gameState.player.level}! +${hpIncrease} HP máx, +${manaIncrease} Maná máx`);
-    updateUI(); // Update UI after leveling up
-}
-
-/**
- * Add experience
- * @param {number} amount - Amount of experience to add
- */
-export function addExp(amount) {
-    gameState.player.exp += amount;
-
-    // Check for level up
-    while (gameState.player.exp >= gameState.player.expToNextLevel) {
-        levelUp();
-    }
-}
 
 /**
  * Check if player is alive or is a ghost

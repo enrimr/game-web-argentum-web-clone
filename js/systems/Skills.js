@@ -4,6 +4,9 @@
  * Inspirado en el sistema de skills de Argentum Online
  */
 
+import { getSkillModifier } from './Classes.js';
+import { addExp } from './Experience.js';
+
 // Definición de habilidades (como en AO)
 export const SKILLS = {
     // Habilidades de combate
@@ -337,8 +340,7 @@ export function calculateSuccessChance(skillLevel) {
  * @returns {boolean} True si subió de nivel
  */
 export function gainSkillExperience(player, skillName, success) {
-    // Importar el modificador de clase
-    const { getSkillModifier } = require('./Classes.js');
+    // Obtener el modificador de clase
     const classModifier = getSkillModifier(player.class, skillName);
     
     // Exp ganada: 10 si éxito, 5 si fallo
@@ -356,10 +358,15 @@ export function gainSkillExperience(player, skillName, success) {
     
     // ¿Subió de nivel?
     if (player.skillExp[skillName] >= expNeeded) {
-        // Subir nivel
+        // Subir nivel de skill
         player.skills[skillName] = Math.min(100, currentLevel + 1);
-        player.skillExp[skillName] = 0; // Resetear experiencia
-        return true; // Indicar que subió de nivel
+        player.skillExp[skillName] = 0; // Resetear experiencia de skill
+        
+        // Ganar experiencia de personaje (como en Argentum Online)
+        const EXP_POR_SKILL = 50;
+        addExp(EXP_POR_SKILL);
+        
+        return true; // Indicar que subió de nivel de skill
     }
     
     return false; // No subió de nivel

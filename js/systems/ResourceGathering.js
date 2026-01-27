@@ -22,13 +22,13 @@ export const RESOURCE_TYPES = {
         requiredSkill: 'WOODCUTTING',
         baseWorkTime: 2500, // ms
         minTotalResources: 50, // Mínimo de recursos por árbol
-        maxTotalResources: 10000, // Máximo de recursos por árbol
-        minResourcesPerHit: 1, // Mínimo de recursos por golpe
-        maxResourcesPerHit: 5, // Máximo de recursos por golpe (con skill 100)
+        maxTotalResources: 200, // Máximo de recursos por árbol (reducido para que se agote más rápido)
+        minResourcesPerHit: 3, // Mínimo de recursos por golpe (aumentado)
+        maxResourcesPerHit: 8, // Máximo de recursos por golpe (aumentado)
         resources: [
-            { itemType: 'WOOD', minAmount: 1, maxAmount: 3, minLevel: 1, chance: 1.0 },
-            { itemType: 'OAK_WOOD', minAmount: 1, maxAmount: 2, minLevel: 15, chance: 0.3 },
-            { itemType: 'ELVEN_WOOD', minAmount: 1, maxAmount: 1, minLevel: 50, chance: 0.1 }
+            { itemType: 'WOOD', minAmount: 2, maxAmount: 5, minLevel: 1, chance: 1.0 },
+            { itemType: 'OAK_WOOD', minAmount: 1, maxAmount: 3, minLevel: 15, chance: 0.3 },
+            { itemType: 'ELVEN_WOOD', minAmount: 1, maxAmount: 2, minLevel: 50, chance: 0.1 }
         ],
         icon: '🌲',
         actionVerb: 'talar',
@@ -41,12 +41,12 @@ export const RESOURCE_TYPES = {
         requiredSkill: 'MINING',
         baseWorkTime: 3000,
         minTotalResources: 50,
-        maxTotalResources: 10000,
-        minResourcesPerHit: 1,
-        maxResourcesPerHit: 4,
+        maxTotalResources: 200,
+        minResourcesPerHit: 3,
+        maxResourcesPerHit: 7,
         resources: [
-            { itemType: 'IRON_ORE', minAmount: 1, maxAmount: 2, minLevel: 1, chance: 0.8 },
-            { itemType: 'COAL', minAmount: 1, maxAmount: 1, minLevel: 5, chance: 0.4 }
+            { itemType: 'IRON_ORE', minAmount: 2, maxAmount: 4, minLevel: 1, chance: 0.8 },
+            { itemType: 'COAL', minAmount: 1, maxAmount: 2, minLevel: 5, chance: 0.4 }
         ],
         icon: '⛰️',
         actionVerb: 'picar',
@@ -59,11 +59,11 @@ export const RESOURCE_TYPES = {
         requiredSkill: 'MINING',
         baseWorkTime: 3500,
         minTotalResources: 50,
-        maxTotalResources: 10000,
-        minResourcesPerHit: 1,
-        maxResourcesPerHit: 3,
+        maxTotalResources: 150,
+        minResourcesPerHit: 2,
+        maxResourcesPerHit: 5,
         resources: [
-            { itemType: 'GOLD_ORE', minAmount: 1, maxAmount: 2, minLevel: 40, chance: 0.5 }
+            { itemType: 'GOLD_ORE', minAmount: 1, maxAmount: 3, minLevel: 40, chance: 0.5 }
         ],
         icon: '🏔️',
         actionVerb: 'picar',
@@ -111,12 +111,12 @@ export const RESOURCE_TYPES = {
         requiredSkill: 'FISHING',
         baseWorkTime: 4000, // 4 segundos por intento
         minTotalResources: 100, // Las zonas de pesca tienen más "peces"
-        maxTotalResources: 10000,
-        minResourcesPerHit: 1,
-        maxResourcesPerHit: 3,
+        maxTotalResources: 300,
+        minResourcesPerHit: 2,
+        maxResourcesPerHit: 5,
         resources: [
-            { itemType: 'FISH', minAmount: 1, maxAmount: 2, minLevel: 1, chance: 0.7 },
-            { itemType: 'FISH_BIG', minAmount: 1, maxAmount: 1, minLevel: 20, chance: 0.3 },
+            { itemType: 'FISH', minAmount: 1, maxAmount: 3, minLevel: 1, chance: 0.7 },
+            { itemType: 'FISH_BIG', minAmount: 1, maxAmount: 2, minLevel: 20, chance: 0.3 },
             { itemType: 'FISH_RARE', minAmount: 1, maxAmount: 1, minLevel: 50, chance: 0.1 },
             { itemType: 'FISH_GOLDEN', minAmount: 1, maxAmount: 1, minLevel: 75, chance: 0.05 }
         ],
@@ -144,7 +144,11 @@ export const gatheringState = {
     isGathering: false,
     currentResource: null,
     startTime: 0,
-    targetObject: null
+    targetObject: null,
+    intervalId: null,
+    initialPlayerX: null,
+    initialPlayerY: null,
+    requiredTool: null
 };
 
 /**
@@ -200,6 +204,14 @@ export function attemptGathering(resourceObject) {
     // Verificar nivel de skill
     const skillLevel = gameState.player.skills[resourceType.requiredSkill] || 1;
     
+    // Guardar posición inicial del jugador
+    gatheringState.initialPlayerX = gameState.player.x;
+    gatheringState.initialPlayerY = gameState.player.y;
+    gatheringState.requiredTool = resourceType.requiredTool;
+
+    // Marcar el objeto como siendo recolectado actualmente
+    resourceObject.beingGathered = true;
+    
     // Iniciar recolección
     gatheringState.isGathering = true;
     gatheringState.currentResource = resourceType;
@@ -211,91 +223,52 @@ export function attemptGathering(resourceObject) {
 
     addChatMessage('system', `${resourceType.actionSound} Comenzaste a ${resourceType.actionVerb} el ${resourceType.name}...`);
 
-    // Configurar temporizador para completar la recolección
-    setTimeout(() => {
-        completeGathering();
+    // Configurar intervalos para intentos continuos
+    gatheringState.intervalId = setInterval(() => {
+        performGatheringAttempt();
     }, workTime);
 
     return true;
 }
 
 /**
- * Completa el proceso de recolección
+ * Realiza un intento de recolección
  */
-function completeGathering() {
+function performGatheringAttempt() {
     if (!gatheringState.isGathering) return;
 
     const resourceType = gatheringState.currentResource;
     const resourceObject = gatheringState.targetObject;
     const skillLevel = gameState.player.skills[resourceType.requiredSkill] || 1;
 
-    // Calcular probabilidad de éxito usando fórmula de AO
-    const successChance = calculateSuccessChance(skillLevel);
-    const randomRoll = Math.floor(Math.random() * successChance) + 1;
-    const succeeded = randomRoll <= 3; // Similar a AO, 3 es el umbral de éxito
-    
-    if (succeeded) {
-        // Calcular cuántos recursos se extraen basándose en el skill
-        const resourcesExtracted = calculateResourcesExtracted(resourceType, skillLevel);
-        
-        // Reducir la cantidad restante del recurso
-        resourceObject.remainingResources = Math.max(0, resourceObject.remainingResources - resourcesExtracted);
-        
-        // Mostrar progreso del recurso
-        const totalResources = resourceObject.totalResources || resourceType.minTotalResources;
-        const percentage = Math.floor((resourceObject.remainingResources / totalResources) * 100);
-        addChatMessage('system', `📊 Recurso restante: ${resourceObject.remainingResources}/${totalResources} (${percentage}%)`);
-
-        // Calcular recursos obtenidos (items que van al inventario)
-        const obtainedResources = calculateResourcesObtained(resourceType, skillLevel, resourcesExtracted);
-
-        // Agregar recursos al inventario
-        let totalItemsAdded = 0;
-        for (const resource of obtainedResources) {
-            const success = addItemToInventory(resource.itemType, resource.amount);
-            if (success) {
-                totalItemsAdded += resource.amount;
-                const itemName = ITEM_TYPES[resource.itemType].name;
-                addChatMessage('system', `✅ ¡Obtuviste ${resource.amount}x ${itemName}!`);
-            } else {
-                addChatMessage('system', '⚠️ Inventario lleno, no se pudo agregar todo el recurso.');
-            }
-        }
-    } else {
-        // Falló la recolección
-        addChatMessage('system', `❌ No has conseguido extraer nada del ${resourceType.name}.`);
+    // Verificar que el jugador no se movió
+    if (gameState.player.x !== gatheringState.initialPlayerX || 
+        gameState.player.y !== gatheringState.initialPlayerY) {
+        addChatMessage('system', `🚶 Te has movido, la recolección se detuvo.`);
+        cancelGathering();
+        return;
     }
 
-    // Ganar experiencia en la skill (tanto si tuvo éxito como si falló)
-    const leveledUp = gainSkillExperience(gameState.player, resourceType.requiredSkill, succeeded);
-    
-    if (leveledUp) {
-        const skillName = SKILLS[resourceType.requiredSkill].name;
-        const newLevel = gameState.player.skills[resourceType.requiredSkill];
-        addChatMessage('system', `⭐ ¡Tu habilidad de ${skillName} ha mejorado a nivel ${newLevel}!`);
-    } else {
-        // Mostrar progreso de experiencia (considerando modificador de clase)
-        const currentExp = gameState.player.skillExp[resourceType.requiredSkill];
-        const classModifier = getSkillModifier(gameState.player.class, resourceType.requiredSkill);
-        const baseExpNeeded = calculateSkillExpRequired(skillLevel);
-        const neededExp = Math.floor(baseExpNeeded * classModifier);
-        const expPercentage = Math.floor((currentExp / neededExp) * 100);
-        addChatMessage('system', `📈 Exp de ${SKILLS[resourceType.requiredSkill].name}: ${currentExp}/${neededExp} (${expPercentage}%)`);
+    // Verificar que la herramienta sigue equipada
+    const equippedWeapon = gameState.player.equipped.weapon;
+    const requiredTools = GATHERING_TOOLS[gatheringState.requiredTool];
+    if (!equippedWeapon || !requiredTools.includes(equippedWeapon)) {
+        addChatMessage('system', `❌ Desequipaste la herramienta, la recolección se detuvo.`);
+        cancelGathering();
+        return;
     }
 
-    // Marcar recurso como agotado si no quedan recursos (solo si tuvo éxito)
-    if (succeeded && resourceObject.remainingResources <= 0) {
+    // Verificar que el recurso no está agotado
+    if (resourceObject.depleted || resourceObject.remainingResources <= 0) {
+        // Recurso agotado
         if (resourceType.respawnTime) {
-            // Recurso respawneable (como ovejas)
             resourceObject.depleted = true;
             resourceObject.respawnAt = Date.now() + resourceType.respawnTime;
             
-            // Restaurar recursos al respawnear
             setTimeout(() => {
                 if (resourceObject) {
                     resourceObject.depleted = false;
                     resourceObject.respawnAt = null;
-                    // Regenerar cantidad aleatoria nuevamente
                     const min = resourceType.minTotalResources;
                     const max = resourceType.maxTotalResources;
                     resourceObject.totalResources = min + Math.floor(Math.random() * (max - min + 1));
@@ -305,17 +278,59 @@ function completeGathering() {
             
             addChatMessage('system', `🌟 El ${resourceType.name} se ha agotado temporalmente.`);
         } else {
-            // Recurso agotado permanentemente (árboles, vetas)
             resourceObject.depleted = true;
             addChatMessage('system', `💀 El ${resourceType.name} se ha agotado completamente.`);
         }
+        cancelGathering();
+        return;
     }
 
-    // Resetear estado de recolección
-    gatheringState.isGathering = false;
-    gatheringState.currentResource = null;
-    gatheringState.startTime = 0;
-    gatheringState.targetObject = null;
+    // Calcular probabilidad de éxito usando fórmula de AO
+    const successChance = calculateSuccessChance(skillLevel);
+    const randomRoll = Math.floor(Math.random() * successChance) + 1;
+    const succeeded = randomRoll <= 3;
+    
+    if (succeeded) {
+        // Calcular cuántos recursos se extraen
+        const resourcesExtracted = calculateResourcesExtracted(resourceType, skillLevel);
+        
+        // Reducir la cantidad restante del recurso
+        resourceObject.remainingResources = Math.max(0, resourceObject.remainingResources - resourcesExtracted);
+        
+        // Calcular recursos obtenidos
+        const obtainedResources = calculateResourcesObtained(resourceType, skillLevel, resourcesExtracted);
+
+        // Agregar recursos al inventario
+        for (const resource of obtainedResources) {
+            const success = addItemToInventory(resource.itemType, resource.amount);
+            if (success) {
+                const itemName = ITEM_TYPES[resource.itemType].name;
+                addChatMessage('system', `✅ ¡Obtuviste ${resource.amount}x ${itemName}!`);
+            } else {
+                addChatMessage('system', '⚠️ Inventario lleno, la recolección se detuvo.');
+                cancelGathering();
+                return;
+            }
+        }
+        
+        // Mostrar progreso del recurso
+        const totalResources = resourceObject.totalResources || resourceType.minTotalResources;
+        const percentage = Math.floor((resourceObject.remainingResources / totalResources) * 100);
+        addChatMessage('system', `📊 Recurso restante: ${resourceObject.remainingResources}/${totalResources} (${percentage}%)`);
+    } else {
+        // Falló la recolección
+        addChatMessage('system', `❌ No has conseguido extraer nada del ${resourceType.name}.`);
+    }
+
+    // Ganar experiencia en la skill
+    const leveledUp = gainSkillExperience(gameState.player, resourceType.requiredSkill, succeeded);
+    
+    if (leveledUp) {
+        const skillName = SKILLS[resourceType.requiredSkill].name;
+        const newLevel = gameState.player.skills[resourceType.requiredSkill];
+        addChatMessage('system', `⭐ ¡Tu habilidad de ${skillName} ha mejorado a nivel ${newLevel}!`);
+        addChatMessage('system', `✨ ¡Has ganado 50 puntos de experiencia!`);
+    }
 
     // Actualizar UI
     import('../ui/UI.js').then(({ updateUI }) => {
@@ -326,13 +341,30 @@ function completeGathering() {
 /**
  * Cancela la recolección en curso
  */
-export function cancelGathering() {
+export function cancelGathering(silent = false) {
     if (gatheringState.isGathering) {
-        addChatMessage('system', '❌ Recolección cancelada.');
+        // Marcar el objeto como ya no siendo recolectado
+        if (gatheringState.targetObject) {
+            gatheringState.targetObject.beingGathered = false;
+        }
+        
+        // Limpiar el intervalo
+        if (gatheringState.intervalId) {
+            clearInterval(gatheringState.intervalId);
+            gatheringState.intervalId = null;
+        }
+        
+        if (!silent) {
+            addChatMessage('system', '❌ Recolección cancelada.');
+        }
+        
         gatheringState.isGathering = false;
         gatheringState.currentResource = null;
         gatheringState.startTime = 0;
         gatheringState.targetObject = null;
+        gatheringState.initialPlayerX = null;
+        gatheringState.initialPlayerY = null;
+        gatheringState.requiredTool = null;
     }
 }
 
