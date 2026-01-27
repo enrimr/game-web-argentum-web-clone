@@ -36,7 +36,10 @@ export const STATIC_WORLD_MAPS = {
             { type: 'alchemist_market', x: 25, y: 25, dialogue: 'healing' },
             { type: 'trainer_skills', x: 10, y: 30, dialogue: 'training' },
             { type: 'guard_city', x: 25, y: 5, dialogue: 'guard_north' },
-            { type: 'healer_city', x: 30, y: 20, dialogue: 'healing' }
+            { type: 'healer_city', x: 30, y: 20, dialogue: 'healing' },
+            // Reclutadores de facciones
+            { type: 'recruiter_kingdom', x: 20, y: 8 },
+            { type: 'recruiter_armada', x: 32, y: 12 }
         ],
         enemies: { enabled: false },
         objects: {
