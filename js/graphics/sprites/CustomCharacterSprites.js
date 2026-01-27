@@ -4,31 +4,30 @@
  */
 
 import { createSprite } from './SpriteCore.js';
-import { SKIN_COLORS, TUNIC_COLORS, HAIR_COLORS } from '../../systems/CharacterManager.js';
+import { SKIN_COLORS, TUNIC_COLORS } from '../../systems/CharacterManager.js';
 
 /**
  * Generar sprites personalizados para un personaje
- * @param {Object} appearance - Apariencia del personaje {race, skinColor, tunicColor, hairColor, hairStyle}
+ * @param {Object} appearance - Apariencia del personaje {race, skinColor, tunicColor}
  * @param {number} TILE_SIZE - Tamaño del tile
  * @returns {Object} Sprites personalizados
  */
 export function generateCustomCharacterSprites(appearance, TILE_SIZE) {
-    const { race, skinColor, tunicColor, hairColor, hairStyle } = appearance;
+    const { race, skinColor, tunicColor } = appearance;
     
     // Obtener colores hex
     const skinHex = SKIN_COLORS[skinColor?.toUpperCase()]?.hex || '#fde68a';
     const tunicHex = TUNIC_COLORS[tunicColor?.toUpperCase()]?.hex || '#3b82f6';
-    const hairHex = HAIR_COLORS[hairColor?.toUpperCase()]?.hex || '#1f2937';
     
     // Determinar proporciones según la raza
     const raceId = race?.toLowerCase() || 'human';
     const bodyProportions = getRaceBodyProportions(raceId);
     
     return {
-        player: createPlayerSprite(TILE_SIZE, 'down', skinHex, tunicHex, hairHex, hairStyle, bodyProportions),
-        playerRight: createPlayerSprite(TILE_SIZE, 'right', skinHex, tunicHex, hairHex, hairStyle, bodyProportions),
-        playerLeft: createPlayerSprite(TILE_SIZE, 'left', skinHex, tunicHex, hairHex, hairStyle, bodyProportions),
-        playerUp: createPlayerSprite(TILE_SIZE, 'up', skinHex, tunicHex, hairHex, hairStyle, bodyProportions)
+        player: createPlayerSprite(TILE_SIZE, 'down', skinHex, tunicHex, bodyProportions),
+        playerRight: createPlayerSprite(TILE_SIZE, 'right', skinHex, tunicHex, bodyProportions),
+        playerLeft: createPlayerSprite(TILE_SIZE, 'left', skinHex, tunicHex, bodyProportions),
+        playerUp: createPlayerSprite(TILE_SIZE, 'up', skinHex, tunicHex, bodyProportions)
     };
 }
 
@@ -67,7 +66,7 @@ function getRaceBodyProportions(race) {
 /**
  * Crear sprite del jugador en una dirección específica
  */
-function createPlayerSprite(TILE_SIZE, direction, skinColor, tunicColor, hairColor, hairStyle, bodyProportions) {
+function createPlayerSprite(TILE_SIZE, direction, skinColor, tunicColor, bodyProportions) {
     return createSprite(TILE_SIZE, TILE_SIZE, (ctx, w, h) => {
         const { headSize, bodyHeight, bodyWidth, bodyY, isCreature } = bodyProportions;
         
@@ -77,13 +76,7 @@ function createPlayerSprite(TILE_SIZE, direction, skinColor, tunicColor, hairCol
         const bodyH = h * bodyHeight;
         const bodyX = (w - bodyW) / 2;
         
-        // Cabello atrás (UP)
-        if (direction === 'up' && hairStyle !== 'bald') {
-            ctx.fillStyle = hairColor;
-            drawHair(ctx, w/2, h/4, headRadius, hairColor, hairStyle, direction);
-        }
-        
-        // Cuerpo/túnica
+        // Dibujar cuerpo/túnica
         if (isCreature) {
             drawRaggedTunic(ctx, bodyX, bodyStartY, bodyW, bodyH, tunicColor);
         } else {
@@ -91,28 +84,25 @@ function createPlayerSprite(TILE_SIZE, direction, skinColor, tunicColor, hairCol
             ctx.fillRect(bodyX, bodyStartY, bodyW, bodyH);
         }
         
-        // Cabeza
+        // Dibujar cabeza
         ctx.fillStyle = skinColor;
         ctx.beginPath();
         ctx.arc(w/2, h/4, headRadius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Ojos
+        // Dibujar ojos
         drawEyes(ctx, w, h, direction);
         
-        // Colmillos si es criatura
+        // Dibujar colmillos si es criatura
         if (isCreature) {
             drawCreatureFangs(ctx, w, h, direction);
-        }
-        
-        // Cabello adelante (no UP)
-        if (direction !== 'up' && hairStyle !== 'bald') {
-            ctx.fillStyle = hairColor;
-            drawHair(ctx, w/2, h/4, headRadius, hairColor, hairStyle, direction);
         }
     });
 }
 
+/**
+ * Dibujar ojos según dirección
+ */
 function drawEyes(ctx, w, h, direction) {
     ctx.fillStyle = '#000';
     switch (direction) {
@@ -135,6 +125,9 @@ function drawEyes(ctx, w, h, direction) {
     }
 }
 
+/**
+ * Dibujar túnica rasgada (para criaturas)
+ */
 function drawRaggedTunic(ctx, x, y, w, h, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, w, h * 0.7);
@@ -155,6 +148,9 @@ function drawRaggedTunic(ctx, x, y, w, h, color) {
     ctx.fillRect(x, y + h * 0.65, w, 2);
 }
 
+/**
+ * Dibujar colmillos de criatura
+ */
 function drawCreatureFangs(ctx, w, h, direction) {
     if (direction === 'up') return;
     ctx.fillStyle = '#fff';
@@ -168,65 +164,4 @@ function drawCreatureFangs(ctx, w, h, direction) {
     ctx.lineTo(w/2 + 3, h/4 + 7);
     ctx.lineTo(w/2 + 5, h/4 + 3);
     ctx.fill();
-}
-
-function drawHair(ctx, x, y, radius, color, style, direction) {
-    ctx.fillStyle = color;
-    const hairStyle = style?.toLowerCase() || 'short';
-    switch (hairStyle) {
-        case 'short':
-            drawShortHair(ctx, x, y, radius, direction);
-            break;
-        case 'long':
-            drawLongHair(ctx, x, y, radius, direction);
-            break;
-        case 'ponytail':
-            drawPonytail(ctx, x, y, radius, direction);
-            break;
-        case 'braids':
-            drawBraids(ctx, x, y, radius, direction);
-            break;
-    }
-}
-
-function drawShortHair(ctx, x, y, radius, direction) {
-    if (direction === 'up') {
-        ctx.fillRect(x - radius * 0.8, y - radius * 1.1, radius * 1.6, radius * 0.6);
-    } else {
-        ctx.fillRect(x - radius * 0.9, y - radius * 1.2, radius * 1.8, radius * 0.5);
-    }
-}
-
-function drawLongHair(ctx, x, y, radius, direction) {
-    if (direction === 'up') {
-        ctx.fillRect(x - radius * 0.9, y - radius * 1.1, radius * 1.8, radius * 2.5);
-    } else {
-        ctx.fillRect(x - radius * 1.0, y - radius * 1.2, radius * 2.0, radius * 2.2);
-    }
-}
-
-function drawPonytail(ctx, x, y, radius, direction) {
-    if (direction === 'up') {
-        ctx.fillRect(x - radius * 0.6, y - radius * 1.1, radius * 1.2, radius * 0.5);
-        ctx.fillRect(x - radius * 0.3, y - radius * 0.6, radius * 0.6, radius * 2.0);
-    } else {
-        ctx.fillRect(x - radius * 0.8, y - radius * 1.2, radius * 1.6, radius * 0.5);
-        if (direction === 'right') {
-            ctx.fillRect(x + radius * 0.4, y - radius * 0.3, radius * 0.5, radius * 1.5);
-        } else if (direction === 'left') {
-            ctx.fillRect(x - radius * 0.9, y - radius * 0.3, radius * 0.5, radius * 1.5);
-        }
-    }
-}
-
-function drawBraids(ctx, x, y, radius, direction) {
-    if (direction === 'up') {
-        ctx.fillRect(x - radius * 0.9, y - radius * 1.1, radius * 1.8, radius * 0.5);
-        ctx.fillRect(x - radius * 0.7, y - radius * 0.6, radius * 0.4, radius * 2.0);
-        ctx.fillRect(x + radius * 0.3, y - radius * 0.6, radius * 0.4, radius * 2.0);
-    } else {
-        ctx.fillRect(x - radius * 0.9, y - radius * 1.2, radius * 1.8, radius * 0.5);
-        ctx.fillRect(x - radius * 1.0, y - radius * 0.3, radius * 0.4, radius * 1.5);
-        ctx.fillRect(x + radius * 0.6, y - radius * 0.3, radius * 0.4, radius * 1.5);
-    }
 }
