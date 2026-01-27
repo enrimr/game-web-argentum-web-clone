@@ -49,8 +49,8 @@ export function handlePlayerAttackOnBot(attacker, target) {
     
     // Si atacas a un ciudadano por primera vez, mostrar advertencia
     if (!targetIsCriminal && !attackWarningShown && attacker.criminalStatus < CRIMINALITY_CONFIG.CITIZEN_THRESHOLD) {
-        addChatMessage('system', '⚠️ ADVERTENCIA: Atacar a ${target.name} te convertirá en criminal!');
-        addChatMessage('system', '⚠️ Los guardias te atacarán. Presiona ESPACIO de nuevo para confirmar.');
+        addChatMessage('system', `⚠️ ADVERTENCIA: Atacar a ${target.name} te convertirá en criminal!`);
+        addChatMessage('system', `⚠️ Los guardias te atacarán. Presiona ESPACIO de nuevo para confirmar.`);
         attackWarningShown = true;
         return false; // Bloquear primer ataque
     }
