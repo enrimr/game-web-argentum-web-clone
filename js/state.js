@@ -40,6 +40,7 @@ export const gameState = {
         exp: 0,
         expToNextLevel: 100,
         gold: 0,
+        skillPoints: 0, // Puntos de habilidad disponibles para distribuir
         facing: 'down', // Dirección del jugador: 'up', 'down', 'left', 'right'
         isGhost: false, // Si el jugador está en modo fantasma (muerto)
         meditating: false, // Si el jugador está meditando
@@ -176,6 +177,7 @@ export function resetGameState() {
         level: CONFIG.LEVEL.STARTING_LEVEL,
         exp: CONFIG.LEVEL.STARTING_EXP,
         expToNextLevel: CONFIG.LEVEL.BASE_EXP_TO_LEVEL,
+        skillPoints: 0, // Puntos de habilidad disponibles para distribuir
         isGhost: false,
         meditating: false,
         facing: 'down',

@@ -23,8 +23,12 @@ export function levelUp() {
     gameState.player.hp = gameState.player.maxHp; // Full heal on level up
     gameState.player.maxMana += manaIncrease;
     gameState.player.mana = gameState.player.maxMana;
+    
+    // Otorgar 10 puntos de habilidad por nivel
+    const skillPointsGained = 10;
+    gameState.player.skillPoints = (gameState.player.skillPoints || 0) + skillPointsGained;
 
-    addChatMessage('system', `🎉 ¡NIVEL ${gameState.player.level}! +${hpIncrease} HP máx, +${manaIncrease} Maná máx`);
+    addChatMessage('system', `🎉 ¡NIVEL ${gameState.player.level}! +${hpIncrease} HP máx, +${manaIncrease} Maná máx, +${skillPointsGained} puntos de habilidad`);
     updateUI(); // Update UI after leveling up
 }
 

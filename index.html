@@ -6,6 +6,7 @@
     <title>Argentum Demo - MMORPG 2D</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles/spells.css">
+    <link rel="stylesheet" href="styles/skills.css">
 </head>
 <body>
     <div class="game-container">
@@ -146,13 +147,14 @@
                 </div>
                 
                 <div class="panel character-panel">
-                    <h3> Personaje</h3>
+                    <h3>👤 Personaje</h3>
                     <div class="character-info">
                         <p><span class="stat-label">Nivel:</span> <span class="stat-value">1</span></p>
                         <p><span class="stat-label">Clase:</span> <span class="stat-value">Guerrero</span></p>
                         <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
                         <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
                     </div>
+                    <button id="toggleSkillsBtn" onclick="toggleSkillsPanel()" class="minimap-toggle" style="margin-top: 8px;">📊 Ver Habilidades</button>
                 </div>
 
                 <div class="panel">
@@ -247,6 +249,10 @@
                         <span class="menu-icon">✨</span>
                         <span>Hechizos</span>
                     </button>
+                    <button onclick="toggleSkillsPanel(); closeMobileMenu();" class="menu-item">
+                        <span class="menu-icon">📊</span>
+                        <span>Habilidades</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -258,6 +264,7 @@
         import { toggleWorldMap } from './js/ui/WorldMap.js';
         import { toggleMapEditor } from './js/ui/MapEditor.js';
         import { toggleSpellsPanel } from './js/ui/SpellsUI.js';
+        import { toggleSkillsPanel } from './js/ui/SkillsPanel.js';
 
         // Initialize the game when the page loads
         window.addEventListener('load', () => {
@@ -292,6 +299,7 @@
         window.toggleMapEditor = toggleMapEditor;
         window.toggleQuests = toggleQuests;
         window.toggleSpellsPanel = toggleSpellsPanel;
+        window.toggleSkillsPanel = toggleSkillsPanel;
 
         // Mobile UI functions
         function setupMobileUI() {
