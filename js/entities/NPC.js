@@ -568,8 +568,12 @@ export class NPC extends Character {
                 this.chasing = true;
                 this.chasingTarget = nearestCriminal;
                 
-                // Attack if within melee range
-                if (distance <= 1) {
+                // Attack only if directly adjacent (not diagonal)
+                const dx = Math.abs(nearestCriminal.x - this.x);
+                const dy = Math.abs(nearestCriminal.y - this.y);
+                const isAdjacent = (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+                
+                if (isAdjacent) {
                     const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
                     nearestCriminal.hp -= damage;
                     console.log(`⚔️ Guardia ${this.name} ataca a ${nearestCriminal.name} - ${damage} daño (${nearestCriminal.hp}/${nearestCriminal.maxHp} HP)`);
