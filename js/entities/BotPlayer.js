@@ -493,12 +493,13 @@ export class BotPlayer extends Character {
         this.behaviorTimer = 0;
         this.behaviorDuration = this.getRandomBehaviorDuration();
         
-        // Regenerar inventario (perdió todo al morir)
-        this.inventory = this.generateRandomInventory();
+        // NO regenerar inventario - perdió todo al morir permanentemente
+        // this.inventory permanece vacío []
+        console.log(`💀 ${this.name} resucita sin items (perdió todo al morir)`);
         
         // Mensaje de chat
         if (typeof window !== 'undefined' && window.addChatMessage) {
-            window.addChatMessage('system', `⛪ ${this.name} ha resucitado con ${healer.name}`);
+            window.addChatMessage('system', `⛪ ${this.name} ha resucitado sin items (perdió todo al morir)`);
         }
     }
     
