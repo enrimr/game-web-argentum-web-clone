@@ -582,16 +582,17 @@ export class NPC extends Character {
                             // Jugador muere por guardia: aplicar justicia
                             console.log('⚖️ Guardia mata jugador criminal - aplicando justicia');
                             
-                            // Reducir criminalidad directamente (síncrono)
+                            // Reducir criminalidad directamente (síncrono) - 10% de los puntos actuales
                             if (gameState.player.criminalStatus > 0) {
                                 const oldStatus = gameState.player.criminalStatus;
-                                gameState.player.criminalStatus = Math.max(0, gameState.player.criminalStatus - 30);
+                                const reduction = Math.max(1, Math.floor(oldStatus * 0.10)); // Mínimo 1 punto
+                                gameState.player.criminalStatus = Math.max(0, gameState.player.criminalStatus - reduction);
                                 
-                                console.log(`⚖️ Criminalidad: ${oldStatus} → ${gameState.player.criminalStatus}`);
+                                console.log(`⚖️ Justicia aplicada: ${oldStatus} - ${reduction} (10%) = ${gameState.player.criminalStatus}`);
                                 
                                 // Importar UI para mensajes
                                 import('../ui/UI.js').then(({ addChatMessage }) => {
-                                    addChatMessage('system', `⚖️ La guardia te ha impartido justicia: -30 puntos criminales`);
+                                    addChatMessage('system', `⚖️ La guardia te ha impartido justicia: -${reduction} puntos (10%)`);
                                     addChatMessage('system', `⚖️ Criminalidad: ${oldStatus} → ${gameState.player.criminalStatus}`);
                                     
                                     if (gameState.player.criminalStatus < 50 && oldStatus >= 50) {
