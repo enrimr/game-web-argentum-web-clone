@@ -28,6 +28,7 @@ import { initMouseControls } from './MouseControls.js';
 import { initDebugPanel } from '../ui/DebugPanel.js';
 import { preloadAllMaps, getPreloadedMap } from '../world/PreloadedMaps.js';
 import { botManager } from '../systems/BotManager.js';
+import { updatePlayerAppearance } from '../graphics/renderers/RendererCore.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
@@ -106,10 +107,14 @@ function setupLoginEvents() {
             gameState.isOnline = true;
             gameState.onlineUser = event.detail.user;
             
-            // Si hay un personaje seleccionado, asignar su nombre al jugador
+            // Si hay un personaje seleccionado, asignar su nombre y apariencia al jugador
             if (event.detail.character) {
                 gameState.player.name = event.detail.character.name;
+                gameState.player.characterClass = event.detail.character.class;
+                gameState.player.race = event.detail.character.race;
+                gameState.player.appearance = event.detail.character.appearance;
                 console.log('Personaje seleccionado:', event.detail.character.name);
+                console.log('Apariencia del personaje:', event.detail.character.appearance);
             }
         } else {
             console.log('Iniciando en modo local');
@@ -268,6 +273,11 @@ async function initGame() {
     addItemToInventory('POTION_RED', 20);   // Pociones HP
     addItemToInventory('POTION_BLUE', 15);  // Pociones Mana
     addItemToInventory('POTION_GREEN', 10); // Pociones Antídoto
+
+    // Actualizar apariencia del jugador si hay datos de personalización
+    if (gameState.player.appearance && gameState.player.race) {
+        updatePlayerAppearance(gameState.player.appearance);
+    }
 
     updateUI();
 

@@ -5,7 +5,7 @@
 
 import { gameState } from '../../state.js';
 import { CONFIG } from '../../config.js';
-import { generateAllSprites } from '../SpriteGenerator.js';
+import { generateAllSprites, updatePlayerSprites } from '../SpriteGenerator.js';
 import { renderMap, renderTreeLayer, renderPropLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
 import { renderPlayer, renderBots, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
@@ -18,7 +18,29 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // Load sprites
-export const sprites = generateAllSprites(TILE_SIZE);
+export let sprites = generateAllSprites(TILE_SIZE);
+
+/**
+ * Actualizar sprites del jugador con apariencia personalizada
+ * @param {Object} appearance - Apariencia del personaje
+ */
+export function updatePlayerAppearance(appearance) {
+    if (appearance) {
+        console.log('🎨 Actualizando sprites del jugador con apariencia personalizada');
+        
+        // Construir objeto de apariencia completo con raza
+        const fullAppearance = {
+            race: gameState.player.race,
+            skinColor: appearance.skinColor,
+            tunicColor: appearance.tunicColor,
+            hairColor: appearance.hairColor,
+            hairStyle: appearance.hairStyle
+        };
+        
+        sprites = updatePlayerSprites(sprites, fullAppearance, TILE_SIZE);
+        console.log('✅ Sprites del jugador actualizados');
+    }
+}
 
 // Debug visibility controls for each layer
 export const layerVisibility = {
