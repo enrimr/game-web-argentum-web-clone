@@ -1086,7 +1086,7 @@ export class LoginScreen {
      * Eliminar personaje
      * @param {string} characterId - ID del personaje
      */
-    deleteCharacter(characterId) {
+    async deleteCharacter(characterId) {
         const character = characterManager.getCharacterById(characterId);
         
         if (!character) {
@@ -1094,7 +1094,7 @@ export class LoginScreen {
             return;
         }
 
-        const confirmed = confirm(`¿Estás seguro de que quieres eliminar a ${character.name}? Esta acción no se puede deshacer.`);
+        const confirmed = await this.showConfirm(`¿Estás seguro de que quieres eliminar a <strong>${character.name}</strong>?<br><small>Esta acción no se puede deshacer.</small>`);
         
         if (confirmed) {
             const success = characterManager.deleteCharacter(characterId);
@@ -1179,6 +1179,58 @@ export class LoginScreen {
             notification.classList.remove('show');
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+
+    /**
+     * Mostrar diálogo de confirmación personalizado
+     * @param {string} message - Mensaje de confirmación
+     * @returns {Promise<boolean>} True si el usuario confirma, false si cancela
+     */
+    showConfirm(message) {
+        return new Promise((resolve) => {
+            const dialog = document.createElement('div');
+            dialog.className = 'custom-dialog-overlay';
+            
+            dialog.innerHTML = `
+                <div class="custom-dialog">
+                    <div class="custom-dialog-icon">⚠️</div>
+                    <div class="custom-dialog-message">${message}</div>
+                    <div class="custom-dialog-buttons">
+                        <button class="dialog-button dialog-button-cancel">Cancelar</button>
+                        <button class="dialog-button dialog-button-confirm">Confirmar</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            // Animar entrada
+            setTimeout(() => dialog.classList.add('show'), 10);
+            
+            // Eventos de los botones
+            const cancelBtn = dialog.querySelector('.dialog-button-cancel');
+            const confirmBtn = dialog.querySelector('.dialog-button-confirm');
+            
+            const close = (result) => {
+                dialog.classList.remove('show');
+                setTimeout(() => {
+                    dialog.remove();
+                    resolve(result);
+                }, 300);
+            };
+            
+            cancelBtn.addEventListener('click', () => close(false));
+            confirmBtn.addEventListener('click', () => close(true));
+            
+            // Cerrar con ESC
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    close(false);
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+        });
     }
     
     /**
