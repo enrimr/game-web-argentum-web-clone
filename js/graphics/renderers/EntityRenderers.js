@@ -14,6 +14,10 @@ import { layerVisibility, sprites, TILE_SIZE } from './RendererCore.js';
 import { drawDBZMeditationEffects } from './EffectRenderers.js';
 import { renderEquipmentLayers, getPlayerVisualEquipment } from '../../systems/EquipmentSystem.js';
 import { getFactionColor, isEvilFaction } from '../../systems/Factions.js';
+import { generateCustomCharacterSprites } from '../sprites/CustomCharacterSprites.js';
+
+// Cache de sprites de bots
+const botSpritesCache = new Map();
 
 /**
  * Render player with animations
@@ -71,11 +75,27 @@ export function renderBots(camera, ctx) {
         if (isInViewport(bot.x, bot.y, camera)) {
             const screenPos = worldToScreen(bot.x, bot.y);
             
-            // Get appropriate sprite based on ghost status
-            // Bots fantasma usan el sprite de fantasma existente
-            const playerSprite = bot.isGhost 
-                ? (sprites.playerGhost || sprites.player)
-                : (sprites.player || sprites.playerDown);
+            let playerSprite;
+            
+            // Bots fantasma usan el sprite de fantasma
+            if (bot.isGhost) {
+                playerSprite = sprites.playerGhost || sprites.player;
+            } else {
+                // Obtener o generar sprite personalizado del bot
+                if (!botSpritesCache.has(bot.id) && bot.appearance && bot.race) {
+                    // Generar sprites personalizados para este bot
+                    const botSprites = generateCustomCharacterSprites({
+                        race: bot.race,
+                        skinColor: bot.appearance.skinColor,
+                        tunicColor: bot.appearance.tunicColor
+                    }, TILE_SIZE);
+                    botSpritesCache.set(bot.id, botSprites);
+                }
+                
+                // Usar sprite personalizado o por defecto
+                const botSprites = botSpritesCache.get(bot.id);
+                playerSprite = botSprites ? botSprites.player : (sprites.player || sprites.playerDown);
+            }
             
             if (playerSprite) {
                 // Draw base character sprite (ghost sprite ya tiene su propio estilo)

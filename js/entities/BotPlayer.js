@@ -122,6 +122,33 @@ export class BotPlayer extends Character {
         
         // Inventario aleatorio con pociones y items básicos
         this.inventory = this.generateRandomInventory();
+        
+        // Apariencia aleatoria para el sprite
+        this.race = this.getRandomRace();
+        this.appearance = this.generateRandomAppearance();
+    }
+    
+    /**
+     * Obtiene una raza aleatoria
+     * @returns {string} ID de la raza
+     */
+    getRandomRace() {
+        const races = ['human', 'dwarf', 'creature'];
+        return races[Math.floor(Math.random() * races.length)];
+    }
+    
+    /**
+     * Genera una apariencia aleatoria
+     * @returns {object} Objeto con colores aleatorios
+     */
+    generateRandomAppearance() {
+        const tunicColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'black', 'white'];
+        const skinColors = ['light', 'medium', 'tan', 'dark', 'gray', 'green'];
+        
+        return {
+            tunicColor: tunicColors[Math.floor(Math.random() * tunicColors.length)],
+            skinColor: skinColors[Math.floor(Math.random() * skinColors.length)]
+        };
     }
     
     /**
