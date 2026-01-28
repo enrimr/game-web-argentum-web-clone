@@ -69,6 +69,9 @@ export function enemyAttack(enemy) {
  * @param {object} killedBy - Entidad que mató al jugador (opcional)
  */
 function enterGhostMode(killedBy = null) {
+    // Reproducir sonido de muerte
+    audioManager.play('battle/death', 'battle');
+
     gameState.player.isGhost = true;
 
     // Drop all items to the ground
@@ -104,6 +107,9 @@ function enterGhostMode(killedBy = null) {
  * @param {Object} bot - Bot that died
  */
 export function botEnterGhostMode(bot) {
+    // Reproducir sonido de muerte
+    audioManager.play('battle/death', 'battle');
+
     bot.isGhost = true;
     bot.hp = bot.maxHp; // Fantasmas tienen HP completo pero no pueden ser atacados
     

@@ -50,7 +50,15 @@ class AudioManager {
             'inventory/useBottleOrPotion': 'resources/audio/effects/inventory/useBottleOrPotion.ogg',
             
             // World
-            'world/door': 'resources/audio/effects/world/door.ogg'
+            'world/door': 'resources/audio/effects/world/door.ogg',
+            'world/openDoor': 'resources/audio/effects/world/openDoor.ogg',
+            'world/closeDoor': 'resources/audio/effects/world/closeDoor.ogg',
+            
+            // Battle effects
+            'battle/death': 'resources/audio/effects/battle/death.ogg',
+            
+            // Weather
+            'weather/rain': 'resources/audio/effects/weather/rain.ogg'
         };
 
         for (const [key, path] of Object.entries(soundPaths)) {

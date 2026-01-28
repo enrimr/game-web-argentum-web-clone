@@ -7,6 +7,7 @@ import { gameState, toggleDoorState, isDoorOpen, setDoorState } from '../state.j
 import { TILES, isDoor, isRoof, isToggleableDoor, isClosedDoor, isOpenDoor, getDoorOpenType, getDoorClosedType } from '../world/TileTypes.js';
 import { CONFIG } from '../config.js';
 import { addChatMessage } from '../ui/UI.js';
+import { audioManager } from '../systems/AudioManager.js';
 
 /**
  * Check if player is entering a building through a door
@@ -239,6 +240,13 @@ export function toggleDoor(x, y) {
         // Si la cerramos, determinar en qué lado debe estar el pomo
         const doorClosedType = getDoorClosedType(x, y, gameState.doorLayer);
         gameState.doorLayer[y][x] = doorClosedType;
+    }
+
+    // Reproducir sonido de puerta
+    if (shouldBeOpen) {
+        audioManager.play('world/openDoor', 'world');
+    } else {
+        audioManager.play('world/closeDoor', 'world');
     }
 
     // Mostrar mensaje
