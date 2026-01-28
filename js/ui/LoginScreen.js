@@ -6,9 +6,11 @@
 import { characterManager, RACES, TUNIC_COLORS, SKIN_COLORS, HAIR_COLORS, HAIR_STYLES } from '../systems/CharacterManager.js';
 import { CHARACTER_CLASSES } from '../systems/Classes.js';
 import { generateCustomCharacterSprites } from '../graphics/sprites/CustomCharacterSprites.js';
+import apiClient from '../api/ApiClient.js';
+import socketClient from '../api/SocketClient.js';
 
-// Mockup de respuestas del servidor para simular las llamadas API
-const AUTH_SERVER_RESPONSES = {
+// Mockup de respuestas del servidor para simular las llamadas API (DEPRECADO - Ahora usa el backend real)
+const AUTH_SERVER_RESPONSES_OLD = {
     login: {
         success: {
             status: 200,
@@ -550,38 +552,103 @@ export class LoginScreen {
         spinner.style.display = 'inline-block';
         
         try {
-            // Simular llamada al servidor
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Llamar al API real
+            const response = await apiClient.login(username, password);
             
-            // Mockear respuesta del servidor
-            const response = username === 'test' && password === 'test' 
-                ? AUTH_SERVER_RESPONSES.login.success 
-                : AUTH_SERVER_RESPONSES.login.error;
-            
-            if (response.status === 200) {
+            if (response.success) {
                 // Login exitoso
                 this.token = response.data.token;
-                this.user = response.data.user;
+                this.user = {
+                    id: response.data.userId,
+                    username: response.data.username,
+                    role: response.data.role
+                };
                 
-                // Guardar en localStorage
-                localStorage.setItem('auth_token', this.token);
+                // Guardar en localStorage (el token ya lo guarda apiClient)
                 localStorage.setItem('user_data', JSON.stringify(this.user));
+                
+                // Cargar personajes del servidor
+                await this.loadCharactersFromServer();
                 
                 // Mostrar selección de personajes
                 this.showCharacterSelection();
             } else {
                 // Error en login
-                this.showError('loginError', response.error);
+                this.showError('loginError', response.message || 'Error al iniciar sesión');
             }
         } catch (error) {
             console.error('Error al iniciar sesión:', error);
-            this.showError('loginError', 'Error al conectar con el servidor');
+            this.showError('loginError', error.message || 'Error al conectar con el servidor');
         } finally {
             // Ocultar spinner
             spinner.style.display = 'none';
         }
     }
     
+    /**
+     * Cargar personajes desde el servidor
+     */
+    async loadCharactersFromServer() {
+        try {
+            const response = await apiClient.getCharacters();
+            
+            if (response.success) {
+                // Convertir personajes del servidor a formato local
+                const localCharacters = response.data.map(serverChar => 
+                    this.convertServerCharacterToLocal(serverChar)
+                );
+                
+                // Guardar en localStorage directamente
+                localStorage.setItem(characterManager.storageKey, JSON.stringify(localCharacters));
+                
+                console.log(`Cargados ${response.data.length} personajes del servidor`);
+            }
+        } catch (error) {
+            console.error('Error al cargar personajes:', error);
+            // Si falla, mantener personajes locales existentes
+        }
+    }
+
+    /**
+     * Convertir personaje del servidor a formato local
+     */
+    convertServerCharacterToLocal(serverChar) {
+        // Mapear clase del servidor (español) al formato del cliente (inglés)
+        const classMapReverse = {
+            'guerrero': 'warrior',
+            'mago': 'mage',
+            'arquero': 'archer',
+            'clerigo': 'cleric',
+            'asesino': 'assassin',
+            'paladin': 'paladin',
+            'bardo': 'bard'
+        };
+
+        const clientClass = classMapReverse[serverChar.class] || 'warrior';
+
+        return {
+            id: serverChar._id,
+            name: serverChar.name,
+            class: clientClass,
+            race: 'human', // Por defecto - el cliente usa 'human' no 'humano'
+            level: serverChar.stats?.level || 1,
+            experience: serverChar.stats?.experience || 0,
+            gold: serverChar.stats?.gold || 0,
+            lastPlayed: serverChar.lastPlayed || new Date().toISOString(),
+            appearance: {
+                tunicColor: 'blue',
+                skinColor: 'light',
+                hairColor: 'brown',
+                hairStyle: 'short'
+            },
+            // Mantener stats del servidor
+            stats: serverChar.stats || {},
+            skills: serverChar.skills || {},
+            inventory: serverChar.inventory || [],
+            equipment: serverChar.equipment || {}
+        };
+    }
+
     /**
      * Manejar registro de nuevo usuario
      * @returns {Promise<void>}
@@ -618,15 +685,10 @@ export class LoginScreen {
         spinner.style.display = 'inline-block';
         
         try {
-            // Simular llamada al servidor
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Llamar al API real
+            const response = await apiClient.register(username, email, password);
             
-            // Mockear respuesta del servidor
-            const response = username !== 'admin' 
-                ? AUTH_SERVER_RESPONSES.register.success 
-                : AUTH_SERVER_RESPONSES.register.error;
-            
-            if (response.status === 201) {
+            if (response.success) {
                 // Registro exitoso
                 this.showNotification('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
                 
@@ -636,11 +698,11 @@ export class LoginScreen {
                 this.showPanel('login');
             } else {
                 // Error en registro
-                this.showError('registerError', response.error);
+                this.showError('registerError', response.message || 'Error al registrar');
             }
         } catch (error) {
             console.error('Error al registrar usuario:', error);
-            this.showError('registerError', 'Error al conectar con el servidor');
+            this.showError('registerError', error.message || 'Error al conectar con el servidor');
         } finally {
             // Ocultar spinner
             spinner.style.display = 'none';
@@ -684,6 +746,13 @@ export class LoginScreen {
         characters.forEach((char, index) => {
             const classData = CHARACTER_CLASSES[char.class.toUpperCase()];
             const raceData = RACES[char.race.toUpperCase()];
+            
+            // Validar que existan los datos
+            if (!classData || !raceData) {
+                console.warn(`Datos incompletos para personaje ${char.name}:`, { class: char.class, race: char.race });
+                return; // Saltar este personaje
+            }
+            
             const canvasId = `charCanvas${index}`;
             
             html += `
@@ -1030,29 +1099,67 @@ export class LoginScreen {
             return;
         }
 
-        // Verificar nombre disponible
-        if (!characterManager.isNameAvailable(data.name)) {
-            this.showError('createCharacterError', 'El nombre no está disponible o no es válido');
-            return;
-        }
-
         // Mostrar spinner
         spinner.style.display = 'inline-block';
 
         try {
-            // Simular delay de red
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Verificar nombre disponible en servidor
+            const nameCheck = await apiClient.checkNameAvailability(data.name);
+            if (!nameCheck.available) {
+                this.showError('createCharacterError', 'El nombre ya está en uso');
+                spinner.style.display = 'none';
+                return;
+            }
 
-            // Crear personaje
-            const character = characterManager.createCharacter(data);
+            // Mapear clase del cliente al formato del servidor
+            const classMap = {
+                'warrior': 'guerrero',
+                'mage': 'mago',
+                'archer': 'arquero',
+                'cleric': 'clerigo',
+                'assassin': 'asesino',
+                'paladin': 'paladin',
+                'bard': 'bardo'
+            };
 
-            // Éxito
-            this.showNotification(`¡Personaje ${character.name} creado exitosamente!`, 'success');
-            
-            // Volver a la selección de personajes
-            this.showCharacterSelection();
+            const serverClass = classMap[data.class] || data.class;
+
+            // Preparar datos de apariencia para el servidor
+            const appearance = {
+                body: parseInt(data.tunicColor) || 1,
+                head: parseInt(data.skinColor) || 1,
+                heading: 3
+            };
+
+            // Crear personaje en el servidor
+            const response = await apiClient.createCharacter(
+                data.name,
+                serverClass,
+                appearance
+            );
+
+            if (response.success) {
+                // Convertir personaje del servidor a formato local
+                const localChar = this.convertServerCharacterToLocal(response.data);
+                
+                // Obtener personajes actuales y añadir el nuevo
+                const characters = characterManager.getCharacters();
+                characters.push(localChar);
+                
+                // Guardar en localStorage directamente
+                localStorage.setItem(characterManager.storageKey, JSON.stringify(characters));
+
+                // Éxito
+                this.showNotification(`¡Personaje ${response.data.name} creado exitosamente!`, 'success');
+                
+                // Volver a la selección de personajes
+                this.showCharacterSelection();
+            } else {
+                this.showError('createCharacterError', response.message || 'Error al crear personaje');
+            }
         } catch (error) {
-            this.showError('createCharacterError', error.message);
+            console.error('Error al crear personaje:', error);
+            this.showError('createCharacterError', error.message || 'Error al conectar con el servidor');
         } finally {
             spinner.style.display = 'none';
         }
@@ -1097,13 +1204,21 @@ export class LoginScreen {
         const confirmed = await this.showConfirm(`¿Estás seguro de que quieres eliminar a <strong>${character.name}</strong>?<br><small>Esta acción no se puede deshacer.</small>`);
         
         if (confirmed) {
-            const success = characterManager.deleteCharacter(characterId);
-            
-            if (success) {
-                this.showNotification(`Personaje ${character.name} eliminado`, 'info');
-                this.renderCharactersList();
-            } else {
-                this.showNotification('Error al eliminar personaje', 'error');
+            try {
+                // Eliminar del servidor
+                const response = await apiClient.deleteCharacter(character.id);
+                
+                if (response.success) {
+                    // Eliminar localmente
+                    characterManager.deleteCharacter(characterId);
+                    this.showNotification(`Personaje ${character.name} eliminado`, 'info');
+                    this.renderCharactersList();
+                } else {
+                    this.showNotification('Error al eliminar personaje del servidor', 'error');
+                }
+            } catch (error) {
+                console.error('Error al eliminar personaje:', error);
+                this.showNotification('Error al conectar con el servidor', 'error');
             }
         }
     }
@@ -1242,34 +1357,29 @@ export class LoginScreen {
         const statusText = document.getElementById('serverStatusText');
         
         try {
-            // Simular llamada al servidor
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Intentar verificar el servidor usando /health endpoint
+            const baseUrl = apiClient.getBaseUrl().replace('/api', '');
+            const response = await fetch(`${baseUrl}/health`);
+            const data = await response.json();
             
-            // Mockear respuesta del servidor (90% probabilidad de estar online)
-            const response = Math.random() > 0.1 
-                ? AUTH_SERVER_RESPONSES.serverStatus.online 
-                : AUTH_SERVER_RESPONSES.serverStatus.offline;
-            
-            if (response.status === 200) {
+            if (response.ok && data.success) {
                 this.isServerOnline = true;
                 statusIndicator.className = 'status-indicator status-online';
-                statusText.textContent = `Servidor online - ${response.data.players} jugadores conectados`;
+                statusText.textContent = 'Servidor online - Conectado';
             } else {
-                this.isServerOnline = false;
-                statusIndicator.className = 'status-indicator status-offline';
-                statusText.textContent = `Servidor offline - ${response.error}`;
-                
-                // Deshabilitar botón de juego online
-                document.getElementById('playOnlineButton').disabled = true;
+                throw new Error('Servidor offline');
             }
         } catch (error) {
             console.error('Error al comprobar estado del servidor:', error);
             this.isServerOnline = false;
             statusIndicator.className = 'status-indicator status-offline';
-            statusText.textContent = 'Error al conectar con el servidor';
+            statusText.textContent = 'Servidor offline - Modo local disponible';
             
             // Deshabilitar botón de juego online
-            document.getElementById('playOnlineButton').disabled = true;
+            const playOnlineButton = document.getElementById('playOnlineButton');
+            if (playOnlineButton) {
+                playOnlineButton.disabled = true;
+            }
         }
     }
     
