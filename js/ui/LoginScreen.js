@@ -298,7 +298,8 @@ export class LoginScreen {
                     
                     <div id="createCharacterError" class="error-message"></div>
                     
-                    <form id="createCharacterForm" class="create-character-form">
+                    <!-- Sección fija: Nombre, Preview y Botón -->
+                    <div class="fixed-creation-section">
                         <!-- Nombre -->
                         <div class="form-section">
                             <label>Nombre del Personaje</label>
@@ -316,6 +317,15 @@ export class LoginScreen {
                             </div>
                         </div>
 
+                        <!-- Botón Crear Personaje -->
+                        <button type="button" id="createCharacterSubmit" class="submit-button">
+                            Crear Personaje
+                            <span id="createCharacterSpinner" class="spinner" style="display: none;"></span>
+                        </button>
+                    </div>
+
+                    <!-- Sección con scroll: Opciones de personalización -->
+                    <form id="createCharacterForm" class="create-character-form-scrollable">
                         <!-- Profesión/Clase -->
                         <div class="form-section">
                             <label>Profesión</label>
@@ -364,11 +374,6 @@ export class LoginScreen {
                                 </div>
                             </div>
                         </div>
-
-                        <button type="submit" id="createCharacterSubmit" class="submit-button">
-                            Crear Personaje
-                            <span id="createCharacterSpinner" class="spinner" style="display: none;"></span>
-                        </button>
                     </form>
                 </div>
             </div>

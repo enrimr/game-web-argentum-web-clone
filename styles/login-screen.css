@@ -654,6 +654,26 @@
     font-size: 24px;
 }
 
+/* Sección fija con nombre, preview y botón */
+.fixed-creation-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Sección scrollable con opciones de personalización */
+.create-character-form-scrollable {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
 .create-character-form {
     display: flex;
     flex-direction: column;
@@ -904,23 +924,27 @@
 
 /* Scrollbar personalizado */
 .create-character-form::-webkit-scrollbar,
+.create-character-form-scrollable::-webkit-scrollbar,
 .characters-list::-webkit-scrollbar {
     width: 8px;
 }
 
 .create-character-form::-webkit-scrollbar-track,
+.create-character-form-scrollable::-webkit-scrollbar-track,
 .characters-list::-webkit-scrollbar-track {
     background: rgba(15, 23, 42, 0.5);
     border-radius: 4px;
 }
 
 .create-character-form::-webkit-scrollbar-thumb,
+.create-character-form-scrollable::-webkit-scrollbar-thumb,
 .characters-list::-webkit-scrollbar-thumb {
     background: rgba(148, 163, 184, 0.5);
     border-radius: 4px;
 }
 
 .create-character-form::-webkit-scrollbar-thumb:hover,
+.create-character-form-scrollable::-webkit-scrollbar-thumb:hover,
 .characters-list::-webkit-scrollbar-thumb:hover {
     background: rgba(148, 163, 184, 0.7);
 }
