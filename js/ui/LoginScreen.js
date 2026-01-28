@@ -628,7 +628,7 @@ export class LoginScreen {
             
             if (response.status === 201) {
                 // Registro exitoso
-                alert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.');
+                this.showNotification('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
                 
                 // Redirigir al login con los datos ya rellenados
                 document.getElementById('loginUsername').value = username;
@@ -1047,7 +1047,7 @@ export class LoginScreen {
             const character = characterManager.createCharacter(data);
 
             // Éxito
-            alert(`¡Personaje ${character.name} creado exitosamente!`);
+            this.showNotification(`¡Personaje ${character.name} creado exitosamente!`, 'success');
             
             // Volver a la selección de personajes
             this.showCharacterSelection();
@@ -1066,7 +1066,7 @@ export class LoginScreen {
         const character = characterManager.getCharacterById(characterId);
         
         if (!character) {
-            alert('Error: Personaje no encontrado');
+            this.showNotification('Error: Personaje no encontrado', 'error');
             return;
         }
 
@@ -1090,7 +1090,7 @@ export class LoginScreen {
         const character = characterManager.getCharacterById(characterId);
         
         if (!character) {
-            alert('Error: Personaje no encontrado');
+            this.showNotification('Error: Personaje no encontrado', 'error');
             return;
         }
 
@@ -1100,10 +1100,10 @@ export class LoginScreen {
             const success = characterManager.deleteCharacter(characterId);
             
             if (success) {
-                alert(`Personaje ${character.name} eliminado`);
+                this.showNotification(`Personaje ${character.name} eliminado`, 'info');
                 this.renderCharactersList();
             } else {
-                alert('Error al eliminar personaje');
+                this.showNotification('Error al eliminar personaje', 'error');
             }
         }
     }
@@ -1146,6 +1146,39 @@ export class LoginScreen {
         errorElement.classList.remove('visible');
         void errorElement.offsetWidth; // Truco para reiniciar la animación
         errorElement.classList.add('visible');
+    }
+
+    /**
+     * Mostrar notificación tipo toast
+     * @param {string} message - Mensaje a mostrar
+     * @param {string} type - Tipo de notificación (success, error, info, warning)
+     */
+    showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        
+        const icon = {
+            success: '✓',
+            error: '✗',
+            info: 'ℹ',
+            warning: '⚠'
+        }[type] || '✓';
+        
+        notification.innerHTML = `
+            <span class="notification-icon">${icon}</span>
+            <span class="notification-message">${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animar entrada
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Remover después de 3 segundos
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
     
     /**
