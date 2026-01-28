@@ -15,6 +15,7 @@ class AudioManager {
         
         // Música de fondo
         this.currentMusic = null;
+        this.currentMusicKey = null; // Guardar qué música estaba sonando
         this.nextMusic = null;
         this.musicTracks = new Map();
         this.isFading = false;
@@ -122,7 +123,20 @@ class AudioManager {
     setMusicEnabled(enabled) {
         CONFIG.AUDIO.MUSIC_ENABLED = enabled;
         if (!enabled) {
-            this.stopMusic(false);
+            // Solo pausar la música, no detenerla completamente
+            if (this.currentMusic && !this.currentMusic.paused) {
+                this.currentMusic.pause();
+            }
+        } else {
+            // Reanudar música pausada o reiniciar la última pista
+            if (this.currentMusic && this.currentMusic.paused) {
+                this.currentMusic.play().catch(err => {
+                    console.warn('Failed to resume music:', err);
+                });
+            } else if (this.currentMusicKey) {
+                // Si no hay música actual pero sí teníamos una clave guardada, reproducirla
+                this.playMusic(this.currentMusicKey, true);
+            }
         }
     }
 
@@ -187,6 +201,9 @@ class AudioManager {
             console.warn(`Music track not found: ${trackKey}`);
             return;
         }
+
+        // Guardar la clave de la música actual
+        this.currentMusicKey = trackKey;
 
         // Si ya está sonando esta pista, no hacer nada
         if (this.currentMusic === track && !track.paused) {
