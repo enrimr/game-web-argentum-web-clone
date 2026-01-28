@@ -29,6 +29,7 @@ import { initDebugPanel } from '../ui/DebugPanel.js';
 import { preloadAllMaps, getPreloadedMap } from '../world/PreloadedMaps.js';
 import { botManager } from '../systems/BotManager.js';
 import { updatePlayerAppearance } from '../graphics/renderers/RendererCore.js';
+import { audioManager } from '../systems/AudioManager.js';
 
 // Helper functions (these are defined in ObjectGenerator.js but we need them here)
 function isWalkableOnMap(map, x, y) {
@@ -281,6 +282,14 @@ async function initGame() {
 
     updateUI();
 
+    // Iniciar música de fondo según tipo de mapa
+    const currentMapDef = getStaticMap(gameState.currentMap);
+    if (currentMapDef && currentMapDef.type) {
+        const musicTrack = audioManager.getMusicForMapType(currentMapDef.type);
+        audioManager.playMusic(musicTrack);
+        console.log(`🎵 Iniciando música: ${musicTrack} para mapa tipo ${currentMapDef.type}`);
+    }
+
     // Start game loop
     requestAnimationFrame(gameLoopWrapper);
 }
@@ -468,6 +477,14 @@ export function changeMap(targetMap, targetX, targetY) {
 
     addChatMessage('system', `🌟 ¡Viajas a ${displayName}!`);
     updateUI();
+
+    // Cambiar música según tipo de mapa
+    const newMapDef = getStaticMap(targetMap);
+    if (newMapDef && newMapDef.type) {
+        const musicTrack = audioManager.getMusicForMapType(newMapDef.type);
+        audioManager.playMusic(musicTrack);
+        console.log(`🎵 Cambiando música: ${musicTrack} para mapa tipo ${newMapDef.type}`);
+    }
 
     // Forzar actualización del minimapa después del cambio de mapa
     updateMinimap();

@@ -69,7 +69,7 @@ class AudioManager {
     }
 
     play(soundKey, category = null) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.isSfxEnabled()) return;
 
         // Verificar cooldown
         const now = Date.now();
@@ -115,7 +115,27 @@ class AudioManager {
         this.enabled = enabled;
         if (!enabled) {
             this.stopAll();
+            this.stopMusic(false);
         }
+    }
+
+    setMusicEnabled(enabled) {
+        CONFIG.AUDIO.MUSIC_ENABLED = enabled;
+        if (!enabled) {
+            this.stopMusic(false);
+        }
+    }
+
+    setSfxEnabled(enabled) {
+        CONFIG.AUDIO.SFX_ENABLED = enabled;
+    }
+
+    isMusicEnabled() {
+        return CONFIG.AUDIO.MUSIC_ENABLED !== false;
+    }
+
+    isSfxEnabled() {
+        return CONFIG.AUDIO.SFX_ENABLED !== false;
     }
 
     stopAll() {
@@ -139,12 +159,9 @@ class AudioManager {
 
     preloadMusic() {
         const musicPaths = {
-            'menu': 'resources/audio/music/menu_theme.ogg',
-            'exploration': 'resources/audio/music/exploration_theme.ogg',
-            'combat': 'resources/audio/music/combat_theme.ogg',
-            'city': 'resources/audio/music/city_theme.ogg',
-            'dungeon': 'resources/audio/music/dungeon_theme.ogg',
-            'boss': 'resources/audio/music/boss_theme.ogg'
+            'forest': 'resources/audio/music/backgroundForest.ogg',
+            'mountain': 'resources/audio/music/backgroundMountain.ogg',
+            'village': 'resources/audio/music/backgroundVillage.ogg'
         };
 
         for (const [key, path] of Object.entries(musicPaths)) {
@@ -163,7 +180,7 @@ class AudioManager {
     }
 
     playMusic(trackKey, fadeIn = true) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.isMusicEnabled()) return;
 
         const track = this.musicTracks.get(trackKey);
         if (!track) {
@@ -291,6 +308,29 @@ class AudioManager {
         if (this.currentMusic && !this.currentMusic.paused) {
             this.currentMusic.volume = this.volumes.MASTER * this.volumes.MUSIC;
         }
+    }
+
+    /**
+     * Obtiene la clave de música apropiada según el tipo de mapa
+     * @param {string} mapType - Tipo de mapa (city, forest, mountain, dungeon, etc)
+     * @returns {string} Clave de la pista de música
+     */
+    getMusicForMapType(mapType) {
+        const mapping = CONFIG.AUDIO.MAP_MUSIC;
+        
+        // Mapear tipos específicos
+        if (mapType === 'city' || mapType === 'town') {
+            return mapping.village || 'village';
+        }
+        if (mapType === 'forest' || mapType === 'field') {
+            return mapping.forest || 'forest';
+        }
+        if (mapType === 'mountain' || mapType === 'dungeon') {
+            return mapping.mountain || 'mountain';
+        }
+        
+        // Por defecto
+        return mapping.default || 'forest';
     }
 }
 

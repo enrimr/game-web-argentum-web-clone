@@ -171,8 +171,10 @@
                 </div>
 
                 <div class="panel">
-                    <h3>📖 Ayuda</h3>
+                    <h3>📖 Ayuda & Audio</h3>
                     <a href="/manual" target="_blank" class="minimap-toggle" style="display: block; text-align: center; text-decoration: none; margin-bottom: 8px;">Ver Manual del Juego</a>
+                    <button id="toggleMusicBtn" onclick="toggleMusic()" class="minimap-toggle" style="margin-bottom: 8px; background: #10b981;">🎵 Música: ON</button>
+                    <button id="toggleSfxBtn" onclick="toggleSfx()" class="minimap-toggle" style="background: #10b981;">🔊 Efectos: ON</button>
                 </div>
 
                 <div class="panel">
@@ -300,6 +302,41 @@
         window.toggleQuests = toggleQuests;
         window.toggleSpellsPanel = toggleSpellsPanel;
         window.toggleSkillsPanel = toggleSkillsPanel;
+
+        // Audio control functions
+        window.toggleMusic = function() {
+            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
+                const btn = document.getElementById('toggleMusicBtn');
+                const isEnabled = audioManager.isMusicEnabled();
+                
+                audioManager.setMusicEnabled(!isEnabled);
+                
+                if (!isEnabled) {
+                    btn.textContent = '🎵 Música: ON';
+                    btn.style.background = '#10b981';
+                } else {
+                    btn.textContent = '🎵 Música: OFF';
+                    btn.style.background = '#ef4444';
+                }
+            });
+        };
+
+        window.toggleSfx = function() {
+            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
+                const btn = document.getElementById('toggleSfxBtn');
+                const isEnabled = audioManager.isSfxEnabled();
+                
+                audioManager.setSfxEnabled(!isEnabled);
+                
+                if (!isEnabled) {
+                    btn.textContent = '🔊 Efectos: ON';
+                    btn.style.background = '#10b981';
+                } else {
+                    btn.textContent = '🔊 Efectos: OFF';
+                    btn.style.background = '#ef4444';
+                }
+            });
+        };
 
         // Mobile UI functions
         function setupMobileUI() {

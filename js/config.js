@@ -94,6 +94,8 @@ export const CONFIG = {
     // Audio
     AUDIO: {
         ENABLED: true,
+        MUSIC_ENABLED: true,  // Control separado para música
+        SFX_ENABLED: true,    // Control separado para efectos de sonido
         VOLUMES: {
             MASTER: 1.0,
             MUSIC: 0.4,      // Volumen de música de fondo
@@ -110,6 +112,13 @@ export const CONFIG = {
             FADE_DURATION: 2000, // Duración del crossfade en ms
             LOOP: true,          // Música en loop
             PRELOAD: 'auto'      // Precarga de música
+        },
+        // Mapeo de tipos de mapa a música
+        MAP_MUSIC: {
+            'village': 'village',     // Ciudades y pueblos
+            'forest': 'forest',       // Bosques
+            'mountain': 'mountain',   // Montañas
+            'default': 'forest'       // Por defecto
         }
     },
 };
