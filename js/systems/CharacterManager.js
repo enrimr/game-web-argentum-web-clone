@@ -57,13 +57,6 @@ export const RACES = {
     }
 };
 
-/**
- * Géneros disponibles
- */
-export const GENDERS = {
-    MALE: { id: 'male', name: 'Masculino', icon: '♂️' },
-    FEMALE: { id: 'female', name: 'Femenino', icon: '♀️' }
-};
 
 /**
  * Colores de túnica disponibles

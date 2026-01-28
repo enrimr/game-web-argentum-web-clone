@@ -47,9 +47,9 @@ function getRaceBodyProportions(race) {
         case 'creature':
             return {
                 headSize: 0.30,
-                bodyHeight: 0.45,
+                bodyHeight: 0.5,     // Misma altura que humano
                 bodyWidth: 0.65,
-                bodyY: 0.35,
+                bodyY: 0.33,         // Misma posición Y que humano
                 isCreature: true
             };
         default: // human

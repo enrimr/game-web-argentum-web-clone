@@ -3,7 +3,7 @@
  * Gestión de la pantalla de inicio y autenticación para el juego
  */
 
-import { characterManager, RACES, GENDERS, TUNIC_COLORS, SKIN_COLORS, HAIR_COLORS, HAIR_STYLES } from '../systems/CharacterManager.js';
+import { characterManager, RACES, TUNIC_COLORS, SKIN_COLORS, HAIR_COLORS, HAIR_STYLES } from '../systems/CharacterManager.js';
 import { CHARACTER_CLASSES } from '../systems/Classes.js';
 
 // Mockup de respuestas del servidor para simular las llamadas API
@@ -317,14 +317,6 @@ export class LoginScreen {
                         <div class="form-section">
                             <label>Raza</label>
                             <div id="racesList" class="options-grid">
-                                <!-- Se llenará dinámicamente -->
-                            </div>
-                        </div>
-
-                        <!-- Género -->
-                        <div class="form-section">
-                            <label>Género</label>
-                            <div id="gendersList" class="options-grid">
                                 <!-- Se llenará dinámicamente -->
                             </div>
                         </div>
@@ -778,19 +770,6 @@ export class LoginScreen {
         });
         racesList.innerHTML = racesHTML;
 
-        // Renderizar géneros
-        const gendersList = document.getElementById('gendersList');
-        let gendersHTML = '';
-        Object.values(GENDERS).forEach(gender => {
-            gendersHTML += `
-                <div class="option-card" data-type="gender" data-value="${gender.id}">
-                    <div class="option-icon">${gender.icon}</div>
-                    <div class="option-name">${gender.name}</div>
-                </div>
-            `;
-        });
-        gendersList.innerHTML = gendersHTML;
-
         // Renderizar colores de túnica
         const tunicColorsList = document.getElementById('tunicColorsList');
         let tunicColorsHTML = '';
@@ -845,7 +824,6 @@ export class LoginScreen {
             name: '',
             class: null,
             race: null,
-            gender: null,
             tunicColor: null,
             skinColor: null,
             hairColor: null,
@@ -940,7 +918,6 @@ export class LoginScreen {
                     <h3>${data.name || 'Tu Personaje'}</h3>
                     <p><strong>Clase:</strong> ${classData.name}</p>
                     <p><strong>Raza:</strong> ${raceData.name}</p>
-                    ${data.gender ? `<p><strong>Género:</strong> ${GENDERS[data.gender.toUpperCase()].name}</p>` : ''}
                 </div>
                 <div class="preview-appearance">
                     <div class="appearance-item">
@@ -988,11 +965,6 @@ export class LoginScreen {
 
         if (!data.race) {
             this.showError('createCharacterError', 'Debes seleccionar una raza');
-            return;
-        }
-
-        if (!data.gender) {
-            this.showError('createCharacterError', 'Debes seleccionar un género');
             return;
         }
 
