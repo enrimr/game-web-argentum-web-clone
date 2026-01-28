@@ -121,4 +121,13 @@ export const CONFIG = {
             'default': 'forest'       // Por defecto
         }
     },
+
+    // Preloader
+    PRELOADER: {
+        ENABLED: false,        // Si es false, salta la pantalla de precarga
+        MAX_RETRIES: 3,       // Número máximo de reintentos por recurso
+        RETRY_DELAY: 1000,    // Delay base entre reintentos (ms)
+        TIMEOUT: 10000,       // Timeout por recurso (ms)
+        CONCURRENCY: 5        // Número de recursos a cargar en paralelo
+    },
 };

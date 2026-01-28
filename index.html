@@ -4,15 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calima Online - MMORPG 2D</title>
+    
+    <!-- Prevent FOUC (Flash of Unstyled Content) -->
+    <style>
+        body { visibility: hidden; opacity: 0; }
+        body.loaded { visibility: visible; opacity: 1; transition: opacity 0.3s; }
+    </style>
+    
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="styles/spells.css">
     <link rel="stylesheet" href="styles/skills.css">
+    <link rel="stylesheet" href="styles/preloader.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/resources/images/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/resources/images/favicon/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png">
+    
+    <script>
+        // Show body when CSS is loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+    </script>
 </head>
 <body>
-    <div class="game-container">
+    <!-- Preloader Screen -->
+    <div id="preloaderOverlay" class="preloader-overlay" style="display: none;">
+        <div class="preloader-content">
+            <div class="preloader-logo">🗡️</div>
+            <div class="preloader-title">Calima Online</div>
+            <div class="preloader-subtitle">Cargando recursos del juego...</div>
+            
+            <div class="preloader-spinner"></div>
+            
+            <div class="preloader-percentage" id="preloaderPercentage">0%</div>
+            
+            <div class="preloader-bar-container">
+                <div class="preloader-bar" id="preloaderBar" style="width: 0%"></div>
+            </div>
+            
+            <div class="preloader-status" id="preloaderStatus">Iniciando...</div>
+            <div class="preloader-resource" id="preloaderResource"></div>
+            
+            <div id="preloaderError" class="preloader-error" style="display: none;">
+                <div class="preloader-error-title">⚠️ Algunos recursos no se pudieron cargar</div>
+                <p>Es posible que el juego no funcione correctamente. Puedes intentar recargar o continuar de todos modos.</p>
+                <ul id="preloaderErrorList" class="preloader-error-list"></ul>
+                <button id="preloaderRetryButton" class="preloader-retry-button">🔄 Reintentar</button>
+                <button id="preloaderContinueButton" class="preloader-continue-button">➡️ Continuar de todos modos</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container" style="display: none;">
         <!-- Header with title and stats -->
     <div class="header">
         <div class="header-top">
@@ -266,6 +309,8 @@
     </div>
 
     <script type="module">
+        import { CONFIG } from './js/config.js';
+        import { resourcePreloader } from './js/core/ResourcePreloader.js';
         import { init, toggleQuests } from './js/core/Game.js';
         import { toggleMinimap } from './js/ui/Minimap.js';
         import { toggleWorldMap } from './js/ui/WorldMap.js';
@@ -273,9 +318,72 @@
         import { toggleSpellsPanel } from './js/ui/SpellsUI.js';
         import { toggleSkillsPanel } from './js/ui/SkillsPanel.js';
 
-        // Initialize the game when the page loads
-        window.addEventListener('load', () => {
-            console.log("🚀 Página cargada completamente, iniciando aplicación...");
+        // Initialize preloader UI elements
+        const preloaderOverlay = document.getElementById('preloaderOverlay');
+        const preloaderBar = document.getElementById('preloaderBar');
+        const preloaderPercentage = document.getElementById('preloaderPercentage');
+        const preloaderStatus = document.getElementById('preloaderStatus');
+        const preloaderResource = document.getElementById('preloaderResource');
+        const preloaderError = document.getElementById('preloaderError');
+        const preloaderErrorList = document.getElementById('preloaderErrorList');
+        const preloaderRetryButton = document.getElementById('preloaderRetryButton');
+        const preloaderContinueButton = document.getElementById('preloaderContinueButton');
+
+        // Configure preloader callbacks
+        resourcePreloader.setOnProgress((progress) => {
+            const percent = Math.round(progress.progress);
+            preloaderBar.style.width = `${percent}%`;
+            preloaderPercentage.textContent = `${percent}%`;
+            preloaderStatus.textContent = `Cargando recursos (${progress.loaded}/${progress.total})...`;
+            
+            if (progress.currentResource) {
+                const resourceName = progress.currentResource.split('/').pop();
+                preloaderResource.textContent = resourceName;
+            }
+        });
+
+        resourcePreloader.setOnComplete((result) => {
+            console.log('✨ Precarga completada:', result);
+            
+            if (result.success) {
+                preloaderStatus.textContent = '¡Listo! Iniciando juego...';
+                setTimeout(() => {
+                    hidePreloaderAndStart();
+                }, 500);
+            } else {
+                showPreloaderError(result.failedResources);
+            }
+        });
+
+        resourcePreloader.setOnError((failedResources) => {
+            console.error('❌ Errores en precarga:', failedResources);
+        });
+
+        // Show error in preloader
+        function showPreloaderError(failedResources) {
+            preloaderError.style.display = 'block';
+            preloaderErrorList.innerHTML = '';
+            
+            failedResources.forEach(resource => {
+                const li = document.createElement('li');
+                li.textContent = resource.url.split('/').pop();
+                preloaderErrorList.appendChild(li);
+            });
+        }
+
+        // Hide preloader and start game
+        function hidePreloaderAndStart() {
+            preloaderOverlay.classList.add('hidden');
+            
+            setTimeout(() => {
+                preloaderOverlay.remove();
+                startGameApplication();
+            }, 500);
+        }
+
+        // Start game application
+        function startGameApplication() {
+            console.log("🚀 Iniciando aplicación del juego...");
 
             // Check for URL parameters to open map editor directly
             const urlParams = new URLSearchParams(window.location.search);
@@ -283,22 +391,52 @@
 
             if (mapEditorMode) {
                 console.log("🎨 Modo editor de mapas detectado, abriendo directamente...");
-                // Import and initialize map editor directly
-                import('./js/ui/MapEditor.js').then(({ toggleMapEditor }) => {
-                    // Skip normal game initialization
-                    init(); // Still initialize basic systems
-                    setupMobileUI();
-                    // Open map editor after a short delay to ensure DOM is ready
-                    setTimeout(() => {
-                        toggleMapEditor();
-                    }, 100);
-                });
+                init();
+                setupMobileUI();
+                setTimeout(() => {
+                    toggleMapEditor();
+                }, 100);
             } else {
-                // Normal game initialization
                 init();
                 setupMobileUI();
             }
+        }
+
+        // Retry button handler
+        preloaderRetryButton.addEventListener('click', () => {
+            window.location.reload();
         });
+
+        // Continue button handler
+        preloaderContinueButton.addEventListener('click', () => {
+            hidePreloaderAndStart();
+        });
+
+        // Start preloading when DOM is ready (if enabled)
+        if (CONFIG.PRELOADER.ENABLED) {
+            // Show preloader
+            preloaderOverlay.style.display = 'flex';
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    console.log("📦 DOM listo, iniciando precarga de recursos...");
+                    resourcePreloader.preloadAll();
+                });
+            } else {
+                console.log("📦 DOM ya está listo, iniciando precarga de recursos...");
+                resourcePreloader.preloadAll();
+            }
+        } else {
+            // Skip preloader - start game immediately
+            console.log("⏭️ Preloader deshabilitado, iniciando directamente...");
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    startGameApplication();
+                });
+            } else {
+                startGameApplication();
+            }
+        }
 
         // Make functions globally available for HTML buttons
         window.toggleMinimap = toggleMinimap;

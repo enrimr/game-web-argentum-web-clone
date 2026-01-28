@@ -1279,6 +1279,12 @@ export class LoginScreen {
     startLocalGame() {
         console.log('Iniciando juego en modo local');
         
+        // Mostrar UI del juego
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.style.display = 'block';
+        }
+        
         // Buscar el elemento de pantalla de login
         const loginScreen = document.getElementById('loginScreen');
         
@@ -1315,6 +1321,12 @@ export class LoginScreen {
         if (!this.isServerOnline) {
             alert('El servidor está offline. Por favor, inténtalo más tarde.');
             return;
+        }
+        
+        // Mostrar UI del juego
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.style.display = 'block';
         }
         
         // Ocultar pantalla de login con una animación
