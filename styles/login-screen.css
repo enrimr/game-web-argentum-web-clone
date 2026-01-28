@@ -814,6 +814,22 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+    align-items: center;
+}
+
+.preview-sprite-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 2px solid rgba(252, 211, 77, 0.3);
+}
+
+.preview-sprite-container canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 .preview-icons {

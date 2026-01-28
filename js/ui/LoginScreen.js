@@ -5,6 +5,7 @@
 
 import { characterManager, RACES, TUNIC_COLORS, SKIN_COLORS, HAIR_COLORS, HAIR_STYLES } from '../systems/CharacterManager.js';
 import { CHARACTER_CLASSES } from '../systems/Classes.js';
+import { generateCustomCharacterSprites } from '../graphics/sprites/CustomCharacterSprites.js';
 
 // Mockup de respuestas del servidor para simular las llamadas API
 const AUTH_SERVER_RESPONSES = {
@@ -905,44 +906,47 @@ export class LoginScreen {
         const raceData = RACES[data.race.toUpperCase()];
         const tunicColor = TUNIC_COLORS[data.tunicColor.toUpperCase()];
         const skinColor = SKIN_COLORS[data.skinColor.toUpperCase()];
-        const hairColor = data.hairColor ? HAIR_COLORS[data.hairColor.toUpperCase()] : null;
-        const hairStyle = data.hairStyle ? HAIR_STYLES[data.hairStyle.toUpperCase()] : null;
+
+        // Generar sprite personalizado
+        const TILE_SIZE = 48; // Tamaño más grande para vista previa
+        const appearance = {
+            race: data.race,
+            skinColor: data.skinColor,
+            tunicColor: data.tunicColor
+        };
+        
+        const sprites = generateCustomCharacterSprites(appearance, TILE_SIZE);
 
         preview.innerHTML = `
             <div class="character-preview-display">
-                <div class="preview-icons">
-                    <span class="preview-class-icon" style="color: ${classData.color}">${classData.icon}</span>
-                    <span class="preview-race-icon">${raceData.icon}</span>
+                <div class="preview-sprite-container">
+                    <canvas id="previewCanvas" width="${TILE_SIZE}" height="${TILE_SIZE}"></canvas>
                 </div>
                 <div class="preview-info">
                     <h3>${data.name || 'Tu Personaje'}</h3>
-                    <p><strong>Clase:</strong> ${classData.name}</p>
-                    <p><strong>Raza:</strong> ${raceData.name}</p>
+                    <p><strong>Clase:</strong> ${classData.name} ${classData.icon}</p>
+                    <p><strong>Raza:</strong> ${raceData.name} ${raceData.icon}</p>
                 </div>
                 <div class="preview-appearance">
                     <div class="appearance-item">
                         <span>Túnica:</span>
                         <div class="color-square" style="background-color: ${tunicColor.hex}"></div>
+                        <span>${tunicColor.name}</span>
                     </div>
                     <div class="appearance-item">
                         <span>Piel:</span>
                         <div class="color-square" style="background-color: ${skinColor.hex}"></div>
+                        <span>${skinColor.name}</span>
                     </div>
-                    ${hairColor ? `
-                        <div class="appearance-item">
-                            <span>Cabello:</span>
-                            <div class="color-square" style="background-color: ${hairColor.hex}"></div>
-                        </div>
-                    ` : ''}
-                    ${hairStyle ? `
-                        <div class="appearance-item">
-                            <span>Estilo:</span>
-                            <span>${hairStyle.icon} ${hairStyle.name}</span>
-                        </div>
-                    ` : ''}
                 </div>
             </div>
         `;
+
+        // Renderizar el sprite en el canvas
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(sprites.player, 0, 0);
     }
 
     /**
