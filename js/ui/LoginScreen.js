@@ -681,20 +681,20 @@ export class LoginScreen {
         }
 
         // Personajes existentes
-        characters.forEach(char => {
+        characters.forEach((char, index) => {
             const classData = CHARACTER_CLASSES[char.class.toUpperCase()];
             const raceData = RACES[char.race.toUpperCase()];
+            const canvasId = `charCanvas${index}`;
             
             html += `
                 <div class="character-slot" data-character-id="${char.id}">
                     <div class="character-info">
                         <div class="character-avatar">
-                            <span class="character-class-icon">${classData.icon}</span>
-                            <span class="character-race-icon">${raceData.icon}</span>
+                            <canvas id="${canvasId}" width="32" height="32" class="character-sprite-preview"></canvas>
                         </div>
                         <div class="character-details">
                             <h3>${char.name}</h3>
-                            <p class="character-class">${classData.name} ${raceData.name}</p>
+                            <p class="character-class">${classData.name} ${classData.icon} - ${raceData.name} ${raceData.icon}</p>
                             <p class="character-level">Nivel ${char.level}</p>
                             <p class="character-date">Última vez: ${this.formatDate(char.lastPlayed)}</p>
                         </div>
@@ -738,6 +738,26 @@ export class LoginScreen {
                 const characterId = e.target.dataset.characterId;
                 this.deleteCharacter(characterId);
             });
+        });
+
+        // Renderizar sprites de personajes
+        characters.forEach((char, index) => {
+            const canvasId = `charCanvas${index}`;
+            const canvas = document.getElementById(canvasId);
+            if (canvas && char.appearance) {
+                const ctx = canvas.getContext('2d');
+                const TILE_SIZE = 32;
+                
+                const appearance = {
+                    race: char.race,
+                    skinColor: char.appearance.skinColor,
+                    tunicColor: char.appearance.tunicColor
+                };
+                
+                const sprites = generateCustomCharacterSprites(appearance, TILE_SIZE);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(sprites.player, 0, 0);
+            }
         });
     }
 
