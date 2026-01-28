@@ -625,13 +625,16 @@ export class NPC extends Character {
                                 });
                             }
                             
-                            // Convertir en fantasma
-                            gameState.player.isGhost = true;
-                            
-                            import('../ui/UI.js').then(({ addChatMessage }) => {
-                                addChatMessage('system', '💀 ¡Has muerto! Ahora eres un fantasma.');
-                                addChatMessage('system', '👻 Como fantasma puedes caminar y hablar con sacerdotes.');
-                                addChatMessage('system', '⛪ Busca un sacerdote para resucitarte.');
+                            // Usar enterGhostMode() centralizado para reproducir sonido y lógica completa
+                            import('../systems/Combat.js').then(({ enterGhostMode: enterGhostModeImported }) => {
+                                // Crear objeto guard para pasar como killedBy
+                                const guardEntity = { type: 'guard', name: this.name };
+                                
+                                // Llamar a la función centralizada que ya tiene el sonido
+                                // NOTA: La reducción de criminalidad ya se hizo arriba, así que 
+                                // pasamos un killedBy que no es exactamente un guardia para evitar duplicación
+                                // La lógica de justicia ya se aplicó arriba
+                                enterGhostModeImported(null);
                             });
                         } else {
                             // Bot muere normalmente

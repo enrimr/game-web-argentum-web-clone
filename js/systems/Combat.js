@@ -68,7 +68,7 @@ export function enemyAttack(enemy) {
  * Enter ghost mode when player dies
  * @param {object} killedBy - Entidad que mató al jugador (opcional)
  */
-function enterGhostMode(killedBy = null) {
+export function enterGhostMode(killedBy = null) {
     console.log('💀 Entrando en modo fantasma - reproduciendo sonido de muerte');
     
     // Reproducir sonido de muerte
