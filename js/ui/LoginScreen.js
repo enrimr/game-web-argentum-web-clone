@@ -425,11 +425,16 @@ export class LoginScreen {
         // Botón volver desde crear personaje
         document.getElementById('backToCharacters').addEventListener('click', () => this.showCharacterSelection());
 
-        // Formulario de crear personaje
-        document.getElementById('createCharacterForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleCreateCharacter();
-        });
+        // Botón de crear personaje (ahora está fuera del form)
+        // Note: El botón se inicializará después de renderizar el formulario
+        
+        // Formulario de crear personaje (ya no tiene submit porque el botón está fuera)
+        const createForm = document.getElementById('createCharacterForm');
+        if (createForm) {
+            createForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+            });
+        }
     }
 
     /**
@@ -892,6 +897,14 @@ export class LoginScreen {
         document.getElementById('characterName').addEventListener('input', (e) => {
             this.characterCreationData.name = e.target.value;
         });
+
+        // Evento para el botón de crear personaje (está fuera del form)
+        const createButton = document.getElementById('createCharacterSubmit');
+        if (createButton) {
+            createButton.addEventListener('click', () => {
+                this.handleCreateCharacter();
+            });
+        }
     }
 
     /**
