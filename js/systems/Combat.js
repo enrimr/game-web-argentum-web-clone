@@ -13,6 +13,7 @@ import { setPlayerAnimationState } from '../core/Renderer.js';
 import { getStaticMap } from '../world/StaticWorldMaps.js';
 import { isWalkable } from '../world/MapGenerator.js';
 import { addExp } from './Experience.js';
+import { audioManager } from './AudioManager.js';
 
 /**
  * Handle player attack interaction
@@ -21,6 +22,13 @@ import { addExp } from './Experience.js';
 export function playerAttack(enemy) {
     // Set attacking animation
     setPlayerAnimationState('attacking');
+
+    // Play attack sound based on equipped weapon
+    if (gameState.player.equipped.weapon) {
+        audioManager.play('battle/attackSword', 'battle');
+    } else {
+        audioManager.play('battle/attackPunch', 'battle');
+    }
 
     const damage = calculatePlayerDamage();
     enemy.hp -= damage;
@@ -37,6 +45,10 @@ export function playerAttack(enemy) {
  * @param {Object} enemy - Enemy attacking
  */
 export function enemyAttack(enemy) {
+    // Play enemy attack sound
+    const enemySoundKey = audioManager.getEnemySound(enemy.type);
+    audioManager.play(enemySoundKey, 'enemies');
+
     const damage = calculateEnemyDamage(enemy);
     gameState.player.hp -= damage;
 
@@ -399,6 +411,9 @@ export function shootArrow() {
     };
 
     gameState.projectiles.push(projectile);
+
+    // Play arrow shoot sound
+    audioManager.play('battle/attackSword', 'battle');
 
     // Consume one arrow from equipped slot
     arrowItem.quantity--;

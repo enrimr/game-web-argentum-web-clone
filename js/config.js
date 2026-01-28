@@ -90,4 +90,26 @@ export const CONFIG = {
         DUNGEON_WALL: 7, // Dungeon walls
         PATH: 8       // Dirt paths to other areas
     },
+
+    // Audio
+    AUDIO: {
+        ENABLED: true,
+        VOLUMES: {
+            MASTER: 1.0,
+            MUSIC: 0.4,      // Volumen de música de fondo
+            BATTLE: 0.8,
+            ENEMIES: 0.7,
+            GATHERING: 0.6,
+            INVENTORY: 0.5,
+            WORLD: 0.7
+        },
+        COOLDOWN_MS: 100, // Tiempo mínimo entre reproducción del mismo sonido
+        POOL_SIZE: 3, // Cantidad de instancias por sonido para overlapping
+        FALLBACK_ENEMY_SOUND: 'general', // Sonido por defecto para enemigos
+        MUSIC: {
+            FADE_DURATION: 2000, // Duración del crossfade en ms
+            LOOP: true,          // Música en loop
+            PRELOAD: 'auto'      // Precarga de música
+        }
+    },
 };

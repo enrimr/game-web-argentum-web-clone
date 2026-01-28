@@ -10,6 +10,7 @@ import { ITEM_TYPES } from './ItemTypes.js';
 import { addItemToInventory } from './Inventory.js';
 import { SKILLS, calculateSuccessChance, gainSkillExperience, calculateSkillExpRequired } from './Skills.js';
 import { getSkillModifier } from './Classes.js';
+import { audioManager } from './AudioManager.js';
 
 /**
  * Configuración de tipos de recursos recolectables
@@ -291,6 +292,9 @@ function performGatheringAttempt() {
     const succeeded = randomRoll <= 3;
     
     if (succeeded) {
+        // Reproducir sonido de recolección según el tipo de recurso
+        playGatheringSound(resourceType);
+
         // Calcular cuántos recursos se extraen
         const resourcesExtracted = calculateResourcesExtracted(resourceType, skillLevel);
         
@@ -468,6 +472,38 @@ export function hasRequiredTool(toolType) {
     const equippedWeapon = gameState.player.equipped.weapon;
     const requiredTools = GATHERING_TOOLS[toolType];
     return equippedWeapon && requiredTools && requiredTools.includes(equippedWeapon);
+}
+
+/**
+ * Reproduce el sonido apropiado según el tipo de recurso
+ * @param {Object} resourceType - Tipo de recurso siendo recolectado
+ */
+function playGatheringSound(resourceType) {
+    let soundKey = null;
+
+    switch (resourceType.id) {
+        case 'tree':
+            soundKey = 'gathering/gatherWood';
+            break;
+        case 'iron_vein':
+        case 'gold_vein':
+        case 'silver_vein':
+            soundKey = 'gathering/gatherMetal';
+            break;
+        case 'fishing_spot':
+            soundKey = 'gathering/gatherFish';
+            break;
+        case 'sheep':
+            // Por ahora usamos el sonido de madera para esquilar
+            soundKey = 'gathering/gatherWood';
+            break;
+        default:
+            soundKey = 'gathering/gatherWood';
+    }
+
+    if (soundKey) {
+        audioManager.play(soundKey, 'gathering');
+    }
 }
 
 /**

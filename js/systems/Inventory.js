@@ -8,6 +8,7 @@ import { gameState } from '../state.js';
 import { ITEM_TYPES } from './ItemTypes.js';
 import { addChatMessage, updateUI } from '../ui/UI.js';
 import { addSpellToPlayer, castSpell } from './MagicSystem.js';
+import { audioManager } from './AudioManager.js';
 
 const { MAX_INVENTORY_SLOTS } = CONFIG;
 
@@ -91,6 +92,9 @@ export function useConsumable(slotIndex) {
     const itemDef = ITEM_TYPES[item.type];
     if (!itemDef || itemDef.type !== 'consumable') return;
 
+    // Play potion/bottle sound
+    audioManager.play('inventory/useBottleOrPotion', 'inventory');
+
     // Apply consumable effect
     switch (itemDef.effect) {
         case 'heal_hp':
@@ -167,6 +171,13 @@ export function equipItem(slotIndex) {
         gameState.player.equipped[equipSlot] = null;
         addChatMessage('system', `📤 Has desequipado: ${itemDef.name}`);
     } else {
+        // Play equipment sound based on slot type
+        if (equipSlot === 'head' || equipSlot === 'body' || equipSlot === 'shield') {
+            audioManager.play('inventory/equipArmor', 'inventory');
+        } else {
+            audioManager.play('inventory/equipTool', 'inventory');
+        }
+
         // Equip (replace if something else was equipped)
         if (currentlyEquipped) {
             const oldItemDef = ITEM_TYPES[currentlyEquipped];
