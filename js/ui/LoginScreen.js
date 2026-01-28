@@ -306,6 +306,16 @@ export class LoginScreen {
                             <small>Solo letras, números, guiones y guiones bajos</small>
                         </div>
 
+                        <!-- Preview del personaje - SIEMPRE VISIBLE -->
+                        <div class="form-section">
+                            <label>Vista Previa</label>
+                            <div id="characterPreview" class="character-preview">
+                                <div class="preview-placeholder">
+                                    Configura tu personaje para ver una vista previa
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Profesión/Clase -->
                         <div class="form-section">
                             <label>Profesión</label>
@@ -351,16 +361,6 @@ export class LoginScreen {
                                 <label>Estilo de Cabello</label>
                                 <div id="hairStylesList" class="options-grid small">
                                     <!-- Se llenará dinámicamente -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Preview del personaje -->
-                        <div class="form-section">
-                            <label>Vista Previa</label>
-                            <div id="characterPreview" class="character-preview">
-                                <div class="preview-placeholder">
-                                    Configura tu personaje para ver una vista previa
                                 </div>
                             </div>
                         </div>
