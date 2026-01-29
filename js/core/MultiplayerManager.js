@@ -172,10 +172,11 @@ class MultiplayerManager {
 
             console.log(`✅ Estado cargado: isAlive=${player.isAlive}, isMeditating=${player.isMeditating}`);
             
-            // Si el jugador está muerto, asegurarse de que HP sea 0
-            if (!player.isAlive && player.hp > 0) {
+            // Si el jugador está muerto, asegurarse de que HP sea 0 Y activar modo fantasma
+            if (!player.isAlive) {
                 player.hp = 0;
-                console.log('⚰️ Jugador muerto detectado, estableciendo HP a 0');
+                player.isGhost = true; // Activar modo fantasma
+                console.log('👻 Jugador muerto detectado, activando modo fantasma (HP=0, isGhost=true)');
             }
         }
 
