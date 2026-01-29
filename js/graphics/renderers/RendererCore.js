@@ -11,6 +11,7 @@ import { renderMap, renderTreeLayer, renderPropLayer, renderDoorLayer, renderWin
 import { renderPlayer, renderBots, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
 import { renderOverheadMessages } from '../../ui/Chat.js';
+import { getFactionColor, isEvilFaction } from '../../systems/Factions.js';
 
 const { TILE_SIZE, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, MAP_WIDTH, MAP_HEIGHT } = CONFIG;
 
@@ -239,53 +240,132 @@ function renderOnlinePlayers(camera, ctx) {
 
         ctx.save();
         
-        // Generar sprite personalizado si hay apariencia
-        if (player.appearance && player.race) {
+        // Determinar si es fantasma
+        const isGhost = player.isGhost || !player.isAlive;
+        
+        // Aplicar transparencia si es fantasma
+        if (isGhost) {
+            ctx.globalAlpha = 0.5;
+        }
+        
+        // Renderizar sprite del jugador
+        if (isGhost) {
+            // Usar sprite de fantasma existente
+            const ghostSprite = sprites.playerGhost;
+            if (ghostSprite) {
+                ctx.drawImage(ghostSprite, screenPos.x, screenPos.y);
+            } else {
+                renderPlayerFallback(ctx, screenPos, isGhost);
+            }
+        } else if (player.appearance && player.race) {
+            // Generar sprite personalizado si hay apariencia
             try {
-                // Preparar datos de apariencia
-                const appearanceData = {
-                    race: player.race,
-                    skinColor: player.appearance.skinColor || 'light',
-                    tunicColor: player.appearance.tunicColor || 'blue'
+                // Mapear race de string a formato esperado por CustomCharacterSprites
+                let raceForSprite = player.race;
+                if (player.appearance.race) {
+                    // Si viene como número, convertir: 1=human, 2=dwarf, 3=creature
+                    const raceMap = { 1: 'human', 2: 'dwarf', 3: 'creature' };
+                    raceForSprite = raceMap[player.appearance.race] || player.race;
+                }
+                
+                // Mapear body (1-10) a color de túnica (según LoginScreen.js)
+                const tunicColorMapReverse = {
+                    1: 'red', 2: 'blue', 3: 'green', 4: 'yellow', 5: 'purple',
+                    6: 'orange', 7: 'pink', 8: 'brown', 9: 'black', 10: 'white'
                 };
                 
-                // Generar sprites (ya importado al inicio)
+                // Mapear head (1-50) a color de piel (según LoginScreen.js)
+                const skinColorMapReverse = {
+                    1: 'light', 2: 'medium', 3: 'tan', 4: 'dark'
+                };
+                
+                // Mapear hairColor de número a string (1-9)
+                const hairColorMapReverse = {
+                    1: 'brown', 2: 'black', 3: 'blonde', 4: 'red',
+                    5: 'white', 6: 'gray', 7: 'auburn', 8: 'golden', 9: 'silver'
+                };
+                
+                // Preparar datos de apariencia para CustomCharacterSprites
+                const appearanceData = {
+                    race: raceForSprite,
+                    skinColor: skinColorMapReverse[player.appearance.head] || 'light',
+                    tunicColor: tunicColorMapReverse[player.appearance.body] || 'blue',
+                    hairColor: hairColorMapReverse[player.appearance.hairColor] || 'brown',
+                    hairStyle: player.appearance.hairStyle || 1
+                };
+                
+                console.log(`🎨 Renderizando jugador ${player.username}:`, {
+                    clase: player.class,
+                    raza: raceForSprite,
+                    appearance_raw: player.appearance,
+                    appearance_mapped: appearanceData
+                });
+                
+                // Generar sprites del jugador
                 const playerSprites = generateCustomCharacterSprites(appearanceData, TILE_SIZE);
                 
                 // Dibujar sprite del jugador
                 ctx.drawImage(playerSprites.player, screenPos.x, screenPos.y);
+                
+                // TODO: Renderizar equipamiento sobre el jugador
+                // if (player.equipment) {
+                //     renderPlayerEquipment(ctx, screenPos, player.equipment);
+                // }
             } catch (error) {
-                console.warn('Error generando sprite personalizado, usando fallback:', error);
+                console.warn(`Error generando sprite personalizado para ${player.username}, usando fallback:`, error);
+                console.warn('Datos del jugador:', { appearance: player.appearance, race: player.race, class: player.class });
                 // Fallback a círculo si falla
-                renderPlayerFallback(ctx, screenPos);
+                renderPlayerFallback(ctx, screenPos, isGhost);
             }
         } else {
             // Si no hay datos de apariencia, usar círculo
-            renderPlayerFallback(ctx, screenPos);
+            console.warn(`Jugador ${player.username} sin datos de apariencia completos:`, { appearance: player.appearance, race: player.race });
+            renderPlayerFallback(ctx, screenPos, isGhost);
         }
 
-        // Dibujar nombre sobre el jugador
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        
-        const nameX = screenPos.x + TILE_SIZE / 2;
-        const nameY = screenPos.y - 5;
-        
-        // Sombra del texto
-        ctx.strokeText(player.username, nameX, nameY);
-        ctx.fillText(player.username, nameX, nameY);
+        // Restablecer alpha para el texto
+        ctx.globalAlpha = 1.0;
 
-        // Mostrar nivel
-        if (player.level) {
-            ctx.font = '10px Arial';
-            ctx.fillStyle = '#fbbf24';
-            const levelText = `Nv.${player.level}`;
-            ctx.strokeText(levelText, nameX, nameY + 12);
-            ctx.fillText(levelText, nameX, nameY + 12);
+        // Dibujar nombre debajo del jugador (misma fuente y formato que bots)
+        const nameX = screenPos.x + TILE_SIZE / 2;
+        let currentY = screenPos.y + TILE_SIZE + 10;
+        
+        // Color del nombre basado en facción (igual que bots)
+        let nameColor;
+        if (isGhost) {
+            nameColor = '#a0a0ff'; // Azul claro para fantasmas
+        } else if (player.faction) {
+            const factionColor = getFactionColor(player.faction);
+            nameColor = isEvilFaction(player.faction) ? factionColor : '#60a5fa'; // Rojo para malos, azul para buenos
+        } else {
+            nameColor = '#60a5fa'; // Azul por defecto
+        }
+        
+        ctx.fillStyle = nameColor;
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(player.username, nameX, currentY);
+        currentY += 10;
+        
+        // Mostrar facción debajo del nombre (solo si está vivo y tiene facción)
+        if (!isGhost && player.faction) {
+            const factionColor = getFactionColor(player.faction);
+            ctx.fillStyle = factionColor;
+            ctx.font = '8px monospace';
+            ctx.fillText(`<${player.faction}>`, nameX, currentY);
+            currentY += 10;
+        }
+        
+        // Mostrar nivel debajo de la facción (solo si está vivo)
+        if (!isGhost && player.level) {
+            ctx.fillStyle = '#22c55e'; // Verde para nivel (igual que bots)
+            ctx.font = '8px monospace';
+            ctx.fillText(`Lv.${player.level}`, nameX, currentY);
+        }
+
+        // Mostrar barra de HP arriba del sprite (solo si está vivo)
+        if (!isGhost && player.hp !== undefined && player.maxHp) {
+            renderHealthBar(screenPos.x, screenPos.y, player.hp, player.maxHp, ctx);
         }
 
         ctx.restore();
@@ -296,10 +376,15 @@ function renderOnlinePlayers(camera, ctx) {
  * Renderizar jugador con fallback (círculo azul)
  * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
  * @param {Object} screenPos - Posición en pantalla
+ * @param {boolean} isGhost - Si es fantasma
  */
-function renderPlayerFallback(ctx, screenPos) {
+function renderPlayerFallback(ctx, screenPos, isGhost = false) {
+    // Color según estado
+    const bodyColor = isGhost ? '#e0e0ff' : '#3b82f6';
+    const borderColor = isGhost ? '#a0a0ff' : '#1e40af';
+    
     // Círculo para el cuerpo
-    ctx.fillStyle = '#3b82f6';
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.arc(
         screenPos.x + TILE_SIZE / 2,
@@ -311,9 +396,10 @@ function renderPlayerFallback(ctx, screenPos) {
     ctx.fill();
     
     // Borde para distinguir
-    ctx.strokeStyle = '#1e40af';
+    ctx.strokeStyle = borderColor;
     ctx.lineWidth = 2;
     ctx.stroke();
 }
+
 
 export { TILE_SIZE, ctx };

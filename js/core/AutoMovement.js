@@ -108,7 +108,20 @@ export function updateAutoMovement(timestamp) {
             // Verificar que no haya un NPC bloqueando el camino
             const npcAtPosition = gameState.npcs.some(npc => npc.x === newX && npc.y === newY);
 
-            if (!enemyAtPosition && !npcAtPosition) {
+            // Verificar que no haya un bot bloqueando el camino
+            const botAtPosition = gameState.bots && gameState.bots.some(bot => 
+                bot.currentMap === gameState.currentMap && bot.x === newX && bot.y === newY
+            );
+
+            // Verificar que no haya un jugador online bloqueando el camino
+            const onlinePlayerAtPosition = gameState.isOnline && gameState.onlinePlayers && 
+                Array.from(gameState.onlinePlayers.values()).some(player => 
+                    player.map === gameState.currentMap && 
+                    Math.round(player.x) === newX && 
+                    Math.round(player.y) === newY
+                );
+
+            if (!enemyAtPosition && !npcAtPosition && !botAtPosition && !onlinePlayerAtPosition) {
                 // Movimiento válido encontrado
                 player.x = newX;
                 player.y = newY;

@@ -98,6 +98,12 @@ class SocketClient {
             this.emit('player_left', data);
         });
 
+        // Evento: Cambio de mapa (con lista de jugadores en el nuevo mapa)
+        this.socket.on('map_changed', (data) => {
+            console.log('🗺️ Cambio de mapa:', data.newMap, `(${data.playersInMap.length} jugadores)`);
+            this.emit('map_changed', data);
+        });
+
         // Evento: Mensaje de chat
         this.socket.on('chat_message', (data) => {
             this.emit('chat_message', data);
@@ -112,6 +118,12 @@ class SocketClient {
         this.socket.on('error', (data) => {
             console.error('Error del servidor:', data.message);
             this.emit('server_error', data);
+        });
+
+        // Evento: Desconexión forzada desde el servidor
+        this.socket.on('force_disconnect', (data) => {
+            console.warn('⚠️ Desconexión forzada del servidor:', data.message);
+            this.emit('force_disconnect', data);
         });
     }
 

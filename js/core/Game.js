@@ -265,10 +265,62 @@ function setupMultiplayerListeners() {
         }
     });
 
+    // Cuando el jugador local cambia de mapa (recibe lista de jugadores en el nuevo mapa)
+    socketClient.on('map_changed', (data) => {
+        console.log('🗺️ EVENTO map_changed recibido:', data);
+        console.log(`🗺️ Nuevo mapa: ${data.newMap}, jugadores en el mapa: ${data.playersInMap.length}`);
+        
+        // IMPORTANTE: Limpiar jugadores del mapa anterior
+        gameState.onlinePlayers.clear();
+        console.log('🧹 Jugadores del mapa anterior limpiados');
+        
+        // Obtener mi socketId para filtrar
+        const mySocketId = socketClient.getSocketId();
+        
+        // Cargar jugadores del nuevo mapa (EXCEPTO el propio)
+        if (data.playersInMap && Array.isArray(data.playersInMap)) {
+            data.playersInMap.forEach(playerData => {
+                // FILTRAR: No añadir el propio jugador
+                if (playerData.socketId === mySocketId) {
+                    console.log('🚫 Ignorando jugador propio en lista de nuevo mapa:', playerData.username);
+                    return;
+                }
+                
+                const onlinePlayer = new OnlinePlayer(playerData);
+                gameState.onlinePlayers.set(playerData.socketId, onlinePlayer);
+                console.log(`👤 Jugador cargado en nuevo mapa: ${playerData.username} en (${playerData.position.x}, ${playerData.position.y})`);
+            });
+            console.log(`✅ Total jugadores en nuevo mapa: ${gameState.onlinePlayers.size}`);
+            
+            if (gameState.onlinePlayers.size > 0) {
+                addChatMessage('system', `🗺️ Hay ${gameState.onlinePlayers.size} jugador(es) en este mapa`);
+            }
+        }
+    });
+
     // Mensajes de chat online
     window.addEventListener('online-chat-message', (event) => {
         const data = event.detail;
         addChatMessage('global', `${data.username}: ${data.message}`);
+    });
+
+    // Cuando el servidor fuerza la desconexión
+    socketClient.on('force_disconnect', (data) => {
+        console.warn('⚠️ DESCONEXIÓN FORZADA:', data.message);
+        
+        // Desconectar el socket
+        socketClient.disconnect();
+        
+        // Limpiar estado del juego
+        gameState.isOnline = false;
+        if (gameState.onlinePlayers) {
+            gameState.onlinePlayers.clear();
+        }
+        
+        // Recargar la página para volver a la pantalla de login
+        // con un mensaje informativo
+        alert(data.message || 'Has sido desconectado del juego');
+        window.location.reload();
     });
 }
 
@@ -422,7 +474,18 @@ async function initGame() {
 
     // Actualizar apariencia del jugador si hay datos de personalización
     if (gameState.player.appearance && gameState.player.race) {
+        console.log('🎨 Actualizando apariencia del jugador:', {
+            race: gameState.player.race,
+            appearance: gameState.player.appearance
+        });
         updatePlayerAppearance(gameState.player.appearance);
+    } else {
+        console.warn('⚠️ No se puede actualizar apariencia del jugador:', {
+            hasAppearance: !!gameState.player.appearance,
+            hasRace: !!gameState.player.race,
+            race: gameState.player.race,
+            appearance: gameState.player.appearance
+        });
     }
 
     updateUI();

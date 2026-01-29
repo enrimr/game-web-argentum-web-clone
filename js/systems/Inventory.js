@@ -59,6 +59,14 @@ export function toggleEquipItem(slotIndex) {
     const itemDef = ITEM_TYPES[item.type];
     if (!itemDef) return;
 
+    // Los fantasmas no pueden usar consumibles ni equiparse items
+    if (gameState.player.isGhost) {
+        if (itemDef.type === 'consumable' || itemDef.type === 'weapon' || itemDef.type === 'armor' || itemDef.type === 'tool') {
+            addChatMessage('system', '👻 Los fantasmas no pueden usar items ni equiparse objetos.');
+            return;
+        }
+    }
+
     // Handle consumables (potions, etc.)
     if (itemDef.type === 'consumable') {
         useConsumable(slotIndex);
@@ -97,26 +105,28 @@ export function useConsumable(slotIndex) {
 
     // Apply consumable effect
     switch (itemDef.effect) {
-        case 'heal_hp':
+        case 'heal_hp': {
             const hpBefore = gameState.player.hp;
             gameState.player.hp = Math.min(gameState.player.hp + itemDef.value, gameState.player.maxHp);
             const hpHealed = gameState.player.hp - hpBefore;
             addChatMessage('system', `💚 Has usado ${itemDef.name}! +${hpHealed} HP`);
             break;
+        }
 
-        case 'heal_mana':
+        case 'heal_mana': {
             const manaBefore = gameState.player.mana;
             gameState.player.mana = Math.min(gameState.player.mana + itemDef.value, gameState.player.maxMana);
             const manaRestored = gameState.player.mana - manaBefore;
             addChatMessage('system', `💙 Has usado ${itemDef.name}! +${manaRestored} Mana`);
             break;
+        }
 
         case 'cure_poison':
             addChatMessage('system', `💚 Has usado ${itemDef.name}! Veneno curado`);
             // En el futuro: gameState.player.poisoned = false;
             break;
             
-        case 'cast_spell':
+        case 'cast_spell': {
             // Lanza un hechizo desde un pergamino
             if (itemDef.spellKey) {
                 addChatMessage('system', `📜 Has usado ${itemDef.name}!`);
@@ -128,6 +138,7 @@ export function useConsumable(slotIndex) {
                 addChatMessage('system', '❌ Error: Pergamino sin hechizo definido');
             }
             break;
+        }
 
         default:
             addChatMessage('system', `✨ Has usado ${itemDef.name}!`);

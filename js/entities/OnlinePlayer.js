@@ -16,6 +16,17 @@ export class OnlinePlayer {
         this.equipment = data.equipment || {};
         this.race = data.race || 'human';
         
+        // Stats para mostrar barras de vida
+        this.hp = data.hp !== undefined ? data.hp : 100;
+        this.maxHp = data.maxHp || 100;
+        
+        // Estado del jugador (vivo/muerto/fantasma)
+        this.isAlive = data.isAlive !== false;
+        this.isGhost = data.isGhost || false;
+        
+        // Facción para determinar si es amigo/enemigo
+        this.faction = data.faction || 'ciudadano';
+        
         // Interpolación para movimiento suave
         this.targetX = this.x;
         this.targetY = this.y;

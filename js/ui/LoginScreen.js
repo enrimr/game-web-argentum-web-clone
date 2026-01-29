@@ -696,6 +696,8 @@ export class LoginScreen {
      * Convertir personaje del servidor a formato local
      */
     convertServerCharacterToLocal(serverChar) {
+        console.log('🔄 Convirtiendo personaje del servidor:', serverChar);
+        
         // Mapear clase del servidor (español) al formato del cliente (inglés)
         const classMapReverse = {
             'guerrero': 'warrior',
@@ -711,8 +713,10 @@ export class LoginScreen {
 
         // Convertir apariencia del servidor al formato del cliente
         const appearance = this.mapAppearanceToClient(serverChar.appearance);
+        
+        console.log('🎨 Apariencia mapeada:', appearance);
 
-        return {
+        const localChar = {
             id: serverChar._id,
             name: serverChar.name,
             class: clientClass,
@@ -730,12 +734,16 @@ export class LoginScreen {
             // IMPORTANTE: Incluir posición del servidor
             position: serverChar.position || { map: 'newbie_city', x: 50, y: 50 },
             // Mantener estado del servidor (IMPORTANTE para saber si está online)
-            state: serverChar.state || { isOnline: false },
+            state: serverChar.state || { isOnline: false, isAlive: true },
             stats: serverChar.stats || {},
             skills: serverChar.skills || {},
             inventory: serverChar.inventory || [],
             equipment: serverChar.equipment || {}
         };
+        
+        console.log('✅ Personaje convertido a formato local:', localChar);
+        
+        return localChar;
     }
 
     /**

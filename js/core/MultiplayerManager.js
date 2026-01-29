@@ -133,7 +133,7 @@ class MultiplayerManager {
      * @param {Object} gameState - Estado del juego
      */
     loadFullState(characterData, gameState) {
-        console.log('📥 Cargando estado completo del servidor...');
+        console.log('📥 Cargando estado completo del servidor...', characterData);
 
         const player = gameState.player;
 
@@ -172,11 +172,12 @@ class MultiplayerManager {
 
             console.log(`✅ Estado cargado: isAlive=${player.isAlive}, isMeditating=${player.isMeditating}`);
             
-            // Si el jugador está muerto, asegurarse de que HP sea 0 Y activar modo fantasma
-            if (!player.isAlive) {
+            // Si el jugador está muerto (por isAlive=false O hp=0), asegurarse de que HP sea 0 Y activar modo fantasma
+            if (!player.isAlive || player.hp === 0) {
                 player.hp = 0;
-                player.isGhost = true; // Activar modo fantasma
-                console.log('👻 Jugador muerto detectado, activando modo fantasma (HP=0, isGhost=true)');
+                player.isAlive = false; // Asegurar consistencia
+                player.isGhost = true;
+                console.log('👻 Jugador muerto detectado (HP=0 o isAlive=false), activando modo fantasma');
             }
         }
 
@@ -198,7 +199,23 @@ class MultiplayerManager {
             console.log(`✅ Hechizos cargados: ${characterData.spells.length} hechizos`);
         }
 
+        // IMPORTANTE: Asegurar que race y appearance estén establecidos en el jugador
+        // Esto es necesario para que updatePlayerAppearance funcione correctamente
+        if (!player.race && characterData.appearance?.race) {
+            // Mapear race de número a string
+            const raceMap = { 1: 'human', 2: 'dwarf', 3: 'creature' };
+            player.race = raceMap[characterData.appearance.race] || 'human';
+            console.log(`✅ Race asignado al jugador: ${player.race}`);
+        }
+        
         console.log('✅ Estado completo cargado desde el servidor');
+        console.log('📊 Estado final del jugador:', {
+            race: player.race,
+            appearance: player.appearance,
+            hp: player.hp,
+            maxHp: player.maxHp,
+            isAlive: player.isAlive
+        });
     }
 
     /**

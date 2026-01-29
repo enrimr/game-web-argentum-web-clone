@@ -177,6 +177,14 @@ function handleMovement(timestamp) {
             bot.currentMap === gameState.currentMap && bot.x === newX && bot.y === newY
         );
 
+        // Check if there's an online player in the target position
+        const onlinePlayerInPosition = gameState.isOnline && gameState.onlinePlayers && 
+            Array.from(gameState.onlinePlayers.values()).some(player => 
+                player.map === gameState.currentMap && 
+                Math.round(player.x) === newX && 
+                Math.round(player.y) === newY
+            );
+
         // Debug logging
         if (npcInPosition) {
             console.log(`🚫 Bloqueado por NPC en posición (${newX}, ${newY})`);
@@ -184,11 +192,14 @@ function handleMovement(timestamp) {
         if (botInPosition) {
             console.log(`🚫 Bloqueado por bot en posición (${newX}, ${newY})`);
         }
+        if (onlinePlayerInPosition) {
+            console.log(`🚫 Bloqueado por jugador online en posición (${newX}, ${newY})`);
+        }
 
         // Ya no necesitamos esta verificación aquí porque la comprobación de meditación 
         // ahora se realiza al principio de la función para cualquier intento de movimiento
 
-        if (!enemyInPosition && !npcInPosition && !botInPosition) {
+        if (!enemyInPosition && !npcInPosition && !botInPosition && !onlinePlayerInPosition) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
