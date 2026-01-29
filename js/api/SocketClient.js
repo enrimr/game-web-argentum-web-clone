@@ -10,6 +10,7 @@ class SocketClient {
         this.isConnected = false;
         this.characterId = null;
         this.eventHandlers = new Map();
+        this.mySocketId = null; // Para almacenar el socketId propio
     }
 
     /**
@@ -41,6 +42,8 @@ class SocketClient {
         this.socket.on('connect', () => {
             console.log('✅ Conectado al servidor WebSocket');
             this.isConnected = true;
+            this.mySocketId = this.socket.id; // Guardar socketId propio
+            console.log('🔑 Mi socketId:', this.mySocketId);
             this.emit('connected');
         });
 
@@ -60,17 +63,32 @@ class SocketClient {
         // Evento: Juego unido exitosamente
         this.socket.on('game_joined', (data) => {
             console.log('🎮 Juego unido:', data);
+            // Asegurar que tenemos nuestro socketId
+            if (!this.mySocketId) {
+                this.mySocketId = this.socket.id;
+                console.log('🔑 Mi socketId (desde game_joined):', this.mySocketId);
+            }
             this.emit('game_joined', data);
         });
 
         // Evento: Jugador se unió al mapa
         this.socket.on('player_joined', (data) => {
+            // FILTRAR: No procesar si es nuestro propio jugador
+            if (data.socketId === this.mySocketId) {
+                console.log('🚫 Ignorando player_joined de mi mismo jugador:', data.username);
+                return;
+            }
             console.log('👤 Jugador se unió:', data.username);
             this.emit('player_joined', data);
         });
 
         // Evento: Jugador se movió
         this.socket.on('player_moved', (data) => {
+            // FILTRAR: No procesar si es nuestro propio movimiento
+            if (data.socketId === this.mySocketId) {
+                // No hacer nada, es nuestro propio movimiento
+                return;
+            }
             this.emit('player_moved', data);
         });
 
@@ -161,6 +179,7 @@ class SocketClient {
             this.socket = null;
             this.isConnected = false;
             this.characterId = null;
+            this.mySocketId = null; // Limpiar socketId propio
         }
     }
 
@@ -218,7 +237,16 @@ class SocketClient {
      * Obtener ID del socket
      */
     getSocketId() {
-        return this.socket ? this.socket.id : null;
+        return this.mySocketId || (this.socket ? this.socket.id : null);
+    }
+
+    /**
+     * Verificar si un socketId es el propio
+     * @param {string} socketId - Socket ID a verificar
+     * @returns {boolean} True si es el propio jugador
+     */
+    isMySocketId(socketId) {
+        return socketId === this.mySocketId;
     }
 
     /**

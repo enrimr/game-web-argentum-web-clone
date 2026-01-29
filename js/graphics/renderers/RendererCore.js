@@ -6,6 +6,7 @@
 import { gameState } from '../../state.js';
 import { CONFIG } from '../../config.js';
 import { generateAllSprites, updatePlayerSprites } from '../SpriteGenerator.js';
+import { generateCustomCharacterSprites } from '../sprites/CustomCharacterSprites.js';
 import { renderMap, renderTreeLayer, renderPropLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
 import { renderPlayer, renderBots, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
@@ -82,6 +83,7 @@ export function render() {
     renderEnemies(camera, ctx);
     renderNPCs(camera, ctx);
     renderBots(camera, ctx); // Draw bots after NPCs but before player
+    renderOnlinePlayers(camera, ctx); // Draw online players
     renderProjectiles(camera, ctx);
 
     // Draw player at correct position in viewport
@@ -207,6 +209,111 @@ export function getBuildingForTile(x, y) {
         }
     }
     return null;
+}
+
+/**
+ * Renderizar jugadores online
+ * @param {Object} camera - Posición de la cámara
+ * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
+ */
+function renderOnlinePlayers(camera, ctx) {
+    // Solo renderizar si estamos en modo online
+    if (!gameState.isOnline || !gameState.onlinePlayers) {
+        return;
+    }
+
+    // Renderizar cada jugador online
+    for (const [socketId, player] of gameState.onlinePlayers) {
+        // Solo renderizar si está en el mismo mapa
+        if (player.map !== gameState.currentMap) {
+            continue;
+        }
+
+        // Solo renderizar si está en el viewport
+        if (!isInViewport(player.x, player.y, camera)) {
+            continue;
+        }
+
+        // Calcular posición en pantalla
+        const screenPos = worldToScreen(player.x, player.y);
+
+        ctx.save();
+        
+        // Generar sprite personalizado si hay apariencia
+        if (player.appearance && player.race) {
+            try {
+                // Preparar datos de apariencia
+                const appearanceData = {
+                    race: player.race,
+                    skinColor: player.appearance.skinColor || 'light',
+                    tunicColor: player.appearance.tunicColor || 'blue'
+                };
+                
+                // Generar sprites (ya importado al inicio)
+                const playerSprites = generateCustomCharacterSprites(appearanceData, TILE_SIZE);
+                
+                // Dibujar sprite del jugador
+                ctx.drawImage(playerSprites.player, screenPos.x, screenPos.y);
+            } catch (error) {
+                console.warn('Error generando sprite personalizado, usando fallback:', error);
+                // Fallback a círculo si falla
+                renderPlayerFallback(ctx, screenPos);
+            }
+        } else {
+            // Si no hay datos de apariencia, usar círculo
+            renderPlayerFallback(ctx, screenPos);
+        }
+
+        // Dibujar nombre sobre el jugador
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        
+        const nameX = screenPos.x + TILE_SIZE / 2;
+        const nameY = screenPos.y - 5;
+        
+        // Sombra del texto
+        ctx.strokeText(player.username, nameX, nameY);
+        ctx.fillText(player.username, nameX, nameY);
+
+        // Mostrar nivel
+        if (player.level) {
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#fbbf24';
+            const levelText = `Nv.${player.level}`;
+            ctx.strokeText(levelText, nameX, nameY + 12);
+            ctx.fillText(levelText, nameX, nameY + 12);
+        }
+
+        ctx.restore();
+    }
+}
+
+/**
+ * Renderizar jugador con fallback (círculo azul)
+ * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
+ * @param {Object} screenPos - Posición en pantalla
+ */
+function renderPlayerFallback(ctx, screenPos) {
+    // Círculo para el cuerpo
+    ctx.fillStyle = '#3b82f6';
+    ctx.beginPath();
+    ctx.arc(
+        screenPos.x + TILE_SIZE / 2,
+        screenPos.y + TILE_SIZE / 2,
+        TILE_SIZE / 3,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+    
+    // Borde para distinguir
+    ctx.strokeStyle = '#1e40af';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 }
 
 export { TILE_SIZE, ctx };

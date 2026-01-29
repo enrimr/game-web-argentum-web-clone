@@ -73,7 +73,7 @@ export class LoginScreen {
         this.isInitialized = false;
         this.serverUrl = "https://api.calima-online.com"; // URL mockup
         this.isServerOnline = true;
-        this.token = localStorage.getItem('auth_token');
+        this.token = localStorage.getItem('authToken'); // Usar misma clave que ApiClient
         this.user = null;
         this.currentScreen = 'home'; // home, login, register, characters, createCharacter
         
@@ -82,7 +82,7 @@ export class LoginScreen {
                 this.user = JSON.parse(localStorage.getItem('user_data'));
             } catch (e) {
                 this.token = null;
-                localStorage.removeItem('auth_token');
+                localStorage.removeItem('authToken');
                 localStorage.removeItem('user_data');
             }
         }
@@ -139,6 +139,18 @@ export class LoginScreen {
 
         // Comprobar estado del servidor
         await this.checkServerStatus();
+
+        // Si ya hay token y usuario, ir directamente a selección de personajes
+        if (this.token && this.user) {
+            console.log('🔐 Usuario ya autenticado, cargando personajes...');
+            try {
+                await this.loadCharactersFromServer();
+                this.showCharacterSelection();
+            } catch (error) {
+                console.error('Error al cargar personajes automáticamente:', error);
+                // Si falla, mostrar pantalla de login normal
+            }
+        }
 
         this.isInitialized = true;
     }
@@ -284,7 +296,12 @@ export class LoginScreen {
                 <div id="charactersPanel" class="login-panel">
                     <div class="characters-header">
                         <h2>Selecciona tu Personaje</h2>
-                        <button id="logoutButton" class="logout-button">Cerrar Sesión</button>
+                        <div class="characters-header-buttons">
+                            <a href="/manual" target="_blank" class="manual-link" title="Ver Manual del Juego">
+                                📖 Manual
+                            </a>
+                            <button id="logoutButton" class="logout-button">Cerrar Sesión</button>
+                        </div>
                     </div>
                     <div id="charactersList" class="characters-list">
                         <!-- Se llenará dinámicamente -->
@@ -610,6 +627,72 @@ export class LoginScreen {
     }
 
     /**
+     * Mapear números del servidor a colores/estilos del cliente
+     */
+    mapAppearanceToClient(serverAppearance) {
+        // Mapeo inverso: números a IDs de colores de túnica
+        const tunicColorMapReverse = {
+            1: 'red',
+            2: 'blue',
+            3: 'green',
+            4: 'yellow',
+            5: 'purple',
+            6: 'orange',
+            7: 'pink',
+            8: 'brown',
+            9: 'black',
+            10: 'white'
+        };
+
+        // Mapeo inverso: números a IDs de colores de piel
+        const skinColorMapReverse = {
+            1: 'light',
+            2: 'medium',
+            3: 'tan',
+            4: 'dark',
+            5: 'gray',
+            6: 'green'
+        };
+
+        // Mapeo inverso: números a IDs de colores de cabello
+        const hairColorMapReverse = {
+            1: 'black',
+            2: 'brown',
+            3: 'blonde',
+            4: 'red',
+            5: 'white',
+            6: 'gray',
+            7: 'blue',
+            8: 'green',
+            9: 'purple'
+        };
+
+        // Mapeo inverso: números a IDs de estilos de cabello
+        const hairStyleMapReverse = {
+            1: 'short',
+            2: 'long',
+            3: 'bald',
+            4: 'ponytail',
+            5: 'braids'
+        };
+
+        // Mapeo inverso: números a IDs de razas
+        const raceMapReverse = {
+            1: 'human',
+            2: 'dwarf',
+            3: 'creature'
+        };
+
+        return {
+            tunicColor: tunicColorMapReverse[serverAppearance?.body] || 'blue',
+            skinColor: skinColorMapReverse[serverAppearance?.head] || 'light',
+            hairColor: hairColorMapReverse[serverAppearance?.hairColor] || 'brown',
+            hairStyle: hairStyleMapReverse[serverAppearance?.hairStyle] || 'short',
+            race: raceMapReverse[serverAppearance?.race] || 'human'
+        };
+    }
+
+    /**
      * Convertir personaje del servidor a formato local
      */
     convertServerCharacterToLocal(serverChar) {
@@ -626,22 +709,28 @@ export class LoginScreen {
 
         const clientClass = classMapReverse[serverChar.class] || 'warrior';
 
+        // Convertir apariencia del servidor al formato del cliente
+        const appearance = this.mapAppearanceToClient(serverChar.appearance);
+
         return {
             id: serverChar._id,
             name: serverChar.name,
             class: clientClass,
-            race: 'human', // Por defecto - el cliente usa 'human' no 'humano'
+            race: appearance.race, // Usar raza de la apariencia
             level: serverChar.stats?.level || 1,
             experience: serverChar.stats?.experience || 0,
             gold: serverChar.stats?.gold || 0,
             lastPlayed: serverChar.lastPlayed || new Date().toISOString(),
             appearance: {
-                tunicColor: 'blue',
-                skinColor: 'light',
-                hairColor: 'brown',
-                hairStyle: 'short'
+                tunicColor: appearance.tunicColor,
+                skinColor: appearance.skinColor,
+                hairColor: appearance.hairColor,
+                hairStyle: appearance.hairStyle
             },
-            // Mantener stats del servidor
+            // IMPORTANTE: Incluir posición del servidor
+            position: serverChar.position || { map: 'newbie_city', x: 50, y: 50 },
+            // Mantener estado del servidor (IMPORTANTE para saber si está online)
+            state: serverChar.state || { isOnline: false },
             stats: serverChar.stats || {},
             skills: serverChar.skills || {},
             inventory: serverChar.inventory || [],
@@ -754,22 +843,47 @@ export class LoginScreen {
             }
             
             const canvasId = `charCanvas${index}`;
+            const isOnline = char.stats?.isOnline || char.state?.isOnline || false;
+            const isDead = char.state?.isAlive === false;
+            
+            // Obtener nombre del mapa para mostrar
+            const mapPosition = char.position || { map: 'newbie_city' };
+            const mapNames = {
+                'newbie_city': '🏘️ Ciudad de Ullathorpe',
+                'newbie_field': '🏞️ Campos de Ullathorpe',
+                'dark_forest': '🌲 Bosque Oscuro',
+                'field': '🏞️ Campo Principal',
+                'city': '🏘️ Ciudad Imperial',
+                'dungeon': '🏰 Mazmorra Antigua',
+                'forest': '🌲 Bosque Encantado',
+                'canarias_capital': '🏙️ Las Palmas de GC',
+                'canarias_playa_canteras': '🏖️ Playa de Las Canteras'
+            };
+            const mapDisplayName = mapNames[mapPosition.map] || mapPosition.map;
             
             html += `
-                <div class="character-slot" data-character-id="${char.id}">
+                <div class="character-slot ${isOnline ? 'online' : ''} ${isDead ? 'dead' : ''}" data-character-id="${char.id}">
                     <div class="character-info">
-                        <div class="character-avatar">
+                        <div class="character-avatar ${isDead ? 'ghost' : ''}">
                             <canvas id="${canvasId}" width="32" height="32" class="character-sprite-preview"></canvas>
+                            ${isOnline ? '<div class="online-badge" title="Conectado">🟢</div>' : ''}
+                            ${isDead ? '<div class="ghost-badge" title="Muerto">👻</div>' : ''}
                         </div>
                         <div class="character-details">
-                            <h3>${char.name}</h3>
+                            <h3>${char.name} ${isDead ? '👻' : ''}</h3>
                             <p class="character-class">${classData.name} ${classData.icon} - ${raceData.name} ${raceData.icon}</p>
                             <p class="character-level">Nivel ${char.level}</p>
+                            <p class="character-location">📍 ${mapDisplayName}</p>
                             <p class="character-date">Última vez: ${this.formatDate(char.lastPlayed)}</p>
+                            ${isOnline ? '<p class="character-status" style="color: #10b981; font-weight: bold;">🟢 Conectado</p>' : ''}
+                            ${isDead ? '<p class="character-status" style="color: #ef4444; font-weight: bold;">💀 Muerto - Modo Fantasma</p>' : ''}
                         </div>
                     </div>
                     <div class="character-actions">
-                        <button class="play-button" data-character-id="${char.id}">Jugar</button>
+                        ${isOnline ? 
+                            '<button class="disconnect-button" data-character-id="' + char.id + '">Desconectar</button>' : 
+                            '<button class="play-button" data-character-id="' + char.id + '">' + (isDead ? 'Jugar como Fantasma' : 'Jugar') + '</button>'
+                        }
                         <button class="delete-button" data-character-id="${char.id}">Eliminar</button>
                     </div>
                 </div>
@@ -802,6 +916,13 @@ export class LoginScreen {
             });
         });
 
+        document.querySelectorAll('.disconnect-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const characterId = e.target.dataset.characterId;
+                this.forceDisconnectCharacter(characterId);
+            });
+        });
+
         document.querySelectorAll('.delete-button').forEach(button => {
             button.addEventListener('click', (e) => {
                 const characterId = e.target.dataset.characterId;
@@ -825,7 +946,21 @@ export class LoginScreen {
                 
                 const sprites = generateCustomCharacterSprites(appearance, TILE_SIZE);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Si el personaje está muerto, aplicar efecto fantasma
+                const isDead = char.state?.isAlive === false;
+                if (isDead) {
+                    ctx.globalAlpha = 0.5; // Semi-transparente
+                    ctx.filter = 'grayscale(100%) brightness(1.5)'; // Gris y brillante
+                }
+                
                 ctx.drawImage(sprites.player, 0, 0);
+                
+                // Restaurar estilos
+                if (isDead) {
+                    ctx.globalAlpha = 1.0;
+                    ctx.filter = 'none';
+                }
             }
         });
     }
@@ -834,6 +969,17 @@ export class LoginScreen {
      * Mostrar pantalla de creación de personaje
      */
     showCreateCharacter() {
+        // Limpiar datos previos
+        this.characterCreationData = {
+            name: '',
+            class: null,
+            race: null,
+            tunicColor: null,
+            skinColor: null,
+            hairColor: null,
+            hairStyle: null
+        };
+        
         this.showPanel('createCharacter');
         this.renderCreateCharacterForm();
     }
@@ -842,6 +988,18 @@ export class LoginScreen {
      * Renderizar formulario de creación de personaje
      */
     renderCreateCharacterForm() {
+        // Limpiar campo de nombre
+        const nameInput = document.getElementById('characterName');
+        if (nameInput) {
+            nameInput.value = '';
+        }
+
+        // Resetear vista previa
+        const preview = document.getElementById('characterPreview');
+        if (preview) {
+            preview.innerHTML = '<div class="preview-placeholder">Configura tu personaje para ver una vista previa</div>';
+        }
+
         // Renderizar clases
         const classesList = document.getElementById('classesList');
         let classesHTML = '';
@@ -1057,6 +1215,74 @@ export class LoginScreen {
     }
 
     /**
+     * Mapear colores/estilos del cliente a números del servidor
+     */
+    mapAppearanceToServer(data) {
+        // Mapeo de colores de túnica a números (body)
+        const tunicColorMap = {
+            'red': 1,
+            'blue': 2,
+            'green': 3,
+            'yellow': 4,
+            'purple': 5,
+            'orange': 6,
+            'pink': 7,
+            'brown': 8,
+            'black': 9,
+            'white': 10
+        };
+
+        // Mapeo de colores de piel a números (head)
+        const skinColorMap = {
+            'light': 1,
+            'medium': 2,
+            'tan': 3,
+            'dark': 4,
+            'gray': 5,
+            'green': 6
+        };
+
+        // Mapeo de colores de cabello a números (extensión futura)
+        const hairColorMap = {
+            'black': 1,
+            'brown': 2,
+            'blonde': 3,
+            'red': 4,
+            'white': 5,
+            'gray': 6,
+            'blue': 7,
+            'green': 8,
+            'purple': 9
+        };
+
+        // Mapeo de estilos de cabello a números (extensión futura)
+        const hairStyleMap = {
+            'short': 1,
+            'long': 2,
+            'bald': 3,
+            'ponytail': 4,
+            'braids': 5
+        };
+
+        // Mapeo de razas a números (extensión futura)
+        const raceMap = {
+            'human': 1,
+            'dwarf': 2,
+            'creature': 3
+        };
+
+        return {
+            body: tunicColorMap[data.tunicColor] || 1,
+            head: skinColorMap[data.skinColor] || 1,
+            heading: 3, // Dirección por defecto (sur)
+            // Datos adicionales para futuras extensiones del servidor
+            hairColor: hairColorMap[data.hairColor] || 1,
+            hairStyle: hairStyleMap[data.hairStyle] || 1,
+            race: raceMap[data.race] || 1
+        };
+    }
+
+    /**
      * Manejar creación de personaje
      */
     async handleCreateCharacter() {
@@ -1124,12 +1350,14 @@ export class LoginScreen {
 
             const serverClass = classMap[data.class] || data.class;
 
-            // Preparar datos de apariencia para el servidor
-            const appearance = {
-                body: parseInt(data.tunicColor) || 1,
-                head: parseInt(data.skinColor) || 1,
-                heading: 3
-            };
+            // Preparar datos de apariencia para el servidor usando el mapeo correcto
+            const appearance = this.mapAppearanceToServer(data);
+
+            console.log('📤 Enviando datos de creación de personaje:', {
+                name: data.name,
+                class: serverClass,
+                appearance: appearance
+            });
 
             // Crear personaje en el servidor
             const response = await apiClient.createCharacter(
@@ -1169,7 +1397,7 @@ export class LoginScreen {
      * Jugar con un personaje
      * @param {string} characterId - ID del personaje
      */
-    playWithCharacter(characterId) {
+    async playWithCharacter(characterId) {
         const character = characterManager.getCharacterById(characterId);
         
         if (!character) {
@@ -1185,8 +1413,114 @@ export class LoginScreen {
             lastPlayed: new Date().toISOString()
         });
 
-        // Iniciar juego online
-        this.startOnlineGame();
+        try {
+            // Seleccionar personaje en el servidor
+            const response = await apiClient.selectCharacter(character.id);
+            
+            if (response.success) {
+                // Conectar WebSocket con el token actual
+                socketClient.connect(apiClient.getToken());
+                
+                // Configurar listeners de WebSocket antes de unirse
+                this.setupSocketListeners(character.id);
+                
+                // Iniciar juego online
+                this.startOnlineGame();
+            } else {
+                this.showNotification('Error al seleccionar personaje', 'error');
+            }
+        } catch (error) {
+            console.error('Error al seleccionar personaje:', error);
+            this.showNotification('Error al conectar con el servidor', 'error');
+        }
+    }
+
+    /**
+     * Configurar listeners de WebSocket
+     */
+    setupSocketListeners(characterId) {
+        // Cuando se conecte exitosamente
+        socketClient.on('connected', () => {
+            console.log('✅ WebSocket conectado, uniéndose al juego...');
+            socketClient.joinGame(characterId);
+        });
+        
+        // Cuando se una al juego exitosamente
+        socketClient.on('game_joined', (data) => {
+            console.log('🎮 ¡Unido al juego!', data);
+            
+            // Guardar datos para disparar evento después
+            setTimeout(() => {
+                // Disparar evento después de que login-complete haya inicializado gameState
+                window.dispatchEvent(new CustomEvent('multiplayer-ready', {
+                    detail: {
+                        onlinePlayers: data.onlinePlayers,
+                        characterData: data.characterData,
+                        startPosition: data.startPosition // Incluir posición inicial del servidor
+                    }
+                }));
+            }, 100);
+        });
+        
+        // Cuando otro jugador se una
+        socketClient.on('player_joined', (data) => {
+            console.log('👤 Jugador se unió:', data.username);
+        });
+        
+        // Cuando otro jugador se mueva
+        socketClient.on('player_moved', (data) => {
+            // Se manejará en Game.js
+        });
+        
+        // Cuando otro jugador salga
+        socketClient.on('player_left', (data) => {
+            console.log('👋 Jugador salió:', data.socketId);
+        });
+        
+        // Mensajes de chat
+        socketClient.on('chat_message', (data) => {
+            // Se mostrará en el chat del juego
+            window.dispatchEvent(new CustomEvent('online-chat-message', {
+                detail: data
+            }));
+        });
+        
+        // Errores del servidor
+        socketClient.on('server_error', (data) => {
+            console.error('❌ Error del servidor:', data.message);
+            this.showNotification(data.message, 'error');
+        });
+    }
+
+    /**
+     * Forzar desconexión del personaje
+     * @param {string} characterId - ID del personaje
+     */
+    async forceDisconnectCharacter(characterId) {
+        const character = characterManager.getCharacterById(characterId);
+        
+        if (!character) {
+            this.showNotification('Error: Personaje no encontrado', 'error');
+            return;
+        }
+
+        try {
+            // Desconectar del servidor
+            const response = await apiClient.disconnectCharacter(character.id);
+            
+            if (response.success) {
+                this.showNotification(`Personaje ${character.name} desconectado exitosamente`, 'success');
+                
+                // Recargar personajes para actualizar estado
+                await this.loadCharactersFromServer();
+                this.renderCharactersList();
+            } else {
+                this.showNotification('Error al desconectar personaje', 'error');
+            }
+        } catch (error) {
+            console.error('Error al desconectar personaje:', error);
+            this.showNotification('Error al conectar con el servidor', 'error');
+        }
     }
 
     /**
@@ -1465,7 +1799,7 @@ export class LoginScreen {
     logout() {
         this.token = null;
         this.user = null;
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('authToken'); // Usar misma clave que ApiClient
         localStorage.removeItem('user_data');
         
         // Mostrar las tabs de login y registro de nuevo

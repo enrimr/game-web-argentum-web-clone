@@ -19,6 +19,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/resources/images/favicon/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png">
     
+    <!-- Socket.io para multiplayer -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    
     <script>
         // Show body when CSS is loaded
         window.addEventListener('DOMContentLoaded', () => {
@@ -60,6 +63,7 @@
     <div class="header">
         <div class="header-top">
             <h1>🗡️ Calima Online</h1>
+            <button id="exitGameButton" class="exit-button" style="margin-right: 10px; background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">🚪 Salir</button>
             <button id="menuButton" class="menu-button">☰</button>
         </div>
         <div class="stats">
@@ -381,9 +385,59 @@
             }, 500);
         }
 
+        // Exit game function - declarar ANTES de setupMobileUI
+        window.exitGame = async function() {
+            if (!confirm('¿Estás seguro de que quieres salir? El progreso se guardará.')) {
+                return;
+            }
+
+            try {
+                const { default: socketClient } = await import('./js/api/SocketClient.js');
+                const { default: apiClient } = await import('./js/api/ApiClient.js');
+                
+                // Desconectar WebSocket
+                if (socketClient.isSocketConnected()) {
+                    socketClient.disconnect();
+                }
+                
+                // Desconectar personaje del servidor
+                const selectedCharacterId = localStorage.getItem('selectedCharacterId');
+                if (selectedCharacterId && apiClient.isAuthenticated()) {
+                    await apiClient.disconnectCharacter(selectedCharacterId);
+                }
+                
+                // Recargar página para volver a selección de personajes
+                window.location.reload();
+            } catch (error) {
+                console.error('Error al salir:', error);
+                window.location.reload();
+            }
+        };
+
         // Start game application
         function startGameApplication() {
             console.log("🚀 Iniciando aplicación del juego...");
+
+            // Manejar cierre de página para desconectar
+            window.addEventListener('beforeunload', async (e) => {
+                // Intentar desconectar del servidor
+                try {
+                    const { default: socketClient } = await import('./js/api/SocketClient.js');
+                    const { default: apiClient } = await import('./js/api/ApiClient.js');
+                    
+                    if (socketClient.isSocketConnected()) {
+                        socketClient.disconnect();
+                    }
+                    
+                    // Desconectar personaje si hay uno seleccionado
+                    const selectedCharacterId = localStorage.getItem('selectedCharacterId');
+                    if (selectedCharacterId && apiClient.isAuthenticated()) {
+                        await apiClient.disconnectCharacter(selectedCharacterId);
+                    }
+                } catch (error) {
+                    console.error('Error al desconectar:', error);
+                }
+            });
 
             // Check for URL parameters to open map editor directly
             const urlParams = new URLSearchParams(window.location.search);
@@ -483,6 +537,12 @@
 
         // Mobile UI functions
         function setupMobileUI() {
+            // Exit game button
+            const exitButton = document.getElementById('exitGameButton');
+            if (exitButton) {
+                exitButton.addEventListener('click', exitGame);
+            }
+
             // Menu button
             const menuButton = document.getElementById('menuButton');
             if (menuButton) {

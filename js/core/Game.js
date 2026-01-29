@@ -6,6 +6,9 @@
 import { gameState, resetGameState } from '../state.js';
 import { loginScreen } from '../ui/LoginScreen.js';
 import { CONFIG } from '../config.js';
+import { OnlinePlayer } from '../entities/OnlinePlayer.js';
+import socketClient from '../api/SocketClient.js';
+import multiplayerManager from './MultiplayerManager.js';
 import { initInput } from './Input.js';
 import { generateMap, isWalkable } from '../world/MapGenerator.js';
 import { generateObjects, generateEnemies, generateNPCs } from '../world/ObjectGenerator.js';
@@ -108,6 +111,9 @@ function setupLoginEvents() {
             gameState.isOnline = true;
             gameState.onlineUser = event.detail.user;
             
+            // Inicializar mapa de jugadores online
+            gameState.onlinePlayers = new Map();
+            
             // Si hay un personaje seleccionado, asignar su nombre y apariencia al jugador
             if (event.detail.character) {
                 gameState.player.name = event.detail.character.name;
@@ -120,10 +126,149 @@ function setupLoginEvents() {
         } else {
             console.log('Iniciando en modo local');
             gameState.isOnline = false;
+            gameState.onlinePlayers = null;
         }
         
         // Iniciar el juego después del login
         await initGame();
+    });
+
+    // Evento cuando el multiplayer está listo (después de join_game)
+    window.addEventListener('multiplayer-ready', (event) => {
+        console.log('🌐 Multiplayer listo!', event.detail);
+        
+        // Verificar que gameState.onlinePlayers esté inicializado
+        if (!gameState.onlinePlayers) {
+            console.warn('⚠️ gameState.onlinePlayers no está inicializado, creando ahora...');
+            gameState.onlinePlayers = new Map();
+        }
+        
+        // Obtener mi socketId para filtrar
+        const mySocketId = socketClient.getSocketId();
+        console.log('🔑 Mi socketId para filtrado:', mySocketId);
+        
+        // IMPORTANTE: Cargar estado completo del servidor (HP, Mana, Inventario, etc.)
+        if (event.detail.characterData) {
+            multiplayerManager.loadFullState(event.detail.characterData, gameState);
+        }
+        
+        // IMPORTANTE: Establecer posición inicial desde el servidor
+        if (event.detail.startPosition) {
+            gameState.player.x = event.detail.startPosition.x;
+            gameState.player.y = event.detail.startPosition.y;
+            gameState.currentMap = event.detail.startPosition.map;
+            console.log(`🎯 Posición inicial del jugador establecida: (${gameState.player.x}, ${gameState.player.y}) en mapa ${gameState.currentMap}`);
+            
+            // Regenerar el mapa y contenido para el mapa inicial
+            const mapResult = generateMap(gameState.currentMap);
+            
+            if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
+                gameState.map = mapResult.map;
+                gameState.roofLayer = mapResult.roofLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                gameState.doorLayer = mapResult.doorLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                gameState.windowLayer = mapResult.windowLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                gameState.propLayer = mapResult.propLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            } else if (mapResult && Array.isArray(mapResult)) {
+                gameState.map = mapResult;
+                gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+                gameState.propLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            }
+            
+            // Regenerar contenido del mapa
+            gameState.objects = generateObjects(gameState.currentMap);
+            gameState.enemies = generateEnemies(gameState.currentMap);
+            gameState.npcs = generateNPCs(gameState.currentMap);
+        }
+        
+        // Cargar jugadores online iniciales (EXCEPTO el propio)
+        if (event.detail.onlinePlayers && Array.isArray(event.detail.onlinePlayers)) {
+            event.detail.onlinePlayers.forEach(playerData => {
+                // FILTRAR: No añadir el propio jugador
+                if (playerData.socketId === mySocketId) {
+                    console.log('🚫 Ignorando jugador propio en lista inicial:', playerData.username);
+                    return;
+                }
+                
+                // Verificar que no esté ya en la lista (prevenir duplicados)
+                if (gameState.onlinePlayers.has(playerData.socketId)) {
+                    console.warn('⚠️ Jugador ya existe en la lista:', playerData.username);
+                    return;
+                }
+                
+                const onlinePlayer = new OnlinePlayer(playerData);
+                gameState.onlinePlayers.set(playerData.socketId, onlinePlayer);
+                console.log(`👤 Jugador online cargado: ${playerData.username} en (${playerData.position.x}, ${playerData.position.y})`);
+            });
+            console.log(`✅ Total jugadores online cargados: ${gameState.onlinePlayers.size}`);
+        }
+        
+        // Configurar listeners de eventos de jugadores
+        setupMultiplayerListeners();
+        
+        // Actualizar UI con el estado cargado
+        updateUI();
+    });
+}
+
+/**
+ * Configurar listeners de eventos multijugador
+ */
+function setupMultiplayerListeners() {
+    // Cuando un jugador se une
+    socketClient.on('player_joined', (data) => {
+        console.log('🔵 EVENTO player_joined recibido:', data);
+        console.log('🔵 gameState.onlinePlayers antes:', gameState.onlinePlayers?.size);
+        
+        // Verificación adicional: nunca debería llegar aquí porque SocketClient ya filtra,
+        // pero por seguridad verificamos de nuevo
+        if (socketClient.isMySocketId(data.socketId)) {
+            console.log('🚫 Jugador propio detectado en player_joined (no debería pasar), ignorando');
+            return;
+        }
+        
+        // Verificar que no esté ya en la lista (prevenir duplicados)
+        if (gameState.onlinePlayers.has(data.socketId)) {
+            console.warn('⚠️ Jugador ya existe en la lista:', data.username);
+            return;
+        }
+        
+        const onlinePlayer = new OnlinePlayer(data);
+        gameState.onlinePlayers.set(data.socketId, onlinePlayer);
+        
+        console.log('🔵 gameState.onlinePlayers después:', gameState.onlinePlayers?.size);
+        console.log('🔵 Jugador añadido:', onlinePlayer);
+        
+        addChatMessage('system', `👋 ${data.username} se ha unido al juego`);
+        console.log(`👤 Nuevo jugador: ${data.username} en (${data.position.x}, ${data.position.y})`);
+    });
+
+    // Cuando un jugador se mueve
+    socketClient.on('player_moved', (data) => {
+        const player = gameState.onlinePlayers.get(data.socketId);
+        if (player) {
+            player.updatePosition(data.position.x, data.position.y);
+            console.log(`🔄 Jugador ${player.username} movido a (${data.position.x}, ${data.position.y})`);
+        } else {
+            console.warn('⚠️ player_moved recibido para jugador desconocido:', data.socketId);
+        }
+    });
+
+    // Cuando un jugador sale
+    socketClient.on('player_left', (data) => {
+        const player = gameState.onlinePlayers.get(data.socketId);
+        if (player) {
+            addChatMessage('system', `👋 ${player.username} ha salido del juego`);
+            gameState.onlinePlayers.delete(data.socketId);
+            console.log(`👋 Jugador ${player.username} eliminado. Quedan: ${gameState.onlinePlayers.size}`);
+        }
+    });
+
+    // Mensajes de chat online
+    window.addEventListener('online-chat-message', (event) => {
+        const data = event.detail;
+        addChatMessage('global', `${data.username}: ${data.message}`);
     });
 }
 
@@ -309,6 +454,15 @@ function gameLoopWrapper(timestamp) {
     // Update player animations
     updatePlayerAnimation(deltaTime);
 
+    // Si está en modo online, actualizar jugadores online y sincronizar posición
+    if (gameState.isOnline) {
+        // Actualizar jugadores online (interpolación de movimiento) y sincronizar estado completo
+        multiplayerManager.update(gameState, timestamp);
+        
+        // Sincronizar posición del jugador local con el servidor
+        multiplayerManager.syncPlayerPosition(gameState.player, gameState.currentMap, timestamp);
+    }
+
     // Render the game
     render();
 
@@ -444,6 +598,11 @@ export function changeMap(targetMap, targetX, targetY) {
     console.log(`🧙‍♂️ Teletransportando jugador a (${targetX}, ${targetY}) - isWalkable: ${isWalkable(gameState.map, targetX, targetY)}`);
     gameState.player.x = targetX;
     gameState.player.y = targetY;
+
+    // Si está en modo online, notificar cambio de mapa al servidor
+    if (gameState.isOnline) {
+        multiplayerManager.notifyMapChange(targetMap, targetX, targetY);
+    }
 
     // Agregar objetos caídos del mapa actual como objetos interactivos
     addDroppedItemsToMap(targetMap);
