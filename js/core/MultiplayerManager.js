@@ -137,14 +137,19 @@ class MultiplayerManager {
 
         const player = gameState.player;
 
-        // Cargar stats
+        // Cargar stats - IMPORTANTE: No usar valores por defecto, usar lo que viene del servidor
         if (characterData.stats) {
-            player.hp = characterData.stats.hp || player.maxHp;
-            player.maxHp = characterData.stats.maxHp || player.maxHp;
-            player.mana = characterData.stats.mana || player.maxMana;
-            player.maxMana = characterData.stats.maxMana || player.maxMana;
-            player.stamina = characterData.stats.stamina || player.maxStamina;
-            player.maxStamina = characterData.stats.maxStamina || player.maxStamina;
+            // Cargar maxHp y maxMana primero
+            player.maxHp = characterData.stats.maxHp || 100;
+            player.maxMana = characterData.stats.maxMana || 50;
+            player.maxStamina = characterData.stats.maxStamina || 100;
+            
+            // Cargar HP, Mana, Stamina actuales - USAR VALORES REALES, incluso si son 0
+            player.hp = characterData.stats.hp !== undefined ? characterData.stats.hp : player.maxHp;
+            player.mana = characterData.stats.mana !== undefined ? characterData.stats.mana : player.maxMana;
+            player.stamina = characterData.stats.stamina !== undefined ? characterData.stats.stamina : player.maxStamina;
+            
+            // Otros stats
             player.level = characterData.stats.level || 1;
             player.experience = characterData.stats.experience || 0;
             player.gold = characterData.stats.gold || 0;
@@ -166,6 +171,12 @@ class MultiplayerManager {
             player.isInvisible = characterData.state.isInvisible || false;
 
             console.log(`✅ Estado cargado: isAlive=${player.isAlive}, isMeditating=${player.isMeditating}`);
+            
+            // Si el jugador está muerto, asegurarse de que HP sea 0
+            if (!player.isAlive && player.hp > 0) {
+                player.hp = 0;
+                console.log('⚰️ Jugador muerto detectado, estableciendo HP a 0');
+            }
         }
 
         // Cargar inventario
