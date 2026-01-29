@@ -42,6 +42,7 @@ export const gameState = {
         gold: 0,
         skillPoints: 0, // Puntos de habilidad disponibles para distribuir
         facing: 'down', // Dirección del jugador: 'up', 'down', 'left', 'right'
+        isAlive: true, // Si el jugador está vivo
         isGhost: false, // Si el jugador está en modo fantasma (muerto)
         meditating: false, // Si el jugador está meditando
         // Sistema de facciones y criminalidad
@@ -178,6 +179,7 @@ export function resetGameState() {
         exp: CONFIG.LEVEL.STARTING_EXP,
         expToNextLevel: CONFIG.LEVEL.BASE_EXP_TO_LEVEL,
         skillPoints: 0, // Puntos de habilidad disponibles para distribuir
+        isAlive: true,
         isGhost: false,
         meditating: false,
         facing: 'down',
