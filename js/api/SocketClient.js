@@ -106,6 +106,7 @@ class SocketClient {
 
         // Evento: Mensaje de chat
         this.socket.on('chat_message', (data) => {
+            console.log('💬 Mensaje de chat recibido:', data);
             this.emit('chat_message', data);
         });
 
@@ -129,14 +130,40 @@ class SocketClient {
 
     /**
      * Unirse al juego con un personaje
+     * @param {string} characterId - ID del personaje
      */
     joinGame(characterId) {
         if (!this.socket || !this.socket.connected) {
-            throw new Error('Socket no está conectado');
+            console.error('Socket no conectado');
+            return;
         }
 
         this.characterId = characterId;
+        console.log('📤 Enviando join_game con characterId:', characterId);
         this.socket.emit('join_game', { characterId });
+    }
+
+    /**
+     * Enviar mensaje de chat
+     * @param {string} message - Contenido del mensaje
+     * @param {string} type - Tipo de mensaje (global, local, group, private)
+     * @param {string} targetSocketId - Socket ID del destinatario (solo para mensajes privados)
+     */
+    sendChatMessage(message, type = 'global', targetSocketId = null) {
+        if (!this.socket || !this.socket.connected) {
+            console.error('Socket no conectado, no se puede enviar mensaje');
+            return;
+        }
+
+        const chatData = { message, type };
+        
+        // Añadir destinatario si es mensaje privado
+        if (type === 'private' && targetSocketId) {
+            chatData.targetSocketId = targetSocketId;
+        }
+
+        console.log('💬 Enviando mensaje de chat:', chatData);
+        this.socket.emit('chat_message', chatData);
     }
 
     /**
@@ -169,17 +196,6 @@ class SocketClient {
         if (equipment) data.equipment = equipment;
 
         this.socket.emit('update_stats', data);
-    }
-
-    /**
-     * Enviar mensaje de chat
-     */
-    sendChatMessage(message, type = 'global') {
-        if (!this.socket || !this.socket.connected) {
-            return;
-        }
-
-        this.socket.emit('chat_message', { message, type });
     }
 
     /**

@@ -6,12 +6,12 @@
 import { gameState } from '../state.js';
 import { addChatMessage } from './UI.js';
 
-// Tipos de destinatarios para mensajes
+// Tipos de destinatarios para mensajes (compatibles con el servidor)
 export const MESSAGE_TARGETS = {
-    ALL: 'all',           // Mensaje global (a todos los jugadores)
-    VISIBLE: 'visible',   // Jugadores en campo de visión
-    GROUP: 'group',       // Jugadores en el grupo
-    PLAYER: 'player'      // Jugador específico
+    GLOBAL: 'global',     // Mensaje global (a todos los jugadores del servidor)
+    LOCAL: 'local',       // Jugadores en el mismo mapa (cercanos)
+    GROUP: 'group',       // Jugadores en el grupo (futuro)
+    PRIVATE: 'private'    // Mensaje privado a un jugador específico
 };
 
 // Tiempo de duración de mensajes sobre la cabeza del jugador (en ms)
@@ -133,11 +133,12 @@ function initChatInternal() {
         const message = chatInput.value.trim();
         if (message) {
             const target = targetSelector.value;
-            const targetPlayer = target === MESSAGE_TARGETS.PLAYER ? 
+            const targetPlayer = target === MESSAGE_TARGETS.PRIVATE ? 
                 document.getElementById('chatPlayerSelector').value : null;
             
             sendChatMessage(message, target, targetPlayer);
             chatInput.value = '';
+            chatInput.blur(); // Quitar foco después de enviar
         }
     });
 
@@ -145,90 +146,100 @@ function initChatInternal() {
     targetSelector.addEventListener('change', () => {
         const playerSelectorContainer = document.getElementById('chatPlayerSelectorContainer');
         playerSelectorContainer.style.display = 
-            targetSelector.value === MESSAGE_TARGETS.PLAYER ? 'block' : 'none';
+            targetSelector.value === MESSAGE_TARGETS.PRIVATE ? 'block' : 'none';
         
-        // Si se selecciona PLAYER pero no hay jugadores, mostrar mensaje
-        if (targetSelector.value === MESSAGE_TARGETS.PLAYER && 
-            Object.keys(gameState.otherPlayers).length === 0) {
-            addChatMessage('system', 'No hay otros jugadores para enviar mensaje privado.');
-            targetSelector.value = MESSAGE_TARGETS.ALL;
-            playerSelectorContainer.style.display = 'none';
-        }
-        
-        // Actualizar la lista de jugadores si es necesario
-        if (targetSelector.value === MESSAGE_TARGETS.PLAYER) {
+        // Si se selecciona PRIVATE pero no hay jugadores, mostrar mensaje
+        if (targetSelector.value === MESSAGE_TARGETS.PRIVATE) {
             updatePlayerSelector();
+            const playerSelector = document.getElementById('chatPlayerSelector');
+            
+            if (!playerSelector.options.length) {
+                addChatMessage('system', 'No hay otros jugadores online para enviar mensaje privado.');
+                targetSelector.value = MESSAGE_TARGETS.GLOBAL;
+                playerSelectorContainer.style.display = 'none';
+            }
         }
     });
 }
 
-/**
- * Actualiza la lista de jugadores disponibles para mensaje privado
- */
-function updatePlayerSelector() {
-    const playerSelector = document.getElementById('chatPlayerSelector');
-    playerSelector.innerHTML = '';
-    
-    // Simular jugadores si estamos en modo offline (para testing)
-    const players = gameState.isOnline ? 
-        gameState.otherPlayers : 
-        { 
-            "player1": { id: "player1", username: "Jugador1" },
-            "player2": { id: "player2", username: "Jugador2" }
-        };
-    
-    Object.values(players).forEach(player => {
-        const option = document.createElement('option');
-        option.value = player.id;
-        option.textContent = player.username;
-        playerSelector.appendChild(option);
-    });
-}
 
 /**
  * Envía un mensaje de chat
  * @param {string} message - Contenido del mensaje
  * @param {string} target - Tipo de destinatario (MESSAGE_TARGETS)
- * @param {string} targetPlayerId - ID del jugador destinatario (si target es PLAYER)
+ * @param {string} targetPlayerId - ID del socket del jugador destinatario (si target es PRIVATE)
  */
-export function sendChatMessage(message, target = MESSAGE_TARGETS.ALL, targetPlayerId = null) {
-    // Obtener nombre del jugador (o "Tú" en modo single player)
-    const playerName = gameState.isOnline ? gameState.player.username : "Tú";
+export async function sendChatMessage(message, target = MESSAGE_TARGETS.GLOBAL, targetPlayerId = null) {
+    if (!message || !message.trim()) return;
     
-    // Generar prefijo según el tipo de destinatario
-    let prefix = '';
-    switch (target) {
-        case MESSAGE_TARGETS.ALL:
-            prefix = `[Global] ${playerName}:`;
-            break;
-        case MESSAGE_TARGETS.VISIBLE:
-            prefix = `[Cercanos] ${playerName}:`;
-            break;
-        case MESSAGE_TARGETS.GROUP:
-            prefix = `[Grupo] ${playerName}:`;
-            break;
-        case MESSAGE_TARGETS.PLAYER:
-            // Obtener nombre del jugador destinatario
-            const targetPlayerName = gameState.isOnline ? 
-                gameState.otherPlayers[targetPlayerId]?.username : 
-                (targetPlayerId === "player1" ? "Jugador1" : "Jugador2");
-            
-            prefix = `[Privado a ${targetPlayerName}] ${playerName}:`;
-            break;
-    }
-    
-    // Mostrar mensaje en el chat
-    addMessageToChat('player', prefix, message, target);
-    
-    // Agregar mensaje sobre la cabeza del jugador
-    addOverheadMessage(gameState.player, message, target);
-    
-    // En modo online, enviaríamos el mensaje al servidor aquí
+    // En modo online, enviar al servidor
     if (gameState.isOnline) {
-        // sendMessageToServer(message, target, targetPlayerId);
-        console.log("Mensaje enviado al servidor:", message, target, targetPlayerId);
+        try {
+            const { default: socketClient } = await import('../api/SocketClient.js');
+            
+            // Añadir el mensaje al chat log local PRIMERO (antes de enviarlo al servidor)
+            const playerName = gameState.player.name || gameState.player.username || "Tú";
+            let prefix = '';
+            
+            switch (target) {
+                case MESSAGE_TARGETS.GLOBAL:
+                    prefix = `[Global] ${playerName}:`;
+                    break;
+                case MESSAGE_TARGETS.LOCAL:
+                    prefix = `[Cercanos] ${playerName}:`;
+                    break;
+                case MESSAGE_TARGETS.GROUP:
+                    prefix = `[Grupo] ${playerName}:`;
+                    break;
+                case MESSAGE_TARGETS.PRIVATE:
+                    // Obtener nombre del jugador destinatario
+                    let targetPlayerName = 'Jugador';
+                    if (targetPlayerId && gameState.onlinePlayers) {
+                        const targetPlayer = gameState.onlinePlayers.get(targetPlayerId);
+                        targetPlayerName = targetPlayer?.username || targetPlayer?.name || 'Jugador';
+                    }
+                    prefix = `[Privado a ${targetPlayerName}] ${playerName}:`;
+                    break;
+            }
+            
+            addMessageToChat('player', prefix, message, target);
+            
+            // Enviar al servidor
+            socketClient.sendChatMessage(message, target, targetPlayerId);
+            
+            // IMPORTANTE: Añadir el mensaje overhead sobre la cabeza del jugador local
+            addOverheadMessage(gameState.player, message, target);
+            
+            console.log(`💬 Mensaje enviado: [${target}] ${message}`, targetPlayerId);
+        } catch (error) {
+            console.error('Error al enviar mensaje de chat:', error);
+            addMessageToChat('system', 'Sistema:', 'Error al enviar mensaje', 'error');
+        }
     } else {
-        // Simular recepción de mensajes en modo single player
+        // Modo offline: simular mensaje localmente
+        const playerName = "Tú";
+        let prefix = '';
+        
+        switch (target) {
+            case MESSAGE_TARGETS.GLOBAL:
+                prefix = `[Global] ${playerName}:`;
+                break;
+            case MESSAGE_TARGETS.LOCAL:
+                prefix = `[Cercanos] ${playerName}:`;
+                break;
+            case MESSAGE_TARGETS.GROUP:
+                prefix = `[Grupo] ${playerName}:`;
+                break;
+            case MESSAGE_TARGETS.PRIVATE:
+                const targetPlayerName = targetPlayerId === "player1" ? "Jugador1" : "Jugador2";
+                prefix = `[Privado a ${targetPlayerName}] ${playerName}:`;
+                break;
+        }
+        
+        addMessageToChat('player', prefix, message, target);
+        addOverheadMessage(gameState.player, message, target);
+        
+        // Simular respuesta en modo offline
         simulateMessageReception(message, target, targetPlayerId);
     }
 }
@@ -241,10 +252,10 @@ export function sendChatMessage(message, target = MESSAGE_TARGETS.ALL, targetPla
  */
 function simulateMessageReception(message, target, targetPlayerId) {
     // Solo simular respuestas para mensajes a todos o cercanos
-    if (target === MESSAGE_TARGETS.ALL || target === MESSAGE_TARGETS.VISIBLE) {
+    if (target === MESSAGE_TARGETS.GLOBAL || target === MESSAGE_TARGETS.LOCAL) {
         setTimeout(() => {
             // Simular respuesta de otro jugador
-            const responsePrefix = target === MESSAGE_TARGETS.ALL ? 
+            const responsePrefix = target === MESSAGE_TARGETS.GLOBAL ? 
                 '[Global] Jugador1:' : 
                 '[Cercanos] Jugador1:';
             
@@ -263,6 +274,73 @@ function simulateMessageReception(message, target, targetPlayerId) {
             const mockPlayer = { id: "player1", x: gameState.player.x + 2, y: gameState.player.y };
             addOverheadMessage(mockPlayer, response, target);
         }, 1000 + Math.random() * 2000);
+    }
+}
+
+/**
+ * Recibe un mensaje de chat del servidor
+ * @param {Object} data - Datos del mensaje
+ * @param {string} data.username - Nombre del usuario que envió el mensaje
+ * @param {string} data.message - Contenido del mensaje
+ * @param {string} data.type - Tipo de mensaje (global, local, group, private)
+ * @param {string} data.socketId - Socket ID del emisor
+ * @param {string} data.targetUsername - Nombre del destinatario (solo para mensajes privados)
+ */
+export async function receiveChatMessage(data) {
+    const { username, message, type, socketId, targetUsername } = data;
+    
+    // Importar socketClient para verificar si es nuestro propio mensaje
+    const { default: socketClient } = await import('../api/SocketClient.js');
+    const isOwnMessage = socketClient.isMySocketId(socketId);
+    
+    console.log(`💬 receiveChatMessage - Emisor: ${username}, isOwnMessage: ${isOwnMessage}, socketId: ${socketId}`);
+    
+    // FILTRO: No añadir nuestro propio mensaje al chat (ya lo añadimos al enviarlo en sendChatMessage)
+    if (!isOwnMessage) {
+        let prefix = '';
+        let cssClass = 'player';
+        
+        switch (type) {
+            case MESSAGE_TARGETS.GLOBAL:
+                prefix = `[Global] ${username}:`;
+                cssClass = 'player-global';
+                break;
+            case MESSAGE_TARGETS.LOCAL:
+                prefix = `[Cercanos] ${username}:`;
+                cssClass = 'player-local';
+                break;
+            case MESSAGE_TARGETS.GROUP:
+                prefix = `[Grupo] ${username}:`;
+                cssClass = 'player-group';
+                break;
+            case MESSAGE_TARGETS.PRIVATE:
+                if (targetUsername) {
+                    // Mensaje privado recibido
+                    prefix = `[Privado de ${username}]:`;
+                } else {
+                    // Confirmación de mensaje privado enviado
+                    prefix = `[Privado a ${username}]:`;
+                }
+                cssClass = 'player-private';
+                break;
+            default:
+                prefix = `${username}:`;
+                cssClass = 'player';
+        }
+        
+        console.log(`📝 Añadiendo mensaje de ${username} al chat log`);
+        addMessageToChat(cssClass, prefix, message, type);
+        
+        // OVERHEAD MESSAGE: Mostrar sobre la cabeza del jugador emisor (otro jugador)
+        if (socketId && gameState.onlinePlayers && gameState.onlinePlayers.has(socketId)) {
+            const onlinePlayer = gameState.onlinePlayers.get(socketId);
+            console.log(`💭 Añadiendo overhead message sobre ${onlinePlayer.username} en (${onlinePlayer.x}, ${onlinePlayer.y})`);
+            addOverheadMessage(onlinePlayer, message, type);
+        } else {
+            console.warn(`⚠️ No se encontró jugador online con socketId ${socketId} para overhead message`);
+        }
+    } else {
+        console.log(`🚫 Mensaje propio filtrado (no se añade al chat ni overhead porque ya se procesó en sendChatMessage)`);
     }
 }
 
@@ -305,15 +383,18 @@ export function addOverheadMessage(entity, message, target = MESSAGE_TARGETS.ALL
     };
     
     // Si es el jugador principal
-    if (!entity.id || entity === gameState.player) {
+    if (entity === gameState.player || (!entity.socketId && !entity.id)) {
+        console.log(`💭 Añadiendo overhead sobre jugador principal en (${gameState.player.x}, ${gameState.player.y})`);
         activeOverheadMessages.player.push(messageObj);
     } 
-    // Si es otro jugador
+    // Si es otro jugador (OnlinePlayer tiene socketId)
     else {
-        if (!activeOverheadMessages.others[entity.id]) {
-            activeOverheadMessages.others[entity.id] = [];
+        const playerId = entity.socketId || entity.id;
+        if (!activeOverheadMessages.others[playerId]) {
+            activeOverheadMessages.others[playerId] = [];
         }
-        activeOverheadMessages.others[entity.id].push(messageObj);
+        console.log(`💭 Añadiendo overhead sobre jugador online ${entity.username} (${playerId}) en (${entity.x}, ${entity.y})`);
+        activeOverheadMessages.others[playerId].push(messageObj);
     }
 }
 
@@ -342,6 +423,39 @@ export function updateOverheadMessages() {
 }
 
 /**
+ * Actualiza la lista de jugadores disponibles para mensaje privado
+ */
+export function updatePlayerSelector() {
+    const playerSelector = document.getElementById('chatPlayerSelector');
+    if (!playerSelector) return;
+    
+    playerSelector.innerHTML = '';
+    
+    // En modo online, usar jugadores reales
+    if (gameState.isOnline && gameState.onlinePlayers) {
+        gameState.onlinePlayers.forEach((player, socketId) => {
+            const option = document.createElement('option');
+            option.value = socketId;
+            option.textContent = player.username || player.name || 'Jugador';
+            playerSelector.appendChild(option);
+        });
+    } else {
+        // Simular jugadores en modo offline (para testing)
+        const mockPlayers = { 
+            "player1": { id: "player1", username: "Jugador1" },
+            "player2": { id: "player2", username: "Jugador2" }
+        };
+        
+        Object.values(mockPlayers).forEach(player => {
+            const option = document.createElement('option');
+            option.value = player.id;
+            option.textContent = player.username;
+            playerSelector.appendChild(option);
+        });
+    }
+}
+
+/**
  * Renderiza los mensajes sobre la cabeza de los jugadores
  * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
  */
@@ -356,7 +470,7 @@ export function renderOverheadMessages(ctx) {
     
     // Renderizar mensajes de otros jugadores
     Object.entries(activeOverheadMessages.others).forEach(([playerId, messages]) => {
-        const player = gameState.otherPlayers[playerId] || findSimulatedPlayer(playerId);
+        const player = gameState.onlinePlayers?.get(playerId) || findSimulatedPlayer(playerId);
         if (player) {
             const playerScreenPos = worldToScreen(player.x, player.y);
             renderEntityMessages(ctx, playerScreenPos, messages, currentTime);
@@ -404,11 +518,11 @@ function renderEntityMessages(ctx, screenPos, messages, currentTime) {
         if (opacity > 0) {
             // Establecer colores según el tipo de mensaje
             switch (msg.target) {
-                case MESSAGE_TARGETS.ALL:
+                case MESSAGE_TARGETS.GLOBAL:
                     ctx.fillStyle = '#ffffff'; // Blanco para mensajes globales
                     ctx.strokeStyle = '#000000';
                     break;
-                case MESSAGE_TARGETS.VISIBLE:
+                case MESSAGE_TARGETS.LOCAL:
                     ctx.fillStyle = '#00ff00'; // Verde para mensajes cercanos
                     ctx.strokeStyle = '#008000';
                     break;
@@ -416,7 +530,7 @@ function renderEntityMessages(ctx, screenPos, messages, currentTime) {
                     ctx.fillStyle = '#0080ff'; // Azul para mensajes de grupo
                     ctx.strokeStyle = '#004080';
                     break;
-                case MESSAGE_TARGETS.PLAYER:
+                case MESSAGE_TARGETS.PRIVATE:
                     ctx.fillStyle = '#ffff00'; // Amarillo para mensajes privados
                     ctx.strokeStyle = '#808000';
                     break;
@@ -462,47 +576,6 @@ function worldToScreen(worldX, worldY) {
     return { x: screenX, y: screenY };
 }
 
-/**
- * Obtiene los jugadores que están dentro del rango de visión
- * @returns {Array} Lista de IDs de jugadores visibles
- */
-export function getVisiblePlayers() {
-    // En un juego real, esto verificaría qué jugadores están en el campo de visión
-    // Para simplificar, devolvemos todos los jugadores cercanos en un rango específico
-    const visibilityRange = 10; // Tiles
-    const visiblePlayers = [];
-    
-    if (gameState.isOnline) {
-        Object.values(gameState.otherPlayers).forEach(player => {
-            const dx = Math.abs(player.x - gameState.player.x);
-            const dy = Math.abs(player.y - gameState.player.y);
-            
-            if (dx <= visibilityRange && dy <= visibilityRange) {
-                visiblePlayers.push(player.id);
-            }
-        });
-    } else {
-        // En modo offline, simular jugadores visibles
-        visiblePlayers.push("player1", "player2");
-    }
-    
-    return visiblePlayers;
-}
-
-/**
- * Obtiene los jugadores que están en el mismo grupo
- * @returns {Array} Lista de IDs de jugadores en el grupo
- */
-export function getGroupPlayers() {
-    // En un juego real, consultaría la lista de jugadores en el grupo
-    // Para simplificar, simulamos un grupo
-    if (gameState.isOnline && gameState.player.group) {
-        return gameState.player.group.members.map(member => member.id);
-    } else {
-        // Simular grupo en modo offline
-        return ["player2"];
-    }
-}
 
 /**
  * Función de prueba para verificar que el foco del chat funciona

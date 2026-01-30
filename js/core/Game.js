@@ -315,8 +315,11 @@ async function processMultiplayerInitData(data) {
         console.warn('⚠️ onlinePlayers no es un array o está indefinido en datos precargados');
     }
     
-    // Configurar listeners de eventos de jugadores
-    setupMultiplayerListeners();
+    // Configurar listeners de eventos de jugadores (solo si no se configuraron ya)
+    if (!window.__MULTIPLAYER_LISTENERS_SETUP__) {
+        setupMultiplayerListeners();
+        window.__MULTIPLAYER_LISTENERS_SETUP__ = true;
+    }
     
     console.log('✅ Datos de multiplayer precargados procesados exitosamente');
 }
@@ -407,10 +410,14 @@ function setupMultiplayerListeners() {
         }
     });
 
-    // Mensajes de chat online
-    window.addEventListener('online-chat-message', (event) => {
-        const data = event.detail;
-        addChatMessage('global', `${data.username}: ${data.message}`);
+    // Mensajes de chat del servidor
+    socketClient.on('chat_message', (data) => {
+        console.log('💬 Mensaje de chat recibido del servidor:', data);
+        
+        // Importar la función receiveChatMessage de Chat.js
+        import('../ui/Chat.js').then(({ receiveChatMessage }) => {
+            receiveChatMessage(data);
+        });
     });
 
     // Cuando el servidor fuerza la desconexión
