@@ -134,16 +134,28 @@ class AudioManager {
             // Solo pausar la música, no detenerla completamente
             if (this.currentMusic && !this.currentMusic.paused) {
                 this.currentMusic.pause();
+                console.log('🎵 Música pausada');
             }
         } else {
-            // Reanudar música pausada o reiniciar la última pista
+            console.log('🎵 Activando música...', { currentMusicKey: this.currentMusicKey, hasCurrentMusic: !!this.currentMusic });
+            
+            // Reanudar música pausada
             if (this.currentMusic && this.currentMusic.paused) {
+                console.log('🎵 Reanudando música pausada');
                 this.currentMusic.play().catch(err => {
                     console.warn('Failed to resume music:', err);
                 });
             } else if (this.currentMusicKey) {
-                // Si no hay música actual pero sí teníamos una clave guardada, reproducirla
-                this.playMusic(this.currentMusicKey, true);
+                // Si hay una clave guardada, forzar reproducción
+                console.log('🎵 Iniciando música guardada:', this.currentMusicKey);
+                const track = this.musicTracks.get(this.currentMusicKey);
+                if (track) {
+                    this.startMusic(track, true);
+                } else {
+                    console.warn('Track no encontrado:', this.currentMusicKey);
+                }
+            } else {
+                console.warn('🎵 No hay música guardada para reproducir');
             }
         }
     }
