@@ -130,32 +130,22 @@ class AudioManager {
 
     setMusicEnabled(enabled) {
         CONFIG.AUDIO.MUSIC_ENABLED = enabled;
+        
         if (!enabled) {
-            // Solo pausar la música, no detenerla completamente
             if (this.currentMusic && !this.currentMusic.paused) {
                 this.currentMusic.pause();
-                console.log('🎵 Música pausada');
             }
         } else {
-            console.log('🎵 Activando música...', { currentMusicKey: this.currentMusicKey, hasCurrentMusic: !!this.currentMusic });
-            
-            // Reanudar música pausada
+            // Reanudar o iniciar música
             if (this.currentMusic && this.currentMusic.paused) {
-                console.log('🎵 Reanudando música pausada');
                 this.currentMusic.play().catch(err => {
                     console.warn('Failed to resume music:', err);
                 });
             } else if (this.currentMusicKey) {
-                // Si hay una clave guardada, forzar reproducción
-                console.log('🎵 Iniciando música guardada:', this.currentMusicKey);
                 const track = this.musicTracks.get(this.currentMusicKey);
                 if (track) {
                     this.startMusic(track, true);
-                } else {
-                    console.warn('Track no encontrado:', this.currentMusicKey);
                 }
-            } else {
-                console.warn('🎵 No hay música guardada para reproducir');
             }
         }
     }
@@ -214,12 +204,10 @@ class AudioManager {
     }
 
     playMusic(trackKey, fadeIn = true) {
-        // Guardar la clave de la música SIEMPRE (incluso si está deshabilitada)
-        // para poder reproducirla cuando el usuario la active
+        // Guardar la clave de la música SIEMPRE para poder reproducirla cuando se active
         this.currentMusicKey = trackKey;
         
         if (!this.enabled || !this.isMusicEnabled()) {
-            console.log(`🎵 Música ${trackKey} guardada pero no reproducida (audio deshabilitado)`);
             return;
         }
 
@@ -235,10 +223,8 @@ class AudioManager {
         }
 
         if (this.currentMusic && !this.currentMusic.paused) {
-            // Hay música sonando, hacer crossfade
             this.crossfade(track, fadeIn);
         } else {
-            // No hay música, reproducir directamente
             this.startMusic(track, fadeIn);
         }
     }
