@@ -385,7 +385,64 @@
             }, 500);
         }
 
-        // Exit game function - declarar ANTES de setupMobileUI
+        // Audio control functions - DEFINIR PRIMERO
+        window.toggleMusic = function() {
+            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
+                const btn = document.getElementById('toggleMusicBtn');
+                const isEnabled = audioManager.isMusicEnabled();
+                
+                audioManager.setMusicEnabled(!isEnabled);
+                
+                if (!isEnabled) {
+                    btn.textContent = '🎵 Música: ON';
+                    btn.style.background = '#10b981';
+                } else {
+                    btn.textContent = '🎵 Música: OFF';
+                    btn.style.background = '#ef4444';
+                }
+            });
+        };
+
+        window.toggleSfx = function() {
+            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
+                const btn = document.getElementById('toggleSfxBtn');
+                const isEnabled = audioManager.isSfxEnabled();
+                
+                audioManager.setSfxEnabled(!isEnabled);
+                
+                if (!isEnabled) {
+                    btn.textContent = '🔊 Efectos: ON';
+                    btn.style.background = '#10b981';
+                } else {
+                    btn.textContent = '🔊 Efectos: OFF';
+                    btn.style.background = '#ef4444';
+                }
+            });
+        };
+
+        // Inicializar estado de botones de audio según CONFIG
+        window.initAudioButtons = function() {
+            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
+                const musicBtn = document.getElementById('toggleMusicBtn');
+                const sfxBtn = document.getElementById('toggleSfxBtn');
+                
+                // Sincronizar botón de música
+                if (musicBtn) {
+                    const musicEnabled = audioManager.isMusicEnabled();
+                    musicBtn.textContent = musicEnabled ? '🎵 Música: ON' : '🎵 Música: OFF';
+                    musicBtn.style.background = musicEnabled ? '#10b981' : '#ef4444';
+                }
+                
+                // Sincronizar botón de efectos
+                if (sfxBtn) {
+                    const sfxEnabled = audioManager.isSfxEnabled();
+                    sfxBtn.textContent = sfxEnabled ? '🔊 Efectos: ON' : '🔊 Efectos: OFF';
+                    sfxBtn.style.background = sfxEnabled ? '#10b981' : '#ef4444';
+                }
+            });
+        };
+
+        // Exit game function
         window.exitGame = async function() {
             if (!confirm('¿Estás seguro de que quieres salir? El progreso se guardará.')) {
                 return;
@@ -500,67 +557,12 @@
         window.toggleSpellsPanel = toggleSpellsPanel;
         window.toggleSkillsPanel = toggleSkillsPanel;
 
-        // Audio control functions
-        window.toggleMusic = function() {
-            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
-                const btn = document.getElementById('toggleMusicBtn');
-                const isEnabled = audioManager.isMusicEnabled();
-                
-                audioManager.setMusicEnabled(!isEnabled);
-                
-                if (!isEnabled) {
-                    btn.textContent = '🎵 Música: ON';
-                    btn.style.background = '#10b981';
-                } else {
-                    btn.textContent = '🎵 Música: OFF';
-                    btn.style.background = '#ef4444';
-                }
-            });
-        };
-
-        window.toggleSfx = function() {
-            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
-                const btn = document.getElementById('toggleSfxBtn');
-                const isEnabled = audioManager.isSfxEnabled();
-                
-                audioManager.setSfxEnabled(!isEnabled);
-                
-                if (!isEnabled) {
-                    btn.textContent = '🔊 Efectos: ON';
-                    btn.style.background = '#10b981';
-                } else {
-                    btn.textContent = '🔊 Efectos: OFF';
-                    btn.style.background = '#ef4444';
-                }
-            });
-        };
-
-        // Inicializar estado de botones de audio según CONFIG
-        window.initAudioButtons = function() {
-            import('./js/systems/AudioManager.js').then(({ audioManager }) => {
-                const musicBtn = document.getElementById('toggleMusicBtn');
-                const sfxBtn = document.getElementById('toggleSfxBtn');
-                
-                // Sincronizar botón de música
-                if (musicBtn) {
-                    const musicEnabled = audioManager.isMusicEnabled();
-                    musicBtn.textContent = musicEnabled ? '🎵 Música: ON' : '🎵 Música: OFF';
-                    musicBtn.style.background = musicEnabled ? '#10b981' : '#ef4444';
-                }
-                
-                // Sincronizar botón de efectos
-                if (sfxBtn) {
-                    const sfxEnabled = audioManager.isSfxEnabled();
-                    sfxBtn.textContent = sfxEnabled ? '🔊 Efectos: ON' : '🔊 Efectos: OFF';
-                    sfxBtn.style.background = sfxEnabled ? '#10b981' : '#ef4444';
-                }
-            });
-        };
-
         // Mobile UI functions
         function setupMobileUI() {
-            // Inicializar botones de audio con estado correcto
-            initAudioButtons();
+            // Inicializar botones de audio con estado correcto (después de un pequeño delay)
+            setTimeout(() => {
+                initAudioButtons();
+            }, 100);
             
             // Exit game button
             const exitButton = document.getElementById('exitGameButton');
