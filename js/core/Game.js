@@ -113,6 +113,7 @@ function setupLoginEvents() {
             
             // Inicializar mapa de jugadores online
             gameState.onlinePlayers = new Map();
+            console.log('🗺️ gameState.onlinePlayers inicializado (vacío):', gameState.onlinePlayers.size);
             
             // Si hay un personaje seleccionado, asignar su nombre y apariencia al jugador
             if (event.detail.character) {
@@ -123,6 +124,14 @@ function setupLoginEvents() {
                 console.log('Personaje seleccionado:', event.detail.character.name);
                 console.log('Apariencia del personaje:', event.detail.character.appearance);
             }
+            
+            // NUEVO: Procesar datos de multiplayer si ya están disponibles
+            if (window.__MULTIPLAYER_INIT_DATA__) {
+                console.log('📦 Datos de multiplayer ya disponibles, procesándolos...');
+                await processMultiplayerInitData(window.__MULTIPLAYER_INIT_DATA__);
+                console.log('📊 gameState.onlinePlayers después de procesar:', gameState.onlinePlayers.size);
+                delete window.__MULTIPLAYER_INIT_DATA__; // Limpiar después de usar
+            }
         } else {
             console.log('Iniciando en modo local');
             gameState.isOnline = false;
@@ -130,12 +139,20 @@ function setupLoginEvents() {
         }
         
         // Iniciar el juego después del login
+        console.log('🚀 Llamando a initGame()... gameState.onlinePlayers.size:', gameState.onlinePlayers?.size || 'null');
         await initGame();
+        console.log('✅ initGame() completado. gameState.onlinePlayers.size:', gameState.onlinePlayers?.size || 'null');
     });
 
     // Evento cuando el multiplayer está listo (después de join_game)
     window.addEventListener('multiplayer-ready', (event) => {
-        console.log('🌐 Multiplayer listo!', event.detail);
+        console.log('🌐 EVENTO multiplayer-ready recibido!', event.detail);
+        console.log('📊 Datos recibidos en multiplayer-ready:', {
+            onlinePlayers: event.detail.onlinePlayers?.length || 0,
+            hasCharacterData: !!event.detail.characterData,
+            hasStartPosition: !!event.detail.startPosition
+        });
+        console.log('📊 gameState.onlinePlayers ANTES de procesar:', gameState.onlinePlayers?.size || 'null/undefined');
         
         // Verificar que gameState.onlinePlayers esté inicializado
         if (!gameState.onlinePlayers) {
@@ -183,8 +200,19 @@ function setupLoginEvents() {
         }
         
         // Cargar jugadores online iniciales (EXCEPTO el propio)
+        console.log('🔍 Procesando lista de jugadores online desde multiplayer-ready...');
         if (event.detail.onlinePlayers && Array.isArray(event.detail.onlinePlayers)) {
-            event.detail.onlinePlayers.forEach(playerData => {
+            console.log(`📋 Lista recibida con ${event.detail.onlinePlayers.length} jugadores`);
+            
+            event.detail.onlinePlayers.forEach((playerData, index) => {
+                console.log(`🔄 Procesando jugador ${index + 1}/${event.detail.onlinePlayers.length}:`, {
+                    username: playerData.username,
+                    socketId: playerData.socketId,
+                    position: playerData.position,
+                    mySocketId: mySocketId,
+                    isMyself: playerData.socketId === mySocketId
+                });
+                
                 // FILTRAR: No añadir el propio jugador
                 if (playerData.socketId === mySocketId) {
                     console.log('🚫 Ignorando jugador propio en lista inicial:', playerData.username);
@@ -197,19 +225,100 @@ function setupLoginEvents() {
                     return;
                 }
                 
+                console.log('✨ Creando OnlinePlayer para:', playerData.username);
                 const onlinePlayer = new OnlinePlayer(playerData);
                 gameState.onlinePlayers.set(playerData.socketId, onlinePlayer);
                 console.log(`👤 Jugador online cargado: ${playerData.username} en (${playerData.position.x}, ${playerData.position.y})`);
             });
-            console.log(`✅ Total jugadores online cargados: ${gameState.onlinePlayers.size}`);
+            console.log(`✅ Total jugadores online en gameState.onlinePlayers DESPUÉS: ${gameState.onlinePlayers.size}`);
+            console.log(`📊 Jugadores en el Map:`, Array.from(gameState.onlinePlayers.keys()));
+        } else {
+            console.warn('⚠️ onlinePlayers no es un array o está indefinido:', event.detail.onlinePlayers);
         }
         
-        // Configurar listeners de eventos de jugadores
-        setupMultiplayerListeners();
+        // Configurar listeners de eventos de jugadores (solo si no se configuraron ya)
+        if (!window.__MULTIPLAYER_LISTENERS_SETUP__) {
+            setupMultiplayerListeners();
+            window.__MULTIPLAYER_LISTENERS_SETUP__ = true;
+        }
         
         // Actualizar UI con el estado cargado
         updateUI();
+        
+        console.log('✅ Evento multiplayer-ready procesado completamente');
     });
+}
+
+/**
+ * Procesar datos de multiplayer que fueron precargados antes de iniciar el juego
+ */
+async function processMultiplayerInitData(data) {
+    console.log('🔄 Procesando datos precargados de multiplayer...', data);
+    
+    // Verificar que gameState.onlinePlayers esté inicializado
+    if (!gameState.onlinePlayers) {
+        console.warn('⚠️ gameState.onlinePlayers no está inicializado, creando ahora...');
+        gameState.onlinePlayers = new Map();
+    }
+    
+    // Obtener mi socketId para filtrar
+    const mySocketId = socketClient.getSocketId();
+    console.log('🔑 Mi socketId para filtrado:', mySocketId);
+    
+    // IMPORTANTE: Cargar estado completo del servidor (HP, Mana, Inventario, etc.)
+    if (data.characterData) {
+        multiplayerManager.loadFullState(data.characterData, gameState);
+    }
+    
+    // IMPORTANTE: Establecer posición inicial desde el servidor
+    if (data.startPosition) {
+        gameState.player.x = data.startPosition.x;
+        gameState.player.y = data.startPosition.y;
+        gameState.currentMap = data.startPosition.map;
+        console.log(`🎯 Posición inicial del jugador establecida: (${gameState.player.x}, ${gameState.player.y}) en mapa ${gameState.currentMap}`);
+    }
+    
+    // Cargar jugadores online iniciales (EXCEPTO el propio)
+    console.log('🔍 Procesando lista de jugadores online precargados...');
+    if (data.onlinePlayers && Array.isArray(data.onlinePlayers)) {
+        console.log(`📋 Lista precargada con ${data.onlinePlayers.length} jugadores`);
+        
+        data.onlinePlayers.forEach((playerData, index) => {
+            console.log(`🔄 Procesando jugador precargado ${index + 1}/${data.onlinePlayers.length}:`, {
+                username: playerData.username,
+                socketId: playerData.socketId,
+                position: playerData.position,
+                mySocketId: mySocketId,
+                isMyself: playerData.socketId === mySocketId
+            });
+            
+            // FILTRAR: No añadir el propio jugador
+            if (playerData.socketId === mySocketId) {
+                console.log('🚫 Ignorando jugador propio en lista precargada:', playerData.username);
+                return;
+            }
+            
+            // Verificar que no esté ya en la lista (prevenir duplicados)
+            if (gameState.onlinePlayers.has(playerData.socketId)) {
+                console.warn('⚠️ Jugador ya existe en la lista:', playerData.username);
+                return;
+            }
+            
+            console.log('✨ Creando OnlinePlayer para:', playerData.username);
+            const onlinePlayer = new OnlinePlayer(playerData);
+            gameState.onlinePlayers.set(playerData.socketId, onlinePlayer);
+            console.log(`👤 Jugador online cargado: ${playerData.username} en (${playerData.position.x}, ${playerData.position.y})`);
+        });
+        console.log(`✅ Total jugadores online precargados en gameState.onlinePlayers: ${gameState.onlinePlayers.size}`);
+        console.log(`📊 Jugadores en el Map:`, Array.from(gameState.onlinePlayers.keys()));
+    } else {
+        console.warn('⚠️ onlinePlayers no es un array o está indefinido en datos precargados');
+    }
+    
+    // Configurar listeners de eventos de jugadores
+    setupMultiplayerListeners();
+    
+    console.log('✅ Datos de multiplayer precargados procesados exitosamente');
 }
 
 /**

@@ -496,9 +496,6 @@ export function updateSpellEffects() {
  * Recuperación de maná por meditación (llamar periódicamente)
  */
 export function recoverMana() {
-    console.log("🔄 recoverMana - Estado meditación:", gameState.player.meditating, 
-                "Maná:", gameState.player.mana, "/", gameState.player.maxMana);
-                
     // Si el maná está lleno y aún sigue meditando (por alguna razón), 
     // forzar la detención de la meditación
     if (gameState.player.meditating && gameState.player.mana >= gameState.player.maxMana) {

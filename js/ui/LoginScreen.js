@@ -1455,19 +1455,35 @@ export class LoginScreen {
         
         // Cuando se una al juego exitosamente
         socketClient.on('game_joined', (data) => {
-            console.log('🎮 ¡Unido al juego!', data);
+            console.log('🎮 ¡Unido al juego! Recibidos datos del servidor', data);
+            console.log('📊 Jugadores online recibidos del servidor:', data.onlinePlayers?.length || 0);
             
-            // Guardar datos para disparar evento después
-            setTimeout(() => {
-                // Disparar evento después de que login-complete haya inicializado gameState
-                window.dispatchEvent(new CustomEvent('multiplayer-ready', {
-                    detail: {
-                        onlinePlayers: data.onlinePlayers,
-                        characterData: data.characterData,
-                        startPosition: data.startPosition // Incluir posición inicial del servidor
-                    }
-                }));
-            }, 100);
+            // Log detallado de los jugadores recibidos
+            if (data.onlinePlayers && data.onlinePlayers.length > 0) {
+                console.log('👥 Lista de jugadores existentes en el mapa:');
+                data.onlinePlayers.forEach(p => {
+                    console.log(`  - ${p.username} (${p.socketId}) en (${p.position.x}, ${p.position.y})`);
+                });
+            } else {
+                console.log('🏜️ No hay otros jugadores en el mapa');
+            }
+            
+            // IMPORTANTE: Guardar datos del servidor y disparar evento multiplayer-ready
+            console.log('💾 Guardando datos del servidor...');
+            
+            // Guardar datos temporalmente en window para que estén disponibles
+            window.__MULTIPLAYER_INIT_DATA__ = {
+                onlinePlayers: data.onlinePlayers || [],
+                characterData: data.characterData,
+                startPosition: data.startPosition
+            };
+            
+            // Disparar evento multiplayer-ready para que el juego procese los datos
+            // NO llamar a startOnlineGame() aquí porque ya se llamó desde playWithCharacter()
+            console.log('🚀 Disparando evento multiplayer-ready...');
+            window.dispatchEvent(new CustomEvent('multiplayer-ready', {
+                detail: window.__MULTIPLAYER_INIT_DATA__
+            }));
         });
         
         // Cuando otro jugador se una
