@@ -202,16 +202,20 @@ class AudioManager {
     }
 
     playMusic(trackKey, fadeIn = true) {
-        if (!this.enabled || !this.isMusicEnabled()) return;
+        // Guardar la clave de la música SIEMPRE (incluso si está deshabilitada)
+        // para poder reproducirla cuando el usuario la active
+        this.currentMusicKey = trackKey;
+        
+        if (!this.enabled || !this.isMusicEnabled()) {
+            console.log(`🎵 Música ${trackKey} guardada pero no reproducida (audio deshabilitado)`);
+            return;
+        }
 
         const track = this.musicTracks.get(trackKey);
         if (!track) {
             console.warn(`Music track not found: ${trackKey}`);
             return;
         }
-
-        // Guardar la clave de la música actual
-        this.currentMusicKey = trackKey;
 
         // Si ya está sonando esta pista, no hacer nada
         if (this.currentMusic === track && !track.paused) {
