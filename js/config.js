@@ -94,11 +94,11 @@ export const CONFIG = {
     // Audio
     AUDIO: {
         ENABLED: true,
-        MUSIC_ENABLED: true,  // Control separado para música
-        SFX_ENABLED: true,    // Control separado para efectos de sonido
+        MUSIC_ENABLED: false,  // Control separado para música
+        SFX_ENABLED: false,    // Control separado para efectos de sonido
         VOLUMES: {
             MASTER: 1.0,
-            MUSIC: 0.4,      // Volumen de música de fondo
+            MUSIC: 0.1,      // Volumen de música de fondo
             BATTLE: 0.8,
             ENEMIES: 0.7,
             GATHERING: 0.6,
@@ -106,7 +106,7 @@ export const CONFIG = {
             WORLD: 0.7
         },
         COOLDOWN_MS: 100, // Tiempo mínimo entre reproducción del mismo sonido
-        POOL_SIZE: 3, // Cantidad de instancias por sonido para overlapping
+        POOL_SIZE: 5, // Cantidad de instancias por sonido para overlapping
         FALLBACK_ENEMY_SOUND: 'general', // Sonido por defecto para enemigos
         MUSIC: {
             FADE_DURATION: 2000, // Duración del crossfade en ms
