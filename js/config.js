@@ -94,16 +94,16 @@ export const CONFIG = {
     // Audio
     AUDIO: {
         ENABLED: true,
-        MUSIC_ENABLED: false,  // OFF por defecto
-        SFX_ENABLED: false,    // OFF por defecto
+        MUSIC_ENABLED: true,  // Control separado para música
+        SFX_ENABLED: true,    // Control separado para efectos de sonido
         VOLUMES: {
             MASTER: 1.0,
-            MUSIC: 0.2,      // Volumen más bajo de música de fondo
-            BATTLE: 0.5,
-            ENEMIES: 0.4,
-            GATHERING: 0.4,
-            INVENTORY: 0.3,
-            WORLD: 0.4
+            MUSIC: 0.4,      // Volumen de música de fondo
+            BATTLE: 0.8,
+            ENEMIES: 0.7,
+            GATHERING: 0.6,
+            INVENTORY: 0.5,
+            WORLD: 0.7
         },
         COOLDOWN_MS: 100, // Tiempo mínimo entre reproducción del mismo sonido
         POOL_SIZE: 3, // Cantidad de instancias por sonido para overlapping
