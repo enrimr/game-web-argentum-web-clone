@@ -321,13 +321,6 @@ function renderOnlinePlayers(camera, ctx) {
                     hairStyle: player.appearance.hairStyle || 1
                 };
                 
-                console.log(`🎨 Renderizando jugador ${player.username}:`, {
-                    clase: player.class,
-                    raza: raceForSprite,
-                    appearance_raw: player.appearance,
-                    appearance_mapped: appearanceData
-                });
-                
                 // Generar sprites del jugador
                 const playerSprites = generateCustomCharacterSprites(appearanceData, TILE_SIZE);
                 
@@ -390,10 +383,7 @@ function renderOnlinePlayers(camera, ctx) {
             ctx.fillText(`Lv.${player.level}`, nameX, currentY);
         }
 
-        // Mostrar barra de HP arriba del sprite (solo si está vivo)
-        if (!isGhost && player.hp !== undefined && player.maxHp) {
-            renderHealthBar(screenPos.x, screenPos.y, player.hp, player.maxHp, ctx);
-        }
+        // Barra de HP eliminada para jugadores online
 
         ctx.restore();
     }
