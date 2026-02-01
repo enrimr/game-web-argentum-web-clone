@@ -301,9 +301,9 @@ function renderOnlinePlayers(camera, ctx) {
                     6: 'orange', 7: 'pink', 8: 'brown', 9: 'black', 10: 'white'
                 };
                 
-                // Mapear head (1-50) a color de piel (según LoginScreen.js)
+                // Mapear head (1-6) a color de piel (según LoginScreen.js)
                 const skinColorMapReverse = {
-                    1: 'light', 2: 'medium', 3: 'tan', 4: 'dark'
+                    1: 'light', 2: 'medium', 3: 'tan', 4: 'dark', 5: 'gray', 6: 'green'
                 };
                 
                 // Mapear hairColor de número a string (1-9)
