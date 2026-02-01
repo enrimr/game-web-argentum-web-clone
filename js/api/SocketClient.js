@@ -3,14 +3,20 @@
  * Requiere Socket.io client library
  */
 
+import { CONFIG } from '../config.js';
+
 class SocketClient {
     constructor() {
         this.socket = null;
-        this.serverUrl = 'http://localhost:3000';
+        // URL del servidor desde CONFIG (centralizada)
+        // Para cambiar el servidor, edita CONFIG.SERVER.API_URL en js/config.js
+        this.serverUrl = CONFIG.SERVER.API_URL;
         this.isConnected = false;
         this.characterId = null;
         this.eventHandlers = new Map();
         this.mySocketId = null; // Para almacenar el socketId propio
+        
+        console.log(`🔗 SocketClient inicializado con URL: ${this.serverUrl}`);
     }
 
     /**
@@ -27,8 +33,8 @@ class SocketClient {
                 token: token
             },
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionAttempts: CONFIG.SERVER.RECONNECTION_ATTEMPTS,
+            reconnectionDelay: CONFIG.SERVER.RECONNECTION_DELAY
         });
 
         this.setupEventListeners();

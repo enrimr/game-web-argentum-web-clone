@@ -130,4 +130,19 @@ export const CONFIG = {
         TIMEOUT: 10000,       // Timeout por recurso (ms)
         CONCURRENCY: 5        // Número de recursos a cargar en paralelo
     },
+
+    // Configuración del servidor (Multiplayer)
+    SERVER: {
+        // URL del servidor API y WebSocket
+        // Para desarrollo local: 'http://localhost:3000'
+        // Para producción: 'https://tu-servidor.com'
+        API_URL: 'http://localhost:3000',
+        
+        // Configuración de reconexión
+        RECONNECTION_ATTEMPTS: 5,
+        RECONNECTION_DELAY: 1000,
+        
+        // Timeout de peticiones HTTP (ms)
+        REQUEST_TIMEOUT: 10000
+    },
 };
