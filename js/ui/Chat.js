@@ -459,12 +459,15 @@ export function updatePlayerSelector() {
  * Renderiza los mensajes sobre la cabeza de los jugadores
  * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
  */
-export function renderOverheadMessages(ctx) {
+export async function renderOverheadMessages(ctx) {
     const currentTime = Date.now();
+    
+    // Importar worldToScreen del RendererCore para usar la posición correcta de la cámara
+    const { worldToScreen: correctWorldToScreen } = await import('../graphics/renderers/RendererCore.js');
     
     // Renderizar mensajes del jugador principal
     if (activeOverheadMessages.player.length > 0) {
-        const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
+        const playerScreenPos = correctWorldToScreen(gameState.player.x, gameState.player.y);
         renderEntityMessages(ctx, playerScreenPos, activeOverheadMessages.player, currentTime);
     }
     
@@ -472,7 +475,7 @@ export function renderOverheadMessages(ctx) {
     Object.entries(activeOverheadMessages.others).forEach(([playerId, messages]) => {
         const player = gameState.onlinePlayers?.get(playerId) || findSimulatedPlayer(playerId);
         if (player) {
-            const playerScreenPos = worldToScreen(player.x, player.y);
+            const playerScreenPos = correctWorldToScreen(player.x, player.y);
             renderEntityMessages(ctx, playerScreenPos, messages, currentTime);
         }
     });
@@ -554,27 +557,6 @@ function renderEntityMessages(ctx, screenPos, messages, currentTime) {
     });
 }
 
-/**
- * Helper: convierte coordenadas del mundo a coordenadas de pantalla
- * @param {number} worldX - Coordenada X del mundo
- * @param {number} worldY - Coordenada Y del mundo
- * @returns {Object} Posición en pantalla {x, y}
- */
-function worldToScreen(worldX, worldY) {
-    // Importamos esta función de manera simplificada para evitar dependencias circulares
-    const TILE_SIZE = 32; // Debe coincidir con el tamaño de tile en el renderer
-    
-    const viewportWidth = 640; // Ancho del canvas
-    const viewportHeight = 416; // Alto del canvas
-    
-    const centerX = Math.floor(viewportWidth / 2 / TILE_SIZE);
-    const centerY = Math.floor(viewportHeight / 2 / TILE_SIZE);
-    
-    const screenX = (worldX - gameState.player.x + centerX) * TILE_SIZE;
-    const screenY = (worldY - gameState.player.y + centerY) * TILE_SIZE;
-    
-    return { x: screenX, y: screenY };
-}
 
 
 /**
