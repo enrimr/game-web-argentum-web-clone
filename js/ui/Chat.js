@@ -5,6 +5,7 @@
 
 import { gameState } from '../state.js';
 import { addChatMessage } from './UI.js';
+import { worldToScreen } from '../graphics/renderers/RendererCore.js';
 
 // Tipos de destinatarios para mensajes (compatibles con el servidor)
 export const MESSAGE_TARGETS = {
@@ -459,15 +460,12 @@ export function updatePlayerSelector() {
  * Renderiza los mensajes sobre la cabeza de los jugadores
  * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
  */
-export async function renderOverheadMessages(ctx) {
+export function renderOverheadMessages(ctx) {
     const currentTime = Date.now();
-    
-    // Importar worldToScreen del RendererCore para usar la posición correcta de la cámara
-    const { worldToScreen: correctWorldToScreen } = await import('../graphics/renderers/RendererCore.js');
     
     // Renderizar mensajes del jugador principal
     if (activeOverheadMessages.player.length > 0) {
-        const playerScreenPos = correctWorldToScreen(gameState.player.x, gameState.player.y);
+        const playerScreenPos = worldToScreen(gameState.player.x, gameState.player.y);
         renderEntityMessages(ctx, playerScreenPos, activeOverheadMessages.player, currentTime);
     }
     
@@ -475,7 +473,7 @@ export async function renderOverheadMessages(ctx) {
     Object.entries(activeOverheadMessages.others).forEach(([playerId, messages]) => {
         const player = gameState.onlinePlayers?.get(playerId) || findSimulatedPlayer(playerId);
         if (player) {
-            const playerScreenPos = correctWorldToScreen(player.x, player.y);
+            const playerScreenPos = worldToScreen(player.x, player.y);
             renderEntityMessages(ctx, playerScreenPos, messages, currentTime);
         }
     });
