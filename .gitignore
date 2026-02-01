@@ -2,3 +2,6 @@ ao-cliente/
 ao-server/
 ao-recursos/
 .DS_Store
+
+# Configuración local (no commitear)
+js/config.local.js

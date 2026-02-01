@@ -6,9 +6,29 @@ La URL del servidor (API y WebSocket) está centralizada en el archivo `js/confi
 
 ## Cómo Configurar
 
-### Ubicación de la Configuración
+### Opción 1: Configuración Local (Recomendado)
 
-Edita el archivo: **`js/config.js`**
+**No modifiques `js/config.js` directamente.** En su lugar, usa configuración local:
+
+1. Copia el archivo de ejemplo:
+```bash
+cp js/config.local.example.js js/config.local.js
+```
+
+2. Edita `js/config.local.js` con tu URL de servidor:
+```javascript
+export const LOCAL_CONFIG_OVERRIDES = {
+    SERVER: {
+        API_URL: 'https://calima-online-server-production.up.railway.app',
+    }
+};
+```
+
+3. ✅ `config.local.js` está en `.gitignore` y NO se subirá al repositorio
+
+### Opción 2: Configuración por Defecto
+
+Edita el archivo: **`js/config.js`** (se commitea al repo)
 
 ```javascript
 // Configuración del servidor (Multiplayer)
@@ -81,22 +101,32 @@ this.serverUrl = CONFIG.SERVER.API_URL;
 
 ## Ventajas de este Sistema
 
+### ✅ Configuración Local Privada
+- `config.local.js` NO se sube al repositorio (en .gitignore)
+- Cada desarrollador puede tener su propia configuración
+- No expones URLs de producción en el repo público
+
 ### ✅ Centralizado
 - Un solo lugar para cambiar la URL
 - No necesitas buscar en múltiples archivos
 
-### ✅ Sin Variables de Entorno
+### ✅ Sin Bundler
 - No requiere bundler (Webpack, Vite, etc.)
-- No requiere archivos `.env`
 - Funciona directamente en el navegador
+- Usa import dinámico de ES6
 
 ### ✅ Fácil de Cambiar
-- Solo edita `CONFIG.SERVER.API_URL` en `js/config.js`
-- Los cambios se aplican automáticamente a ApiClient y SocketClient
+- Crea `config.local.js` con tu URL
+- Los cambios se aplican automáticamente
+- No afecta a otros desarrolladores
 
 ### ✅ Consistente
 - API REST y WebSocket usan la misma URL base
 - Evita desincronización entre servicios
+
+### ✅ Fallback Seguro
+- Si `config.local.js` no existe, usa valores de `config.js`
+- No rompe el juego si falta el archivo
 
 ## Configuración Adicional
 
@@ -121,28 +151,57 @@ REQUEST_TIMEOUT: 10000  // 10 segundos
 
 ### Desarrollo Local
 
-1. Abre `js/config.js`
-2. Establece: `API_URL: 'http://localhost:3000'`
-3. Inicia el servidor local: `cd calima-online-server && npm run dev`
-4. Abre el cliente: `http://localhost:8080`
+1. No necesitas crear `config.local.js`, usa el valor por defecto (`localhost:3000`)
+2. Inicia el servidor local: `cd calima-online-server && npm run dev`
+3. Abre el cliente: `http://localhost:8080`
+
+### Desarrollo con Servidor Remoto
+
+1. Copia el ejemplo: `cp js/config.local.example.js js/config.local.js`
+2. Edita `js/config.local.js`:
+```javascript
+export const LOCAL_CONFIG_OVERRIDES = {
+    SERVER: {
+        API_URL: 'https://tu-servidor-remoto.com',
+    }
+};
+```
+3. Refresca el navegador
 
 ### Desplegar a Producción
 
+**Opción A - Sin archivo local (se commitea):**
 1. Despliega el servidor a Railway/Vercel
-2. Obtén la URL de producción (ej: `https://calima-online-server.up.railway.app`)
-3. Edita `js/config.js`: `API_URL: 'https://calima-online-server.up.railway.app'`
-4. Despliega el cliente (ej: GitHub Pages, Netlify, Vercel)
+2. Obtén la URL de producción
+3. Edita `js/config.js`: `API_URL: 'https://tu-servidor.up.railway.app'`
+4. Commit y push
+5. Despliega el cliente
+
+**Opción B - Con archivo local (NO se commitea):**
+1. Despliega el servidor
+2. Crea `js/config.local.js` en producción con la URL correcta
+3. El cliente lee la configuración local automáticamente
 
 ## Logs de Debugging
 
 Cuando el juego inicia, verás en la consola:
 
+**Con config.local.js:**
 ```
+📝 Aplicando configuración local (config.local.js)
+🔗 URL del servidor sobrescrita: https://tu-servidor.com
+🔗 ApiClient inicializado con URL: https://tu-servidor.com/api
+🔗 SocketClient inicializado con URL: https://tu-servidor.com
+```
+
+**Sin config.local.js:**
+```
+📌 Usando configuración por defecto de config.js
 🔗 ApiClient inicializado con URL: http://localhost:3000/api
 🔗 SocketClient inicializado con URL: http://localhost:3000
 ```
 
-Esto confirma que ambos clientes están usando la URL correcta.
+Esto confirma qué configuración está usando el cliente.
 
 ## Troubleshooting
 

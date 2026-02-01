@@ -132,6 +132,7 @@ export const CONFIG = {
     },
 
     // Configuración del servidor (Multiplayer)
+    // NOTA: Puedes crear js/config.local.js para sobrescribir estos valores sin modificar este archivo
     SERVER: {
         // URL del servidor API y WebSocket
         // Para desarrollo local: 'http://localhost:3000'
@@ -146,3 +147,22 @@ export const CONFIG = {
         REQUEST_TIMEOUT: 10000
     },
 };
+
+// Intentar cargar configuración local si existe (sin hacer commit al repo)
+try {
+    const { LOCAL_CONFIG_OVERRIDES } = await import('./config.local.js');
+    
+    // Aplicar overrides de configuración local
+    if (LOCAL_CONFIG_OVERRIDES) {
+        console.log('📝 Aplicando configuración local (config.local.js)');
+        
+        // Sobrescribir valores de SERVER si existen
+        if (LOCAL_CONFIG_OVERRIDES.SERVER) {
+            Object.assign(CONFIG.SERVER, LOCAL_CONFIG_OVERRIDES.SERVER);
+            console.log('🔗 URL del servidor sobrescrita:', CONFIG.SERVER.API_URL);
+        }
+    }
+} catch (error) {
+    // config.local.js no existe o hay error al cargar - usar valores por defecto
+    console.log('📌 Usando configuración por defecto de config.js');
+}
