@@ -2,16 +2,11 @@
  * Cliente API para comunicación con el backend de Calima Online
  */
 
-import { CONFIG } from '../config.js';
-
 class ApiClient {
     constructor() {
-        // URL base del servidor desde CONFIG (centralizada)
-        // Para cambiar el servidor, edita CONFIG.SERVER.API_URL en js/config.js
-        this.baseUrl = `${CONFIG.SERVER.API_URL}/api`;
+        // URL base del servidor (puede configurarse desde variables de entorno)
+        this.baseUrl = 'http://localhost:3000/api';
         this.token = localStorage.getItem('authToken');
-        
-        console.log(`🔗 ApiClient inicializado con URL: ${this.baseUrl}`);
     }
 
     /**
