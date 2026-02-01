@@ -135,9 +135,13 @@ export const CONFIG = {
     // NOTA: Puedes crear js/config.local.js para sobrescribir estos valores sin modificar este archivo
     SERVER: {
         // URL del servidor API y WebSocket
-        // Para desarrollo local: 'http://localhost:3000'
-        // Para producción: 'https://tu-servidor.com'
-        API_URL: 'http://localhost:3000',
+        // Se detecta automáticamente según el hostname:
+        // - localhost/127.0.0.1 → http://localhost:3000
+        // - Otro dominio → URL de producción definida abajo
+        API_URL: getServerUrl(),
+        
+        // URL de producción (edita esto con tu URL de servidor en producción)
+        PRODUCTION_URL: 'https://calima-online-server-production.up.railway.app',
         
         // Configuración de reconexión
         RECONNECTION_ATTEMPTS: 5,
@@ -148,21 +152,55 @@ export const CONFIG = {
     },
 };
 
-// Intentar cargar configuración local si existe (sin hacer commit al repo)
+/**
+ * Detecta automáticamente la URL del servidor según el entorno
+ * Prioridad: window.ENV > config.local.js > detección automática
+ * @returns {string} URL del servidor
+ */
+function getServerUrl() {
+    // 1. Prioridad MÁXIMA: Variables de entorno inyectadas por el servidor web (Vercel, Netlify, etc.)
+    if (typeof window !== 'undefined' && window.ENV && window.ENV.API_URL) {
+        console.log('🔧 Usando variable de entorno del servidor web:', window.ENV.API_URL);
+        return window.ENV.API_URL;
+    }
+    
+    // 2. Prioridad MEDIA: Detección automática por hostname
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    const isDevelopment = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    if (isDevelopment) {
+        console.log('🏠 Entorno detectado: DESARROLLO (localhost)');
+        return 'http://localhost:3000';
+    } else {
+        // En producción, usar la URL configurada
+        console.log('🌐 Entorno detectado: PRODUCCIÓN');
+        // Esta URL se obtiene de CONFIG.SERVER.PRODUCTION_URL después de inicializar CONFIG
+        return null; // Se asignará después
+    }
+}
+
+// Aplicar URL de producción si estamos en producción
+if (CONFIG.SERVER.API_URL === null) {
+    CONFIG.SERVER.API_URL = CONFIG.SERVER.PRODUCTION_URL;
+}
+
+console.log(`🔗 URL del servidor configurada: ${CONFIG.SERVER.API_URL}`);
+
+// 3. Prioridad BAJA: Intentar cargar configuración local si existe (opcional, para override manual)
 try {
     const { LOCAL_CONFIG_OVERRIDES } = await import('./config.local.js');
     
     // Aplicar overrides de configuración local
     if (LOCAL_CONFIG_OVERRIDES) {
-        console.log('📝 Aplicando configuración local (config.local.js)');
+        console.log('📝 Aplicando configuración local (config.local.js) - OVERRIDE MANUAL');
         
         // Sobrescribir valores de SERVER si existen
         if (LOCAL_CONFIG_OVERRIDES.SERVER) {
             Object.assign(CONFIG.SERVER, LOCAL_CONFIG_OVERRIDES.SERVER);
-            console.log('🔗 URL del servidor sobrescrita:', CONFIG.SERVER.API_URL);
+            console.log('🔗 URL del servidor sobrescrita manualmente:', CONFIG.SERVER.API_URL);
         }
     }
 } catch (error) {
-    // config.local.js no existe o hay error al cargar - usar valores por defecto
-    console.log('📌 Usando configuración por defecto de config.js');
+    // config.local.js no existe - usar detección automática o window.ENV
+    console.log('📌 Configuración final aplicada');
 }

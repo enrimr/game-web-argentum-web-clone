@@ -2,33 +2,51 @@
 
 ## Descripción
 
-La URL del servidor (API y WebSocket) está centralizada en el archivo `js/config.js` para facilitar el cambio entre entornos de desarrollo y producción.
+La URL del servidor se detecta **automáticamente** según el entorno:
+- En **desarrollo** (localhost): `http://localhost:3000`
+- En **producción**: URL definida en `CONFIG.SERVER.PRODUCTION_URL`
 
 ## Cómo Configurar
 
-### Opción 1: Configuración Local (Recomendado)
+### Configurar URL de Producción (Una sola vez)
 
-**No modifiques `js/config.js` directamente.** En su lugar, usa configuración local:
+Edita **`js/config.js`** y cambia `PRODUCTION_URL`:
 
-1. Copia el archivo de ejemplo:
-```bash
-cp js/config.local.example.js js/config.local.js
+```javascript
+SERVER: {
+    // URL de producción (edita esto con tu servidor)
+    PRODUCTION_URL: 'https://calima-online-server-production.up.railway.app',
+}
 ```
 
-2. Edita `js/config.local.js` con tu URL de servidor:
+### Detección Automática
+
+El sistema detecta automáticamente el entorno:
+
+```javascript
+// En desarrollo (localhost/127.0.0.1)
+🏠 Entorno detectado: DESARROLLO (localhost)
+🔗 URL configurada: http://localhost:3000
+
+// En producción (cualquier otro dominio)
+🌐 Entorno detectado: PRODUCCIÓN  
+🔗 URL configurada: https://calima-online-server-production.up.railway.app
+```
+
+### Override Manual (Opcional)
+
+Si necesitas sobrescribir la detección automática:
+
+1. Copia el ejemplo: `cp js/config.local.example.js js/config.local.js`
+2. Edita `js/config.local.js`:
 ```javascript
 export const LOCAL_CONFIG_OVERRIDES = {
     SERVER: {
-        API_URL: 'https://calima-online-server-production.up.railway.app',
+        API_URL: 'https://tu-servidor-custom.com',
     }
 };
 ```
-
-3. ✅ `config.local.js` está en `.gitignore` y NO se subirá al repositorio
-
-### Opción 2: Configuración por Defecto
-
-Edita el archivo: **`js/config.js`** (se commitea al repo)
+3. ✅ `config.local.js` está en `.gitignore` y NO se subirá al repo
 
 ```javascript
 // Configuración del servidor (Multiplayer)
@@ -151,57 +169,53 @@ REQUEST_TIMEOUT: 10000  // 10 segundos
 
 ### Desarrollo Local
 
-1. No necesitas crear `config.local.js`, usa el valor por defecto (`localhost:3000`)
-2. Inicia el servidor local: `cd calima-online-server && npm run dev`
-3. Abre el cliente: `http://localhost:8080`
-
-### Desarrollo con Servidor Remoto
-
-1. Copia el ejemplo: `cp js/config.local.example.js js/config.local.js`
-2. Edita `js/config.local.js`:
-```javascript
-export const LOCAL_CONFIG_OVERRIDES = {
-    SERVER: {
-        API_URL: 'https://tu-servidor-remoto.com',
-    }
-};
-```
-3. Refresca el navegador
+1. Inicia el servidor local: `cd calima-online-server && npm run dev`
+2. Abre el cliente: `http://localhost:8080`
+3. ✅ Automáticamente usa `http://localhost:3000`
 
 ### Desplegar a Producción
 
-**Opción A - Sin archivo local (se commitea):**
 1. Despliega el servidor a Railway/Vercel
-2. Obtén la URL de producción
-3. Edita `js/config.js`: `API_URL: 'https://tu-servidor.up.railway.app'`
+2. Obtén la URL de producción (ej: `https://calima-online-server.up.railway.app`)
+3. Edita `js/config.js`:
+```javascript
+PRODUCTION_URL: 'https://calima-online-server.up.railway.app',
+```
 4. Commit y push
-5. Despliega el cliente
+5. Despliega el cliente (GitHub Pages, Netlify, Vercel, etc.)
+6. ✅ Automáticamente usa la URL de producción
 
-**Opción B - Con archivo local (NO se commitea):**
-1. Despliega el servidor
-2. Crea `js/config.local.js` en producción con la URL correcta
-3. El cliente lee la configuración local automáticamente
+**No necesitas cambiar nada más.** El sistema detecta si está en localhost o en otro dominio.
 
 ## Logs de Debugging
 
 Cuando el juego inicia, verás en la consola:
 
-**Con config.local.js:**
+**Desarrollo (localhost):**
 ```
-📝 Aplicando configuración local (config.local.js)
-🔗 URL del servidor sobrescrita: https://tu-servidor.com
-🔗 ApiClient inicializado con URL: https://tu-servidor.com/api
-🔗 SocketClient inicializado con URL: https://tu-servidor.com
-```
-
-**Sin config.local.js:**
-```
-📌 Usando configuración por defecto de config.js
+🏠 Entorno detectado: DESARROLLO (localhost)
+🔗 URL del servidor configurada: http://localhost:3000
+📌 Usando detección automática de entorno
 🔗 ApiClient inicializado con URL: http://localhost:3000/api
 🔗 SocketClient inicializado con URL: http://localhost:3000
 ```
 
-Esto confirma qué configuración está usando el cliente.
+**Producción:**
+```
+🌐 Entorno detectado: PRODUCCIÓN
+🔗 URL del servidor configurada: https://calima-online-server.up.railway.app
+📌 Usando detección automática de entorno
+🔗 ApiClient inicializado con URL: https://calima-online-server.up.railway.app/api
+🔗 SocketClient inicializado con URL: https://calima-online-server.up.railway.app
+```
+
+**Con override manual (config.local.js):**
+```
+🏠 Entorno detectado: DESARROLLO (localhost)
+🔗 URL del servidor configurada: http://localhost:3000
+📝 Aplicando configuración local (config.local.js) - OVERRIDE MANUAL
+🔗 URL del servidor sobrescrita manualmente: https://tu-servidor-custom.com
+```
 
 ## Troubleshooting
 
