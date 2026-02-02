@@ -203,11 +203,15 @@ async function loadAdminStats() {
     try {
         console.log('📊 Cargando estadísticas del servidor...');
         
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken'); // Usar la misma clave que ApiClient
         if (!token) {
             console.error('❌ No hay token de autenticación');
+            console.error('❌ gameState.onlineUser:', gameState.onlineUser);
+            showError('No se pudo cargar el token de autenticación. Cierra sesión y vuelve a entrar.');
             return;
         }
+        
+        console.log('✅ Token encontrado, solicitando estadísticas...');
 
         const response = await apiClient.getAdminStats(token);
         
