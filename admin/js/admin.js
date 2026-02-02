@@ -710,6 +710,15 @@ function showCharacterDetailsModal(char) {
     modal.innerHTML = `
         <h2>⚔️ Detalles de ${char.name}</h2>
         <div style="max-height: 60vh; overflow-y: auto;">
+            <!-- Sprite del Personaje -->
+            <div class="form-group" style="text-align: center; padding: 20px; background: #f7fafc; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">🎨 Apariencia</h3>
+                <canvas id="characterSpriteCanvas" width="64" height="64" style="image-rendering: pixelated; border: 2px solid #667eea; border-radius: 8px; background: white;"></canvas>
+                <p style="margin-top: 10px; font-size: 12px; color: #718096;">
+                    ${char.state.isAlive ? '❤️ Vivo' : '👻 Fantasma'}
+                </p>
+            </div>
+
             <!-- Información Básica -->
             <div class="form-group">
                 <h3 style="color: #667eea; margin-bottom: 10px;">📋 Información Básica</h3>
@@ -787,6 +796,77 @@ function showCharacterDetailsModal(char) {
     `;
 
     showModal();
+    
+    // Renderizar sprite después de que el modal esté visible
+    setTimeout(() => {
+        renderCharacterSprite(char);
+    }, 100);
+}
+
+/**
+ * Renderizar sprite del personaje en el canvas
+ */
+function renderCharacterSprite(char) {
+    const canvas = document.getElementById('characterSpriteCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Mapeo de colores según apariencia del servidor
+    const tunicColors = {
+        1: '#dc2626', 2: '#2563eb', 3: '#16a34a', 4: '#eab308', 5: '#9333ea',
+        6: '#ea580c', 7: '#ec4899', 8: '#92400e', 9: '#1f2937', 10: '#f3f4f6'
+    };
+    
+    const skinColors = {
+        1: '#fcd9bd', 2: '#d4a574', 3: '#b8865f', 4: '#8d5524', 5: '#9ca3af', 6: '#86efac'
+    };
+    
+    const tunicColor = tunicColors[char.appearance?.body] || '#2563eb';
+    const skinColor = skinColors[char.appearance?.head] || '#fcd9bd';
+    
+    // Si es fantasma, aplicar efecto
+    if (!char.state.isAlive || char.stats.hp === 0) {
+        ctx.globalAlpha = 0.6;
+        ctx.filter = 'grayscale(100%) brightness(1.3)';
+    }
+    
+    // Dibujar sprite simple
+    const size = 64;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    
+    // Cabeza
+    ctx.fillStyle = skinColor;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY - 8, 12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cuerpo (túnica)
+    ctx.fillStyle = tunicColor;
+    ctx.fillRect(centerX - 10, centerY + 4, 20, 24);
+    
+    // Brazos
+    ctx.fillStyle = skinColor;
+    ctx.fillRect(centerX - 14, centerY + 8, 4, 16);
+    ctx.fillRect(centerX + 10, centerY + 8, 4, 16);
+    
+    // Piernas
+    ctx.fillStyle = '#4a5568';
+    ctx.fillRect(centerX - 8, centerY + 28, 6, 12);
+    ctx.fillRect(centerX + 2, centerY + 28, 6, 12);
+    
+    // Ojos (si está vivo)
+    if (char.state.isAlive && char.stats.hp > 0) {
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(centerX - 6, centerY - 10, 3, 3);
+        ctx.fillRect(centerX + 3, centerY - 10, 3, 3);
+    }
+    
+    // Restaurar efectos
+    ctx.globalAlpha = 1.0;
+    ctx.filter = 'none';
 }
 
 /**
