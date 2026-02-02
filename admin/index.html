@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Calima Online</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🔧 Admin Dashboard</h1>
+                <p>Calima Online</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="error-message" id="loginError" style="display: none;"></div>
+                <div class="input-group">
+                    <label>👤 Usuario</label>
+                    <input type="text" id="username" required autofocus>
+                </div>
+                <div class="input-group">
+                    <label>🔒 Contraseña</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span id="loginBtnText">Iniciar Sesión</span>
+                    <span id="loginSpinner" class="spinner" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔧 Admin Panel</h2>
+                <p id="adminUsername">Admin</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="stats">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Estadísticas</span>
+                </a>
+                <a href="#" class="nav-item" data-section="users">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Usuarios</span>
+                </a>
+                <a href="#" class="nav-item" data-section="characters">
+                    <span class="nav-icon">⚔️</span>
+                    <span class="nav-text">Personajes</span>
+                </a>
+                <a href="#" class="nav-item" data-section="online">
+                    <span class="nav-icon">🟢</span>
+                    <span class="nav-text">Jugadores Online</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary btn-block">
+                    🚪 Cerrar Sesión
+                </button>
+                <a href="../" class="btn btn-link btn-block">
+                    🎮 Ir al Juego
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="content-header">
+                <h1 id="sectionTitle">📊 Estadísticas del Servidor</h1>
+                <div class="header-actions">
+                    <button id="refreshBtn" class="btn btn-sm btn-primary">
+                        🔄 Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Sections -->
+            <div class="content-body">
+                <!-- Estadísticas -->
+                <div id="statsSection" class="content-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Usuarios Totales</div>
+                                <div class="stat-value" id="totalUsers">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Usuarios Activos</div>
+                                <div class="stat-value" id="activeUsers">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚔️</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Personajes</div>
+                                <div class="stat-value" id="totalCharacters">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card highlight">
+                            <div class="stat-icon">🟢</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Online Ahora</div>
+                                <div class="stat-value" id="onlineNow">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>🏆 Top 10 por Nivel</h3>
+                            <div id="topLevel" class="ranking-list"></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>💰 Top 10 por Oro</h3>
+                            <div id="topGold" class="ranking-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>🖥️ Información del Servidor</h3>
+                        <div class="server-info">
+                            <p><strong>Uptime:</strong> <span id="serverUptime">-</span></p>
+                            <p><strong>Última actualización:</strong> <span id="lastUpdate">-</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usuarios -->
+                <div id="usersSection" class="content-section">
+                    <div class="section-toolbar">
+                        <input type="text" id="userSearch" class="search-input" placeholder="🔍 Buscar usuario...">
+                        <select id="roleFilter" class="filter-select">
+                            <option value="">Todos los roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="moderator">Moderator</option>
+                            <option value="player">Player</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Último Login</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="6" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="usersPagination"></div>
+                </div>
+
+                <!-- Personajes -->
+                <div id="charactersSection" class="content-section">
+                    <div class="section-toolbar">
+                        <input type="text" id="characterSearch" class="search-input" placeholder="🔍 Buscar personaje...">
+                        <select id="classFilter" class="filter-select">
+                            <option value="">Todas las clases</option>
+                            <option value="guerrero">Guerrero</option>
+                            <option value="mago">Mago</option>
+                            <option value="arquero">Arquero</option>
+                            <option value="clerigo">Clérigo</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Clase</th>
+                                    <th>Nivel</th>
+                                    <th>HP</th>
+                                    <th>Oro</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="charactersTableBody">
+                                <tr><td colspan="7" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="charactersPagination"></div>
+                </div>
+
+                <!-- Jugadores Online -->
+                <div id="onlineSection" class="content-section">
+                    <div class="online-players-grid" id="onlinePlayersGrid">
+                        <div class="loading-card">Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="modalOverlay" class="modal-overlay" style="display: none;">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
