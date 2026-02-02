@@ -419,12 +419,32 @@ export class NPC extends Character {
         // IMPORTANTE: Si está en modo online, notificar al servidor
         const gameState = window.gameState;
         if (gameState && gameState.isOnline) {
-            console.log('⛪ Enviando player_resurrect al servidor...');
+            console.log('⛪ Jugador en modo online, preparando envío de player_resurrect...');
+            console.log('⛪ Estado del jugador:', {
+                isGhost: player.isGhost,
+                hp: player.hp,
+                maxHp: player.maxHp,
+                isOnline: gameState.isOnline
+            });
             
             // Importar socketClient y enviar evento
             import('../api/SocketClient.js').then(({ default: socketClient }) => {
-                socketClient.socket.emit('player_resurrect', {});
+                console.log('⛪ socketClient importado, verificando conexión...');
+                console.log('⛪ socketClient.socket:', socketClient.socket);
+                console.log('⛪ socketClient.isConnected:', socketClient.isConnected);
+                
+                if (socketClient.socket && socketClient.socket.connected) {
+                    console.log('⛪ ✅ Enviando player_resurrect al servidor...');
+                    socketClient.socket.emit('player_resurrect', {});
+                    console.log('⛪ ✅ Evento player_resurrect enviado!');
+                } else {
+                    console.error('⛪ ❌ Socket no conectado, no se puede enviar player_resurrect');
+                }
+            }).catch(error => {
+                console.error('⛪ ❌ Error al importar SocketClient:', error);
             });
+        } else {
+            console.log('⛪ Modo offline o gameState no disponible, resurrección solo local');
         }
         
         // TODO: Limpiar estados alterados si los hay (veneno, confusión, parálisis)
