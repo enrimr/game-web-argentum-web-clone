@@ -438,6 +438,38 @@ function setupMultiplayerListeners() {
         alert(data.message || 'Has sido desconectado del juego');
         window.location.reload();
     });
+
+    // ===== COMBAT PVP EVENTS =====
+    
+    // Cuando somos atacados por otro jugador
+    socketClient.on('player_attacked', (data) => {
+        console.log('⚔️ EVENTO player_attacked recibido:', data);
+        
+        // Importar y llamar handler de Combat.js
+        import('../systems/Combat.js').then(({ handlePlayerAttacked }) => {
+            handlePlayerAttacked(data);
+        });
+    });
+
+    // Cuando atacamos a otro jugador (resultado del ataque)
+    socketClient.on('player_attack_result', (data) => {
+        console.log('⚔️ EVENTO player_attack_result recibido:', data);
+        
+        // Importar y llamar handler de Combat.js
+        import('../systems/Combat.js').then(({ handlePlayerAttackResult }) => {
+            handlePlayerAttackResult(data);
+        });
+    });
+
+    // Cuando observamos un combate entre otros jugadores
+    socketClient.on('combat_action', (data) => {
+        console.log('👁️ EVENTO combat_action recibido:', data);
+        
+        // Importar y llamar handler de Combat.js
+        import('../systems/Combat.js').then(({ handleCombatAction }) => {
+            handleCombatAction(data);
+        });
+    });
 }
 
 /**

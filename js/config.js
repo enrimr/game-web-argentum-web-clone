@@ -130,4 +130,21 @@ export const CONFIG = {
         TIMEOUT: 10000,       // Timeout por recurso (ms)
         CONCURRENCY: 5        // Número de recursos a cargar en paralelo
     },
+
+    // Sistema de Combate (PvP y PvE)
+    COMBAT: {
+        ATTACK_COOLDOWN: 1500,        // ms - Tiempo mínimo entre ataques
+        MELEE_RANGE: 1.5,             // tiles - Rango de ataque cuerpo a cuerpo
+        RANGED_RANGE: 8,              // tiles - Rango de ataque a distancia
+        CRIMINAL_POINTS_PER_ATTACK: 10,  // Puntos al atacar ciudadano
+        CRIMINAL_POINTS_PER_KILL: 20,    // Puntos adicionales al matar ciudadano
+        CRIMINAL_THRESHOLD: 50,          // Puntos para ser considerado criminal
+        DEATH_PENALTY_CRIMINAL: -30,     // Reducción de puntos al morir por guardia
+        // Rangos de criminalidad
+        CRIMINAL_STATUS: {
+            CITIZEN: { min: 0, max: 49, name: 'Ciudadano', color: '#00ff00' },
+            CRIMINAL: { min: 50, max: 99, name: 'Criminal', color: '#ffff00' },
+            ASSASSIN: { min: 100, max: Infinity, name: 'Asesino', color: '#ff0000' }
+        }
+    },
 };

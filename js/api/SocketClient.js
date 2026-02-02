@@ -127,6 +127,24 @@ class SocketClient {
             console.warn('⚠️ Desconexión forzada del servidor:', data.message);
             this.emit('force_disconnect', data);
         });
+
+        // Evento: Jugador fue atacado por otro jugador
+        this.socket.on('player_attacked', (data) => {
+            console.log('⚔️ Fuiste atacado por:', data.attackerUsername, `(${data.damage} daño)`);
+            this.emit('player_attacked', data);
+        });
+
+        // Evento: Resultado de ataque a otro jugador
+        this.socket.on('player_attack_result', (data) => {
+            console.log('⚔️ Resultado de ataque:', data);
+            this.emit('player_attack_result', data);
+        });
+
+        // Evento: Acción de combate visible (para espectadores)
+        this.socket.on('combat_action', (data) => {
+            console.log('👁️ Acción de combate observada:', data);
+            this.emit('combat_action', data);
+        });
     }
 
     /**

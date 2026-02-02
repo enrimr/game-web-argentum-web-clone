@@ -685,3 +685,239 @@ function isValidSpawnPosition(x, y) {
 
     return true;
 }
+
+// ===== PVP COMBAT SYSTEM =====
+
+// Gestión de cooldown de ataques
+let lastPlayerAttackTime = 0;
+
+/**
+ * Calculate euclidean distance between two entities
+ * @param {Object} entity1 - First entity with x, y position
+ * @param {Object} entity2 - Second entity with x, y position
+ * @returns {number} Distance in tiles
+ */
+export function calculateDistance(entity1, entity2) {
+    const dx = entity1.x - entity2.x;
+    const dy = entity1.y - entity2.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Check if attacker can attack target (cooldown, range, state)
+ * @param {Object} attacker - Attacking entity
+ * @param {Object} target - Target entity
+ * @param {number} range - Attack range in tiles
+ * @returns {Object} { canAttack: boolean, reason: string }
+ */
+export function canAttackTarget(attacker, target, range) {
+    // Check if attacker is alive
+    if (attacker.hp <= 0 || attacker.isGhost) {
+        return { canAttack: false, reason: 'No puedes atacar estando muerto' };
+    }
+
+    // Check if target is alive (can't attack ghosts)
+    if (target.hp <= 0 || target.isGhost) {
+        return { canAttack: false, reason: 'No puedes atacar a un fantasma' };
+    }
+
+    // Check cooldown
+    const now = Date.now();
+    const timeSinceLastAttack = now - lastPlayerAttackTime;
+    if (timeSinceLastAttack < CONFIG.COMBAT.ATTACK_COOLDOWN) {
+        const remainingCooldown = Math.ceil((CONFIG.COMBAT.ATTACK_COOLDOWN - timeSinceLastAttack) / 1000);
+        return { canAttack: false, reason: `Espera ${remainingCooldown}s para atacar` };
+    }
+
+    // Check range
+    const distance = calculateDistance(attacker, target);
+    if (distance > range) {
+        return { canAttack: false, reason: 'Objetivo fuera de rango' };
+    }
+
+    return { canAttack: true, reason: '' };
+}
+
+/**
+ * Attack another player (PvP)
+ * @param {string} targetSocketId - Socket ID of target player
+ * @param {Object} targetPlayer - Target player object from connectedPlayers
+ */
+export function attackPlayer(targetSocketId, targetPlayer) {
+    // Import socketClient
+    import('../api/SocketClient.js').then(({ default: socketClient }) => {
+        // Determine weapon type and range
+        let weaponType = 'melee';
+        let attackRange = CONFIG.COMBAT.MELEE_RANGE;
+
+        if (hasRangedWeaponEquipped()) {
+            weaponType = 'ranged';
+            attackRange = CONFIG.COMBAT.RANGED_RANGE;
+
+            // Check ammunition for ranged weapons
+            if (!hasAmmunitionEquipped()) {
+                addChatMessage('system', '❌ ¡No tienes flechas equipadas!');
+                return;
+            }
+        }
+
+        // Validate attack
+        const validation = canAttackTarget(
+            gameState.player,
+            targetPlayer,
+            attackRange
+        );
+
+        if (!validation.canAttack) {
+            addChatMessage('system', `❌ ${validation.reason}`);
+            return;
+        }
+
+        // Update cooldown
+        lastPlayerAttackTime = Date.now();
+
+        // Set attacking animation
+        setPlayerAnimationState('attacking');
+
+        // Play attack sound
+        if (gameState.player.equipped.weapon) {
+            audioManager.play('battle/attackSword', 'battle');
+        } else {
+            audioManager.play('battle/attackPunch', 'battle');
+        }
+
+        // Send attack request to server
+        socketClient.socket.emit('player_attack', {
+            targetSocketId: targetSocketId,
+            weaponType: weaponType,
+            position: {
+                x: gameState.player.x,
+                y: gameState.player.y
+            }
+        });
+
+        // If ranged attack, create projectile visually
+        if (weaponType === 'ranged') {
+            createProjectileToTarget(targetPlayer);
+        }
+
+        console.log(`⚔️ Atacando a ${targetPlayer.username} con ${weaponType}`);
+    });
+}
+
+/**
+ * Create a visual projectile towards target
+ * @param {Object} target - Target entity
+ */
+function createProjectileToTarget(target) {
+    const weaponDef = ITEM_TYPES[gameState.player.equipped.weapon];
+    
+    // Calculate direction
+    const dx = target.x - gameState.player.x;
+    const dy = target.y - gameState.player.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const projectile = {
+        type: 'arrow',
+        x: gameState.player.x + (dx > 0 ? 1 : dx < 0 ? -1 : 0),
+        y: gameState.player.y + (dy > 0 ? 1 : dy < 0 ? -1 : 0),
+        dx: dx / distance, // Normalized direction
+        dy: dy / distance,
+        range: weaponDef.range,
+        damage: weaponDef.damage,
+        distanceTravelled: 0,
+        targetX: target.x,
+        targetY: target.y
+    };
+
+    gameState.projectiles.push(projectile);
+}
+
+/**
+ * Handle being attacked by another player
+ * @param {Object} data - Attack data from server
+ */
+export function handlePlayerAttacked(data) {
+    const { attackerSocketId, attackerUsername, damage, newHp, died } = data;
+
+    // Update player HP
+    gameState.player.hp = newHp;
+
+    // Show damage message
+    addChatMessage('system', `⚔️ ${attackerUsername} te ataca causando ${damage} de daño!`);
+
+    // Play damage sound
+    audioManager.play('battle/attackPunch', 'battle');
+
+    // Update UI
+    updateUI();
+
+    // Check if player died
+    if (died) {
+        enterGhostMode({ type: 'player', username: attackerUsername });
+    }
+}
+
+/**
+ * Handle attack result (when we attack another player)
+ * @param {Object} data - Attack result from server
+ */
+export function handlePlayerAttackResult(data) {
+    const { success, targetUsername, damage, targetNewHp, targetDied, criminalityGained } = data;
+
+    if (success) {
+        addChatMessage('system', `⚔️ ¡Atacas a ${targetUsername} causando ${damage} de daño!`);
+
+        if (targetDied) {
+            addChatMessage('system', `💀 ¡Has matado a ${targetUsername}!`);
+            gameState.stats.playersKilled = (gameState.stats.playersKilled || 0) + 1;
+        }
+
+        if (criminalityGained > 0) {
+            gameState.player.criminalStatus = (gameState.player.criminalStatus || 0) + criminalityGained;
+            addChatMessage('system', `⚖️ Has ganado ${criminalityGained} puntos criminales`);
+            
+            // Update UI to show criminal status
+            updateUI();
+        }
+    } else {
+        addChatMessage('system', `❌ No se pudo atacar a ${targetUsername}`);
+    }
+}
+
+/**
+ * Handle combat action visible to spectators
+ * @param {Object} data - Combat action data
+ */
+export function handleCombatAction(data) {
+    const { attackerUsername, targetUsername, damage, attackType } = data;
+    
+    // Show combat message to observers
+    const icon = attackType === 'ranged' ? '🏹' : '⚔️';
+    addChatMessage('system', `${icon} ${attackerUsername} ataca a ${targetUsername} (${damage} daño)`);
+}
+
+/**
+ * Get criminal status info
+ * @param {number} points - Criminal points
+ * @returns {Object} Status info { name, color, min, max }
+ */
+export function getCriminalStatus(points) {
+    const statuses = CONFIG.COMBAT.CRIMINAL_STATUS;
+    
+    if (points < statuses.CITIZEN.max) {
+        return statuses.CITIZEN;
+    } else if (points < statuses.CRIMINAL.max) {
+        return statuses.CRIMINAL;
+    } else {
+        return statuses.ASSASSIN;
+    }
+}
+
+/**
+ * Check if player is a criminal
+ * @returns {boolean} True if criminal (50+ points)
+ */
+export function isCriminal() {
+    return (gameState.player.criminalStatus || 0) >= CONFIG.COMBAT.CRIMINAL_THRESHOLD;
+}
