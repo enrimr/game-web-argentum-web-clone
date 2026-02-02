@@ -786,6 +786,16 @@ export function attackPlayer(targetSocketId, targetPlayer) {
         }
 
         // Send attack request to server
+        console.log(`📤 Enviando solicitud de ataque a servidor:`, {
+            targetSocketId,
+            targetUsername: targetPlayer.username,
+            weaponType,
+            myPosition: { x: gameState.player.x, y: gameState.player.y },
+            targetPosition: { x: targetPlayer.x, y: targetPlayer.y }
+        });
+        
+        addChatMessage('system', `⚔️ Intentando atacar a ${targetPlayer.username}...`);
+        
         socketClient.socket.emit('player_attack', {
             targetSocketId: targetSocketId,
             weaponType: weaponType,
@@ -799,8 +809,6 @@ export function attackPlayer(targetSocketId, targetPlayer) {
         if (weaponType === 'ranged') {
             createProjectileToTarget(targetPlayer);
         }
-
-        console.log(`⚔️ Atacando a ${targetPlayer.username} con ${weaponType}`);
     });
 }
 
