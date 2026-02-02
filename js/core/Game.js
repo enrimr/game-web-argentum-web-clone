@@ -470,6 +470,38 @@ function setupMultiplayerListeners() {
             handleCombatAction(data);
         });
     });
+
+    // Cuando cambia el estado de un jugador (muerte/resurrección)
+    socketClient.on('player_state_changed', (data) => {
+        console.log('👻 EVENTO player_state_changed recibido:', data);
+        
+        const player = gameState.onlinePlayers.get(data.socketId);
+        if (player) {
+            // Actualizar estado del jugador
+            player.isGhost = data.isGhost;
+            player.isAlive = data.isAlive;
+            player.hp = data.hp || 0;
+            
+            if (data.maxHp) {
+                player.maxHp = data.maxHp;
+            }
+            
+            console.log(`👻 Estado actualizado para ${data.username}: isGhost=${data.isGhost}, hp=${player.hp}`);
+            
+            // Mostrar mensaje según el motivo
+            if (data.reason === 'death') {
+                import('../ui/UI.js').then(({ addChatMessage }) => {
+                    addChatMessage('system', `💀 ${data.username} ha muerto${data.killedBy ? ` a manos de ${data.killedBy}` : ''}`);
+                });
+            } else if (data.reason === 'resurrection') {
+                import('../ui/UI.js').then(({ addChatMessage }) => {
+                    addChatMessage('system', `⛪ ${data.username} ha resucitado`);
+                });
+            }
+        } else {
+            console.warn('⚠️ player_state_changed recibido para jugador desconocido:', data.socketId);
+        }
+    });
 }
 
 /**

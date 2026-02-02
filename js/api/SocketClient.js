@@ -145,6 +145,18 @@ class SocketClient {
             console.log('👁️ Acción de combate observada:', data);
             this.emit('combat_action', data);
         });
+
+        // Evento: Cambio de estado de jugador (muerte/resurrección)
+        this.socket.on('player_state_changed', (data) => {
+            console.log('👻 Estado de jugador cambiado:', data);
+            this.emit('player_state_changed', data);
+        });
+
+        // Evento: Resultado de resurrección
+        this.socket.on('resurrect_result', (data) => {
+            console.log('⛪ Resultado de resurrección:', data);
+            this.emit('resurrect_result', data);
+        });
     }
 
     /**
