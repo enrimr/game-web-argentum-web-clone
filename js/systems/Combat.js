@@ -761,20 +761,19 @@ export function attackPlayer(targetSocketId, targetPlayer) {
             }
         }
 
-        // Validate attack
-        const validation = canAttackTarget(
-            gameState.player,
-            targetPlayer,
-            attackRange
-        );
-
-        if (!validation.canAttack) {
-            addChatMessage('system', `❌ ${validation.reason}`);
+        // Solo validaciones básicas en cliente (estado vivo)
+        if (gameState.player.hp <= 0 || gameState.player.isGhost) {
+            addChatMessage('system', '❌ No puedes atacar estando muerto');
             return;
         }
 
-        // Update cooldown
-        lastPlayerAttackTime = Date.now();
+        if (targetPlayer.hp <= 0 || targetPlayer.isGhost) {
+            addChatMessage('system', '❌ No puedes atacar a un fantasma');
+            return;
+        }
+
+        // El servidor validará cooldown y rango - no hacerlo en cliente
+        // para evitar problemas de sincronización
 
         // Set attacking animation
         setPlayerAnimationState('attacking');
@@ -863,7 +862,7 @@ export function handlePlayerAttacked(data) {
  * @param {Object} data - Attack result from server
  */
 export function handlePlayerAttackResult(data) {
-    const { success, targetUsername, damage, targetNewHp, targetDied, criminalityGained } = data;
+    const { success, targetUsername, damage, targetNewHp, targetDied, criminalityGained, reason } = data;
 
     if (success) {
         addChatMessage('system', `⚔️ ¡Atacas a ${targetUsername} causando ${damage} de daño!`);
@@ -881,7 +880,9 @@ export function handlePlayerAttackResult(data) {
             updateUI();
         }
     } else {
-        addChatMessage('system', `❌ No se pudo atacar a ${targetUsername}`);
+        // Mostrar la razón específica del fallo si está disponible
+        const errorMessage = reason || `No se pudo atacar a ${targetUsername || 'el objetivo'}`;
+        addChatMessage('system', `❌ ${errorMessage}`);
     }
 }
 

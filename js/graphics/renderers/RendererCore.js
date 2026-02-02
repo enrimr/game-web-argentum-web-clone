@@ -223,43 +223,16 @@ function renderOnlinePlayers(camera, ctx) {
         return;
     }
 
-    // Log de debugging (solo una vez cada 60 frames para no saturar)
-    if (!renderOnlinePlayers.frameCount) renderOnlinePlayers.frameCount = 0;
-    renderOnlinePlayers.frameCount++;
-    
-    if (renderOnlinePlayers.frameCount % 60 === 0) {
-        console.log(`🎨 Renderizando jugadores online:`, {
-            total: gameState.onlinePlayers.size,
-            currentMap: gameState.currentMap,
-            players: Array.from(gameState.onlinePlayers.values()).map(p => ({
-                username: p.username,
-                map: p.map,
-                position: `(${p.x}, ${p.y})`,
-                sameMap: p.map === gameState.currentMap
-            }))
-        });
-    }
-
     // Renderizar cada jugador online
     for (const [socketId, player] of gameState.onlinePlayers) {
         // Solo renderizar si está en el mismo mapa
         if (player.map !== gameState.currentMap) {
-            if (renderOnlinePlayers.frameCount % 60 === 0) {
-                console.log(`🚫 No renderizando ${player.username}: mapa diferente (${player.map} vs ${gameState.currentMap})`);
-            }
             continue;
         }
 
         // Solo renderizar si está en el viewport
         if (!isInViewport(player.x, player.y, camera)) {
-            if (renderOnlinePlayers.frameCount % 60 === 0) {
-                console.log(`📍 No renderizando ${player.username}: fuera del viewport (${player.x}, ${player.y})`);
-            }
             continue;
-        }
-        
-        if (renderOnlinePlayers.frameCount % 60 === 0) {
-            console.log(`✅ Renderizando ${player.username} en (${player.x}, ${player.y})`);
         }
 
         // Calcular posición en pantalla
