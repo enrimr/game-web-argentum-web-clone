@@ -173,6 +173,12 @@ function initChatInternal() {
 export async function sendChatMessage(message, target = MESSAGE_TARGETS.GLOBAL, targetPlayerId = null) {
     if (!message || !message.trim()) return;
     
+    // Detectar comandos especiales
+    if (message.startsWith('/')) {
+        const handled = await handleChatCommand(message);
+        if (handled) return; // Comando procesado, no enviar como mensaje normal
+    }
+    
     // En modo online, enviar al servidor
     if (gameState.isOnline) {
         try {
@@ -242,6 +248,51 @@ export async function sendChatMessage(message, target = MESSAGE_TARGETS.GLOBAL, 
         
         // Simular respuesta en modo offline
         simulateMessageReception(message, target, targetPlayerId);
+    }
+}
+
+/**
+ * Maneja comandos especiales del chat
+ * @param {string} message - Mensaje que comienza con /
+ * @returns {boolean} True si el comando fue procesado
+ */
+async function handleChatCommand(message) {
+    const parts = message.split(' ');
+    const command = parts[0].toLowerCase();
+    
+    switch (command) {
+        case '/admin':
+            // Abrir panel de administración
+            console.log('🔧 Comando /admin detectado');
+            
+            // Verificar permisos
+            if (!gameState.onlineUser || (gameState.onlineUser.role !== 'admin' && gameState.onlineUser.role !== 'moderator')) {
+                addChatMessage('system', '❌ No tienes permisos para acceder al panel de administración');
+                return true;
+            }
+            
+            // Importar y abrir el panel de admin
+            try {
+                const { toggleAdminPanel } = await import('./AdminPanel.js');
+                toggleAdminPanel();
+                addChatMessage('system', '🔧 Abriendo panel de administración...');
+            } catch (error) {
+                console.error('Error al abrir panel de admin:', error);
+                addChatMessage('system', '❌ Error al abrir panel de administración');
+            }
+            return true;
+            
+        case '/help':
+            // Mostrar ayuda de comandos
+            addChatMessage('system', '📋 Comandos disponibles:');
+            addChatMessage('system', '/admin - Panel de administración (solo admin/moderator)');
+            addChatMessage('system', '/help - Mostrar esta ayuda');
+            return true;
+            
+        default:
+            addChatMessage('system', `❌ Comando desconocido: ${command}`);
+            addChatMessage('system', 'Usa /help para ver comandos disponibles');
+            return true;
     }
 }
 

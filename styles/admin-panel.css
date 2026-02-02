@@ -1,0 +1,322 @@
+/**
+ * Estilos para el Panel de Administración
+ */
+
+.admin-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 900px;
+    max-height: 80vh;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 3px solid #3b82f6;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.admin-panel-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #60a5fa;
+}
+
+.admin-panel-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.admin-panel-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.admin-section {
+    margin-bottom: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-section h3 {
+    margin: 0 0 15px 0;
+    color: #60a5fa;
+    font-size: 16px;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 8px;
+}
+
+.admin-section h4 {
+    margin: 0 0 10px 0;
+    color: #93c5fd;
+    font-size: 14px;
+}
+
+/* Grid de estadísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: rgba(59, 130, 246, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.stat-label {
+    color: #93c5fd;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stat-value.highlight {
+    color: #22c55e;
+}
+
+/* Lista de jugadores online */
+.online-players-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.online-player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    border-left: 3px solid #3b82f6;
+}
+
+.online-player-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.player-name {
+    color: #60a5fa;
+    font-weight: bold;
+    flex: 1;
+}
+
+.player-level {
+    color: #22c55e;
+    margin-right: 10px;
+}
+
+.player-map {
+    color: #a0a0a0;
+    font-size: 12px;
+    margin-right: 10px;
+}
+
+.player-status {
+    font-size: 16px;
+}
+
+.player-status.ghost {
+    filter: opacity(0.7);
+}
+
+/* Rankings */
+.rankings-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.ranking-column {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.ranking-list {
+    min-height: 100px;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+}
+
+.ranking-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.rank {
+    color: #fbbf24;
+    font-weight: bold;
+    margin-right: 10px;
+    min-width: 25px;
+}
+
+.rank-name {
+    color: white;
+    flex: 1;
+}
+
+.rank-value {
+    color: #22c55e;
+    font-weight: bold;
+}
+
+/* Información del servidor */
+.server-info {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.server-info p {
+    margin: 8px 0;
+    color: #93c5fd;
+}
+
+.server-info strong {
+    color: white;
+}
+
+.server-info span {
+    color: #22c55e;
+}
+
+/* Botón de actualización */
+.refresh-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.refresh-btn:active {
+    transform: translateY(0);
+}
+
+.update-info {
+    text-align: center;
+    color: #93c5fd;
+    font-size: 12px;
+    margin: 10px 0 0 0;
+}
+
+/* Estados de carga */
+.loading {
+    text-align: center;
+    color: #93c5fd;
+    font-style: italic;
+}
+
+.no-data {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.error {
+    text-align: center;
+    color: #ef4444;
+    font-weight: bold;
+}
+
+/* Scrollbar personalizado */
+.admin-panel-content::-webkit-scrollbar,
+.online-players-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-panel-content::-webkit-scrollbar-track,
+.online-players-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.admin-panel-content::-webkit-scrollbar-thumb,
+.online-players-list::-webkit-scrollbar-thumb {
+    background: #3b82f6;
+    border-radius: 4px;
+}
+
+.admin-panel-content::-webkit-scrollbar-thumb:hover,
+.online-players-list::-webkit-scrollbar-thumb:hover {
+    background: #2563eb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-panel {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .rankings-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

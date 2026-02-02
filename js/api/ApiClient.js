@@ -5,8 +5,8 @@
 class ApiClient {
     constructor() {
         // URL base del servidor (puede configurarse desde variables de entorno)
-        //this.baseUrl = 'http://localhost:3000/api';
-        this.baseUrl = 'https://calima-online-server-production.up.railway.app/api'
+        this.baseUrl = 'http://localhost:3000/api'; // TESTING: usar servidor local
+        //this.baseUrl = 'https://calima-online-server-production.up.railway.app/api'
         this.token = localStorage.getItem('authToken');
     }
 
@@ -238,6 +238,45 @@ class ApiClient {
      */
     isAuthenticated() {
         return !!this.getToken();
+    }
+
+    // ==================== ADMINISTRACIÓN ====================
+
+    /**
+     * Obtener estadísticas del juego (solo admin/moderator)
+     */
+    async getAdminStats(token) {
+        return await this.request('/admin/stats', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+
+    /**
+     * Obtener lista de usuarios (solo admin)
+     */
+    async getUsers(token, page = 1, limit = 20) {
+        return await this.request(`/admin/users?page=${page}&limit=${limit}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+
+    /**
+     * Banear/desbanear usuario (solo admin)
+     */
+    async banUser(token, userId, isBanned, banReason = '', duration = null) {
+        return await this.request(`/admin/users/${userId}/ban`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ isBanned, banReason, duration })
+        });
     }
 
     // ==================== CONFIGURACIÓN ====================
