@@ -328,6 +328,7 @@ function displayUsers(users) {
             </td>
             <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('es-ES') : 'Nunca'}</td>
             <td>
+                <button class="btn btn-sm btn-primary" onclick="viewUserCharacters('${user._id}', '${user.username}')" title="Ver personajes">👁️</button>
                 <button class="btn btn-sm btn-warning" onclick="editUser('${user._id}')">✏️</button>
                 ${!user.isBanned 
                     ? `<button class="btn btn-sm btn-danger" onclick="banUser('${user._id}', '${user.username}')">🚫</button>`
@@ -339,14 +340,43 @@ function displayUsers(users) {
 }
 
 /**
- * Cargar personajes
+ * Ver personajes de un usuario específico
  */
-async function loadCharacters() {
+window.viewUserCharacters = function(userId, username) {
+    // Guardar info del usuario en el filtro
+    currentCharacterFilter.userId = userId;
+    currentCharacterFilter.username = username;
+    
+    // Navegar a la sección de personajes con el filtro aplicado
+    navigateToSection('characters');
+};
+
+// Estado del filtro de personajes
+let currentCharacterFilter = {
+    userId: null,
+    username: null
+};
+
+/**
+ * Cargar personajes (todos o filtrados por usuario)
+ */
+async function loadCharacters(page = 1, userId = null) {
     const tbody = document.getElementById('charactersTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando personajes...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Cargando personajes...</td></tr>';
+
+    // Actualizar filtro si se proporciona
+    if (userId !== undefined) {
+        currentCharacterFilter.userId = userId;
+    }
+
+    // Construir URL con filtro si existe
+    let url = `${API_URL}/admin/characters?page=${page}`;
+    if (currentCharacterFilter.userId) {
+        url += `&userId=${currentCharacterFilter.userId}`;
+    }
 
     try {
-        const response = await fetch(`${API_URL}/characters`, {
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${currentToken}`
             }
@@ -356,14 +386,55 @@ async function loadCharacters() {
 
         if (data.success) {
             displayCharacters(data.data);
+            displayPagination('charactersPagination', data.pagination, (p) => loadCharacters(p, currentCharacterFilter.userId));
+            
+            // Mostrar/ocultar banner de filtro
+            updateCharacterFilterBanner();
         } else {
-            tbody.innerHTML = `<tr><td colspan="7" class="error">Error: ${data.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="error">Error: ${data.message}</td></tr>`;
         }
     } catch (error) {
         console.error('Error cargando personajes:', error);
-        tbody.innerHTML = '<tr><td colspan="7" class="error">Error de conexión</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="error">Error de conexión</td></tr>';
     }
 }
+
+/**
+ * Actualizar banner de filtro de personajes
+ */
+function updateCharacterFilterBanner() {
+    let existingBanner = document.getElementById('characterFilterBanner');
+    
+    if (currentCharacterFilter.userId && currentCharacterFilter.username) {
+        if (!existingBanner) {
+            existingBanner = document.createElement('div');
+            existingBanner.id = 'characterFilterBanner';
+            existingBanner.style.cssText = 'background: #667eea; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;';
+            
+            const toolbar = document.querySelector('#charactersSection .section-toolbar');
+            toolbar.parentNode.insertBefore(existingBanner, toolbar.nextSibling);
+        }
+        
+        existingBanner.innerHTML = `
+            <span>📋 Mostrando personajes de: <strong>${currentCharacterFilter.username}</strong></span>
+            <button onclick="clearCharacterFilter()" class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: white;">
+                ❌ Limpiar Filtro
+            </button>
+        `;
+    } else {
+        if (existingBanner) {
+            existingBanner.remove();
+        }
+    }
+}
+
+/**
+ * Limpiar filtro de personajes
+ */
+window.clearCharacterFilter = function() {
+    currentCharacterFilter = { userId: null, username: null };
+    loadCharacters(1);
+};
 
 /**
  * Mostrar personajes en la tabla
