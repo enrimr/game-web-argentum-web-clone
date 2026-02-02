@@ -52,11 +52,32 @@
     padding: 30px;
     width: 100%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     z-index: 10;
+}
+
+/* Scrollbar personalizado para el contenedor principal */
+.login-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.login-container::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+}
+
+.login-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 4px;
+}
+
+.login-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.7);
 }
 
 .login-tabs {
@@ -703,7 +724,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 10px;
 }
@@ -1143,11 +1164,63 @@
 @media (max-width: 768px) {
     .login-container {
         max-width: 95%;
+        max-height: 85vh;
+        padding: 20px;
     }
 
     .characters-list {
         grid-template-columns: 1fr;
         max-height: 400px;
+    }
+
+    /* Botón crear personaje más compacto */
+    .character-slot.create-new {
+        min-height: 120px;
+    }
+
+    .create-icon {
+        font-size: 36px;
+        margin-bottom: 5px;
+    }
+
+    .create-text {
+        font-size: 14px;
+    }
+
+    /* Fichas de personajes más compactas */
+    .character-slot {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .character-avatar {
+        margin-bottom: 8px;
+    }
+
+    .character-sprite-preview {
+        padding: 2px;
+    }
+
+    .character-details h3 {
+        font-size: 16px;
+        margin: 0 0 4px 0;
+    }
+
+    .character-details p {
+        font-size: 12px;
+        margin: 2px 0;
+    }
+
+    .character-actions {
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .play-button,
+    .delete-button,
+    .disconnect-button {
+        padding: 6px 10px;
+        font-size: 13px;
     }
 
     .options-grid {
@@ -1158,6 +1231,10 @@
         max-height: 400px;
     }
 
+    .create-character-form-scrollable {
+        max-height: 300px;
+    }
+
     .characters-header {
         flex-direction: column;
         gap: 10px;
@@ -1165,13 +1242,14 @@
     }
 
     .characters-header-buttons {
-        flex-direction: column;
+        flex-direction: row;
         width: 100%;
+        gap: 8px;
     }
 
     .manual-link,
     .logout-button {
-        width: 100%;
+        flex: 1;
         justify-content: center;
     }
 
@@ -1179,6 +1257,195 @@
         right: 10px;
         left: 10px;
         max-width: none;
+    }
+}
+
+/* Responsive para pantallas muy cortas (móviles horizontales) */
+@media (max-height: 600px) {
+    .login-container {
+        max-height: 95vh;
+        padding: 15px;
+    }
+
+    .character-slot.create-new {
+        min-height: 100px;
+    }
+
+    /* Fichas de personajes extra compactas */
+    .character-slot {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .character-avatar {
+        margin-bottom: 6px;
+    }
+
+    .character-details h3 {
+        font-size: 15px;
+        margin: 0 0 3px 0;
+    }
+
+    .character-details p {
+        font-size: 11px;
+        margin: 1px 0;
+    }
+
+    .character-actions {
+        gap: 5px;
+        margin-top: 6px;
+    }
+
+    .play-button,
+    .delete-button,
+    .disconnect-button {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .create-character-header {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+    }
+
+    .fixed-creation-section {
+        gap: 10px;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+    }
+
+    .create-character-form-scrollable {
+        max-height: 200px;
+    }
+
+    .character-preview {
+        min-height: 150px;
+        padding: 15px;
+    }
+
+    .form-section {
+        gap: 8px;
+    }
+
+    .option-card {
+        padding: 10px;
+    }
+
+    .option-icon {
+        font-size: 28px;
+    }
+}
+
+/* Pantallas muy pequeñas (móviles pequeños o pantallas muy cortas) */
+@media (max-height: 500px) {
+    .login-container {
+        max-height: 98vh;
+        padding: 10px;
+    }
+
+    .character-slot.create-new {
+        min-height: 80px;
+    }
+
+    .create-icon {
+        font-size: 28px;
+        margin-bottom: 3px;
+    }
+
+    .create-text {
+        font-size: 13px;
+    }
+
+    /* Fichas de personajes ultra compactas */
+    .character-slot {
+        padding: 6px;
+        gap: 5px;
+    }
+
+    .character-avatar {
+        margin-bottom: 4px;
+    }
+
+    .character-sprite-preview {
+        width: 24px;
+        height: 24px;
+        padding: 2px;
+    }
+
+    .character-details h3 {
+        font-size: 14px;
+        margin: 0 0 2px 0;
+    }
+
+    .character-details p {
+        font-size: 10px;
+        margin: 1px 0;
+    }
+
+    .character-actions {
+        gap: 4px;
+        margin-top: 5px;
+    }
+
+    .play-button,
+    .delete-button,
+    .disconnect-button {
+        padding: 4px 6px;
+        font-size: 11px;
+    }
+
+    .create-character-header h2 {
+        font-size: 18px;
+    }
+
+    .back-button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .fixed-creation-section {
+        gap: 8px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+    }
+
+    .character-preview {
+        min-height: 120px;
+        padding: 10px;
+    }
+
+    .create-character-form-scrollable {
+        max-height: 150px;
+    }
+
+    .form-section {
+        gap: 6px;
+    }
+
+    .form-section > label {
+        font-size: 14px;
+    }
+
+    .option-card {
+        padding: 8px;
+    }
+
+    .option-icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    .option-name {
+        font-size: 12px;
+    }
+
+    .option-description {
+        font-size: 11px;
+    }
+
+    .submit-button {
+        padding: 10px;
+        font-size: 14px;
     }
 }
 
