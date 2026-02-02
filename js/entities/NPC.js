@@ -416,6 +416,17 @@ export class NPC extends Character {
         player.isGhost = false;
         player.hp = player.maxHp; // Vida al 100%
         
+        // IMPORTANTE: Si está en modo online, notificar al servidor
+        const gameState = window.gameState;
+        if (gameState && gameState.isOnline) {
+            console.log('⛪ Enviando player_resurrect al servidor...');
+            
+            // Importar socketClient y enviar evento
+            import('../api/SocketClient.js').then(({ default: socketClient }) => {
+                socketClient.socket.emit('player_resurrect', {});
+            });
+        }
+        
         // TODO: Limpiar estados alterados si los hay (veneno, confusión, parálisis)
         
         const costMsg = resurrectCost > 0 ? ` (-${resurrectCost} oro)` : ' (GRATIS por la gracia divina)';
