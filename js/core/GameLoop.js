@@ -413,6 +413,35 @@ function handleInteractions() {
             }
         }
     }
+    
+    // Check for online players - PvP attack if facing the player
+    if (gameState.isOnline && gameState.onlinePlayers && gameState.onlinePlayers.size > 0) {
+        for (const [socketId, onlinePlayer] of gameState.onlinePlayers) {
+            // Skip if player is not in current map
+            if (onlinePlayer.map !== gameState.currentMap) continue;
+            
+            // Calculate distance (usar posiciones redondeadas para comparación)
+            const targetX = Math.round(onlinePlayer.x);
+            const targetY = Math.round(onlinePlayer.y);
+            const dist = Math.abs(targetX - px) + Math.abs(targetY - py);
+            
+            // Check if player is adjacent (distance 1 for melee)
+            if (dist === 1) {
+                // Check if player is facing the online player
+                if (isTargetInFacingDirection(targetX, targetY, playerFacing)) {
+                    console.log(`⚔️ Intentando atacar a jugador online: ${onlinePlayer.username} (${socketId})`);
+                    
+                    // Importar la función attackPlayer desde Combat.js
+                    import('../systems/Combat.js').then(({ attackPlayer }) => {
+                        // Atacar al jugador online
+                        attackPlayer(socketId, onlinePlayer);
+                    });
+                    
+                    return; // Exit after attacking
+                }
+            }
+        }
+    }
 }
 
 /**
