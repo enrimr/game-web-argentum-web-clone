@@ -6,6 +6,7 @@
 
 import { Character } from './Character.js';
 import { NPC_DEFINITIONS } from './NPCTypes.js';
+import { gameState } from '../state.js';
 
 export class NPC extends Character {
     constructor(npcType, x, y, currentMap = null) {
@@ -417,9 +418,11 @@ export class NPC extends Character {
         player.hp = player.maxHp; // Vida al 100%
         
         // IMPORTANTE: Si está en modo online, notificar al servidor
-        const gameState = window.gameState;
-        if (gameState && gameState.isOnline) {
-            console.log('⛪ Jugador en modo online, preparando envío de player_resurrect...');
+        console.log('⛪ Resurrección ejecutada, verificando modo online...');
+        console.log('⛪ gameState.isOnline:', gameState.isOnline);
+        
+        if (gameState.isOnline) {
+            console.log('⛪ ✅ Jugador en modo online, preparando envío de player_resurrect...');
             console.log('⛪ Estado del jugador:', {
                 isGhost: player.isGhost,
                 hp: player.hp,
@@ -444,7 +447,8 @@ export class NPC extends Character {
                 console.error('⛪ ❌ Error al importar SocketClient:', error);
             });
         } else {
-            console.log('⛪ Modo offline o gameState no disponible, resurrección solo local');
+            console.log('⛪ ❌ Modo offline detectado, resurrección solo local');
+            console.log('⛪ gameState:', gameState);
         }
         
         // TODO: Limpiar estados alterados si los hay (veneno, confusión, parálisis)
