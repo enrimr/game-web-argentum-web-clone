@@ -896,9 +896,55 @@ window.editCharacter = async function(charId) {
  */
 function showEditCharacterModal(char) {
     const modal = document.getElementById('modalContent');
+    
+    // Definir colores para visualización
+    const tunicColors = [
+        { id: 1, name: 'Rojo', hex: '#dc2626' },
+        { id: 2, name: 'Azul', hex: '#2563eb' },
+        { id: 3, name: 'Verde', hex: '#16a34a' },
+        { id: 4, name: 'Amarillo', hex: '#eab308' },
+        { id: 5, name: 'Morado', hex: '#9333ea' },
+        { id: 6, name: 'Naranja', hex: '#ea580c' },
+        { id: 7, name: 'Rosa', hex: '#ec4899' },
+        { id: 8, name: 'Marrón', hex: '#92400e' },
+        { id: 9, name: 'Negro', hex: '#1f2937' },
+        { id: 10, name: 'Blanco', hex: '#f3f4f6' }
+    ];
+    
+    const skinColors = [
+        { id: 1, name: 'Clara', hex: '#fcd9bd' },
+        { id: 2, name: 'Media', hex: '#d4a574' },
+        { id: 3, name: 'Morena', hex: '#b8865f' },
+        { id: 4, name: 'Oscura', hex: '#8d5524' },
+        { id: 5, name: 'Gris', hex: '#9ca3af' },
+        { id: 6, name: 'Verde', hex: '#86efac' }
+    ];
+    
+    const classes = [
+        { id: 'guerrero', name: 'Guerrero', icon: '⚔️' },
+        { id: 'mago', name: 'Mago', icon: '🔮' },
+        { id: 'arquero', name: 'Arquero', icon: '🏹' },
+        { id: 'clerigo', name: 'Clérigo', icon: '✨' },
+        { id: 'asesino', name: 'Asesino', icon: '🗡️' },
+        { id: 'paladin', name: 'Paladín', icon: '🛡️' },
+        { id: 'bardo', name: 'Bardo', icon: '🎵' }
+    ];
+    
     modal.innerHTML = `
         <h2>✏️ Editar Personaje: ${char.name}</h2>
         <form id="editCharacterForm" style="max-height: 60vh; overflow-y: auto;">
+            <!-- Profesión -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">🎭 Profesión</h3>
+            <div class="form-group">
+                <select id="editClass" style="width: 100%; padding: 8px; border-radius: 6px; border: 2px solid #e2e8f0;">
+                    ${classes.map(c => `
+                        <option value="${c.id}" ${char.class === c.id ? 'selected' : ''}>
+                            ${c.icon} ${c.name}
+                        </option>
+                    `).join('')}
+                </select>
+            </div>
+
             <!-- Stats -->
             <h3 style="color: #667eea; margin: 15px 0 10px 0;">📊 Estadísticas</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -912,7 +958,7 @@ function showEditCharacterModal(char) {
                 </div>
                 <div class="form-group">
                     <label>HP</label>
-                    <input type="number" id="editHp" value="${char.stats.hp}" min="0" max="${char.stats.maxHp}">
+                    <input type="number" id="editHp" value="${char.stats.hp}" min="0">
                 </div>
                 <div class="form-group">
                     <label>HP Máximo</label>
@@ -920,7 +966,7 @@ function showEditCharacterModal(char) {
                 </div>
                 <div class="form-group">
                     <label>Mana</label>
-                    <input type="number" id="editMana" value="${char.stats.mana}" min="0" max="${char.stats.maxMana}">
+                    <input type="number" id="editMana" value="${char.stats.mana}" min="0">
                 </div>
                 <div class="form-group">
                     <label>Mana Máximo</label>
@@ -951,30 +997,75 @@ function showEditCharacterModal(char) {
 
             <!-- Apariencia -->
             <h3 style="color: #667eea; margin: 15px 0 10px 0;">🎨 Apariencia</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group">
-                    <label>Túnica (1-10)</label>
-                    <input type="number" id="editBody" value="${char.appearance?.body || 2}" min="1" max="10">
-                    <small style="color: #718096;">1=Rojo 2=Azul 3=Verde 4=Amarillo 5=Morado</small>
+            
+            <!-- Color de Túnica con preview visual -->
+            <div class="form-group">
+                <label>Color de Túnica</label>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px;">
+                    ${tunicColors.map(color => `
+                        <label style="cursor: pointer; text-align: center;">
+                            <input type="radio" name="tunicColor" value="${color.id}" 
+                                   ${(char.appearance?.body || 2) === color.id ? 'checked' : ''}
+                                   style="display: none;">
+                            <div style="width: 40px; height: 40px; background: ${color.hex}; 
+                                        border-radius: 8px; margin: 0 auto 5px; 
+                                        border: 3px solid ${(char.appearance?.body || 2) === color.id ? '#667eea' : '#e2e8f0'};
+                                        transition: all 0.3s;">
+                            </div>
+                            <small style="font-size: 11px; color: #718096;">${color.name}</small>
+                        </label>
+                    `).join('')}
                 </div>
-                <div class="form-group">
-                    <label>Piel (1-6)</label>
-                    <input type="number" id="editHead" value="${char.appearance?.head || 1}" min="1" max="6">
-                    <small style="color: #718096;">1=Clara 2=Media 3=Morena 4=Oscura</small>
+            </div>
+            
+            <!-- Color de Piel con preview visual -->
+            <div class="form-group">
+                <label>Color de Piel</label>
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px;">
+                    ${skinColors.map(color => `
+                        <label style="cursor: pointer; text-align: center;">
+                            <input type="radio" name="skinColor" value="${color.id}" 
+                                   ${(char.appearance?.head || 1) === color.id ? 'checked' : ''}
+                                   style="display: none;">
+                            <div style="width: 40px; height: 40px; background: ${color.hex}; 
+                                        border-radius: 50%; margin: 0 auto 5px; 
+                                        border: 3px solid ${(char.appearance?.head || 1) === color.id ? '#667eea' : '#e2e8f0'};
+                                        transition: all 0.3s;">
+                            </div>
+                            <small style="font-size: 11px; color: #718096;">${color.name}</small>
+                        </label>
+                    `).join('')}
                 </div>
-                <div class="form-group">
-                    <label>Raza (1-3)</label>
-                    <input type="number" id="editRace" value="${char.appearance?.race || 1}" min="1" max="3">
-                    <small style="color: #718096;">1=Humano 2=Enano 3=Criatura</small>
+            </div>
+            
+            <!-- Raza con radio buttons -->
+            <div class="form-group">
+                <label>Raza</label>
+                <div style="display: flex; gap: 15px; margin-top: 8px;">
+                    <label style="cursor: pointer; padding: 10px 15px; background: ${(char.appearance?.race || 1) === 1 ? '#667eea' : '#f7fafc'}; 
+                                  color: ${(char.appearance?.race || 1) === 1 ? 'white' : '#2d3748'}; border-radius: 8px; transition: all 0.3s;">
+                        <input type="radio" name="race" value="1" ${(char.appearance?.race || 1) === 1 ? 'checked' : ''} style="margin-right: 5px;">
+                        🧑 Humano
+                    </label>
+                    <label style="cursor: pointer; padding: 10px 15px; background: ${(char.appearance?.race || 1) === 2 ? '#667eea' : '#f7fafc'}; 
+                                  color: ${(char.appearance?.race || 1) === 2 ? 'white' : '#2d3748'}; border-radius: 8px; transition: all 0.3s;">
+                        <input type="radio" name="race" value="2" ${(char.appearance?.race || 1) === 2 ? 'checked' : ''} style="margin-right: 5px;">
+                        🧔 Enano
+                    </label>
+                    <label style="cursor: pointer; padding: 10px 15px; background: ${(char.appearance?.race || 1) === 3 ? '#667eea' : '#f7fafc'}; 
+                                  color: ${(char.appearance?.race || 1) === 3 ? 'white' : '#2d3748'}; border-radius: 8px; transition: all 0.3s;">
+                        <input type="radio" name="race" value="3" ${(char.appearance?.race || 1) === 3 ? 'checked' : ''} style="margin-right: 5px;">
+                        👹 Criatura
+                    </label>
                 </div>
             </div>
 
             <!-- Estado -->
             <h3 style="color: #667eea; margin: 15px 0 10px 0;">🎮 Estado</h3>
             <div class="form-group">
-                <label>
-                    <input type="checkbox" id="editIsAlive" ${char.state.isAlive ? 'checked' : ''}>
-                    Personaje vivo (desmarcar = fantasma)
+                <label style="cursor: pointer; padding: 10px; background: #f7fafc; border-radius: 8px; display: inline-block;">
+                    <input type="checkbox" id="editIsAlive" ${char.state.isAlive ? 'checked' : ''} style="margin-right: 8px;">
+                    <strong>Personaje vivo</strong> (desmarcar = fantasma 👻)
                 </label>
             </div>
 
@@ -983,7 +1074,7 @@ function showEditCharacterModal(char) {
             <div class="form-group">
                 <label>Puntos de Criminalidad</label>
                 <input type="number" id="editCriminalStatus" value="${char.criminalStatus || 0}" min="0">
-                <small style="color: #718096;">0-49: Ciudadano | 50-99: Criminal | 100+: Asesino</small>
+                <small style="color: #718096;">0-49: Ciudadano 😇 | 50-99: Criminal 😈 | 100+: Asesino 💀</small>
             </div>
 
             <div class="modal-actions" style="margin-top: 25px;">
@@ -992,6 +1083,36 @@ function showEditCharacterModal(char) {
             </div>
         </form>
     `;
+
+    // Event listeners para cambiar borde de los colores seleccionados
+    modal.querySelectorAll('input[name="tunicColor"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+            modal.querySelectorAll('input[name="tunicColor"]').forEach(i => {
+                i.parentElement.querySelector('div').style.borderColor = '#e2e8f0';
+            });
+            e.target.parentElement.querySelector('div').style.borderColor = '#667eea';
+        });
+    });
+    
+    modal.querySelectorAll('input[name="skinColor"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+            modal.querySelectorAll('input[name="skinColor"]').forEach(i => {
+                i.parentElement.querySelector('div').style.borderColor = '#e2e8f0';
+            });
+            e.target.parentElement.querySelector('div').style.borderColor = '#667eea';
+        });
+    });
+    
+    modal.querySelectorAll('input[name="race"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+            modal.querySelectorAll('input[name="race"]').forEach(i => {
+                i.parentElement.style.background = '#f7fafc';
+                i.parentElement.style.color = '#2d3748';
+            });
+            e.target.parentElement.style.background = '#667eea';
+            e.target.parentElement.style.color = 'white';
+        });
+    });
 
     document.getElementById('editCharacterForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -1005,8 +1126,14 @@ function showEditCharacterModal(char) {
  * Guardar cambios del personaje
  */
 async function saveCharacterChanges(characterId) {
+    // Obtener valores de radio buttons
+    const tunicColorInput = document.querySelector('input[name="tunicColor"]:checked');
+    const skinColorInput = document.querySelector('input[name="skinColor"]:checked');
+    const raceInput = document.querySelector('input[name="race"]:checked');
+    
     // Recopilar todos los cambios
     const updates = {
+        class: document.getElementById('editClass').value,
         stats: {
             level: parseInt(document.getElementById('editLevel').value),
             gold: parseInt(document.getElementById('editGold').value),
@@ -1020,9 +1147,9 @@ async function saveCharacterChanges(characterId) {
             constitution: parseInt(document.getElementById('editConstitution').value)
         },
         appearance: {
-            body: parseInt(document.getElementById('editBody').value),
-            head: parseInt(document.getElementById('editHead').value),
-            race: parseInt(document.getElementById('editRace').value)
+            body: parseInt(tunicColorInput.value),
+            head: parseInt(skinColorInput.value),
+            race: parseInt(raceInput.value)
         },
         state: {
             isAlive: document.getElementById('editIsAlive').checked
