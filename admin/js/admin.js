@@ -933,6 +933,15 @@ function showEditCharacterModal(char) {
     modal.innerHTML = `
         <h2>✏️ Editar Personaje: ${char.name}</h2>
         <form id="editCharacterForm" style="max-height: 60vh; overflow-y: auto;">
+            <!-- Nombre del Personaje -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">📝 Nombre</h3>
+            <div class="form-group">
+                <input type="text" id="editName" value="${char.name}" 
+                       style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #e2e8f0;"
+                       minlength="3" maxlength="20" required>
+                <small style="color: #718096;">3-20 caracteres</small>
+            </div>
+
             <!-- Profesión -->
             <h3 style="color: #667eea; margin: 15px 0 10px 0;">🎭 Profesión</h3>
             <div class="form-group">
@@ -1133,6 +1142,7 @@ async function saveCharacterChanges(characterId) {
     
     // Recopilar todos los cambios
     const updates = {
+        name: document.getElementById('editName').value,
         class: document.getElementById('editClass').value,
         stats: {
             level: parseInt(document.getElementById('editLevel').value),
