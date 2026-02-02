@@ -872,9 +872,193 @@ function renderCharacterSprite(char) {
 /**
  * Editar personaje
  */
-window.editCharacter = function(charId) {
-    showNotification('Función de edición en desarrollo', 'info');
+window.editCharacter = async function(charId) {
+    try {
+        const response = await fetch(`${API_URL}/characters/${charId}`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showEditCharacterModal(data.data);
+        } else {
+            showNotification('Error al cargar personaje', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error de conexión', 'error');
+    }
 };
+
+/**
+ * Mostrar modal de edición de personaje
+ */
+function showEditCharacterModal(char) {
+    const modal = document.getElementById('modalContent');
+    modal.innerHTML = `
+        <h2>✏️ Editar Personaje: ${char.name}</h2>
+        <form id="editCharacterForm" style="max-height: 60vh; overflow-y: auto;">
+            <!-- Stats -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">📊 Estadísticas</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Nivel</label>
+                    <input type="number" id="editLevel" value="${char.stats.level}" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Oro</label>
+                    <input type="number" id="editGold" value="${char.stats.gold}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>HP</label>
+                    <input type="number" id="editHp" value="${char.stats.hp}" min="0" max="${char.stats.maxHp}">
+                </div>
+                <div class="form-group">
+                    <label>HP Máximo</label>
+                    <input type="number" id="editMaxHp" value="${char.stats.maxHp}" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Mana</label>
+                    <input type="number" id="editMana" value="${char.stats.mana}" min="0" max="${char.stats.maxMana}">
+                </div>
+                <div class="form-group">
+                    <label>Mana Máximo</label>
+                    <input type="number" id="editMaxMana" value="${char.stats.maxMana}" min="1">
+                </div>
+            </div>
+
+            <!-- Atributos -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">💪 Atributos</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Fuerza</label>
+                    <input type="number" id="editStrength" value="${char.stats.strength || 10}" min="1" max="99">
+                </div>
+                <div class="form-group">
+                    <label>Destreza</label>
+                    <input type="number" id="editDexterity" value="${char.stats.dexterity || 10}" min="1" max="99">
+                </div>
+                <div class="form-group">
+                    <label>Inteligencia</label>
+                    <input type="number" id="editIntelligence" value="${char.stats.intelligence || 10}" min="1" max="99">
+                </div>
+                <div class="form-group">
+                    <label>Constitución</label>
+                    <input type="number" id="editConstitution" value="${char.stats.constitution || 10}" min="1" max="99">
+                </div>
+            </div>
+
+            <!-- Apariencia -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">🎨 Apariencia</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Túnica (1-10)</label>
+                    <input type="number" id="editBody" value="${char.appearance?.body || 2}" min="1" max="10">
+                    <small style="color: #718096;">1=Rojo 2=Azul 3=Verde 4=Amarillo 5=Morado</small>
+                </div>
+                <div class="form-group">
+                    <label>Piel (1-6)</label>
+                    <input type="number" id="editHead" value="${char.appearance?.head || 1}" min="1" max="6">
+                    <small style="color: #718096;">1=Clara 2=Media 3=Morena 4=Oscura</small>
+                </div>
+                <div class="form-group">
+                    <label>Raza (1-3)</label>
+                    <input type="number" id="editRace" value="${char.appearance?.race || 1}" min="1" max="3">
+                    <small style="color: #718096;">1=Humano 2=Enano 3=Criatura</small>
+                </div>
+            </div>
+
+            <!-- Estado -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">🎮 Estado</h3>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="editIsAlive" ${char.state.isAlive ? 'checked' : ''}>
+                    Personaje vivo (desmarcar = fantasma)
+                </label>
+            </div>
+
+            <!-- Facción -->
+            <h3 style="color: #667eea; margin: 15px 0 10px 0;">⚔️ Facción</h3>
+            <div class="form-group">
+                <label>Puntos de Criminalidad</label>
+                <input type="number" id="editCriminalStatus" value="${char.criminalStatus || 0}" min="0">
+                <small style="color: #718096;">0-49: Ciudadano | 50-99: Criminal | 100+: Asesino</small>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 25px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+            </div>
+        </form>
+    `;
+
+    document.getElementById('editCharacterForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveCharacterChanges(char._id);
+    });
+
+    showModal();
+}
+
+/**
+ * Guardar cambios del personaje
+ */
+async function saveCharacterChanges(characterId) {
+    // Recopilar todos los cambios
+    const updates = {
+        stats: {
+            level: parseInt(document.getElementById('editLevel').value),
+            gold: parseInt(document.getElementById('editGold').value),
+            hp: parseInt(document.getElementById('editHp').value),
+            maxHp: parseInt(document.getElementById('editMaxHp').value),
+            mana: parseInt(document.getElementById('editMana').value),
+            maxMana: parseInt(document.getElementById('editMaxMana').value),
+            strength: parseInt(document.getElementById('editStrength').value),
+            dexterity: parseInt(document.getElementById('editDexterity').value),
+            intelligence: parseInt(document.getElementById('editIntelligence').value),
+            constitution: parseInt(document.getElementById('editConstitution').value)
+        },
+        appearance: {
+            body: parseInt(document.getElementById('editBody').value),
+            head: parseInt(document.getElementById('editHead').value),
+            race: parseInt(document.getElementById('editRace').value)
+        },
+        state: {
+            isAlive: document.getElementById('editIsAlive').checked
+        },
+        criminalStatus: parseInt(document.getElementById('editCriminalStatus').value)
+    };
+
+    // Ajustar HP si isAlive es false
+    if (!updates.state.isAlive) {
+        updates.stats.hp = 0;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/admin/characters/${characterId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${currentToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updates)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('Personaje actualizado exitosamente', 'success');
+            closeModal();
+            loadCharacters();
+        } else {
+            showNotification('Error: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error de conexión', 'error');
+    }
+}
 
 /**
  * Mostrar modal
