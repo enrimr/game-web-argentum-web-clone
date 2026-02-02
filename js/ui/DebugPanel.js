@@ -558,8 +558,22 @@ function killPlayer() {
 
 /**
  * Añadir botón para mostrar/ocultar el panel de depuración
+ * Solo visible para admin, moderator o gamemaster
  */
 function addToggleButton() {
+    // Verificar permisos antes de añadir el botón
+    const allowedRoles = ['admin', 'moderator', 'gamemaster'];
+    const userRole = gameState.onlineUser?.role || null;
+    
+    // Si está en modo offline, mostrar el botón (modo debug local)
+    // Si está en modo online, solo mostrar si tiene permisos
+    if (gameState.isOnline && !allowedRoles.includes(userRole)) {
+        console.log('🔒 Panel de debug oculto - Usuario no tiene permisos (rol:', userRole, ')');
+        return; // No añadir el botón si no tiene permisos
+    }
+    
+    console.log('✅ Panel de debug disponible para rol:', userRole || 'offline');
+    
     const toggleButton = document.createElement('button');
     toggleButton.id = 'debug-toggle';
     toggleButton.textContent = '🛠️'; // Icono de herramienta
