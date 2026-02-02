@@ -9,6 +9,12 @@ let currentUser = null;
 let currentToken = null;
 let currentSection = 'stats';
 
+// Estado del filtro de personajes
+let currentCharacterFilter = {
+    userId: null,
+    username: null
+};
+
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     initAdminDashboard();
@@ -195,7 +201,8 @@ function navigateToSection(section) {
             loadUsers();
             break;
         case 'characters':
-            loadCharacters();
+            // Cargar con el filtro actual si existe
+            loadCharacters(1, currentCharacterFilter.userId);
             break;
         case 'online':
             loadOnlinePlayers();
@@ -349,12 +356,6 @@ window.viewUserCharacters = function(userId, username) {
     
     // Navegar a la sección de personajes con el filtro aplicado
     navigateToSection('characters');
-};
-
-// Estado del filtro de personajes
-let currentCharacterFilter = {
-    userId: null,
-    username: null
 };
 
 /**
