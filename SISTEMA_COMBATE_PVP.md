@@ -296,15 +296,107 @@ export const COMBAT_CONFIG = {
 ## Próximos Pasos
 
 1. ✅ Crear rama feature
-2. ⏳ Refactorizar Combat.js para reutilización
-3. ⏳ Implementar eventos en SocketClient
-4. ⏳ Implementar handler en servidor
-5. ⏳ Testing PvP básico
-6. ⏳ Implementar feedback visual
-7. ⏳ Documentar y merge
+2. ✅ Añadir configuración de combate (config.js)
+3. ✅ Implementar funciones PvP en Combat.js
+4. ✅ Implementar eventos en SocketClient
+5. ✅ Conectar eventos con handlers en Game.js
+6. ✅ Implementar handler player_attack en servidor
+7. ⏳ **Implementar sistema de interacción UI (clic en jugador para atacar)**
+8. ⏳ Testing PvP entre dos jugadores
+9. ⏳ Implementar feedback visual mejorado
+10. ⏳ Merge a main
 
 ---
 
-**Fecha de inicio:** 2/2/2026
-**Estado:** En Desarrollo
+## Estado de Implementación
+
+### ✅ Completado
+
+**Cliente:**
+- [x] Configuración de combate (CONFIG.COMBAT)
+- [x] Funciones PvP en Combat.js:
+  - attackPlayer() - iniciar ataque
+  - canAttackTarget() - validaciones
+  - calculateDistance() - distancia euclidiana
+  - handlePlayerAttacked() - procesar ataque recibido
+  - handlePlayerAttackResult() - procesar resultado
+  - handleCombatAction() - mostrar a espectadores
+- [x] Eventos WebSocket en SocketClient.js
+- [x] Conexión de eventos con handlers en Game.js
+
+**Servidor:**
+- [x] Handler player_attack completo con:
+  - Validación de jugadores (existencia, mismo mapa)
+  - Validación de estado (vivo/muerto/fantasma)
+  - Validación de cooldown (1.5s anti-spam)
+  - Validación de rango (melee 1.5, ranged 8)
+  - Cálculo de daño autoritario
+  - Sistema de criminalidad
+  - Actualización de BD
+  - Broadcast de eventos
+
+### ⏳ Pendiente
+
+**Sistema de Interacción:**
+- [ ] Implementar clic en jugador online para atacar
+- [ ] Añadir menú contextual o tecla de ataque
+- [ ] Mostrar indicador de objetivo seleccionado
+- [ ] Mostrar rango de ataque visual
+
+**Feedback Visual:**
+- [ ] Animación de ataque en atacante
+- [ ] Animación de daño en defensor
+- [ ] Números flotantes de daño
+- [ ] Efectos de partículas
+- [ ] Sonidos de impacto
+
+**Testing:**
+- [ ] Probar combate PvP básico
+- [ ] Probar sistema de criminalidad
+- [ ] Probar validaciones de rango
+- [ ] Probar cooldowns
+- [ ] Probar muerte y modo fantasma
+
+---
+
+## Cómo Probar el Sistema
+
+### Requisitos
+1. Dos jugadores conectados en el mismo mapa
+2. Ambos jugadores vivos (no fantasmas)
+3. Dentro del rango de ataque (1.5 tiles melee, 8 tiles ranged)
+
+### Método Actual (Programático)
+Por ahora, para probar el sistema puedes llamar la función manualmente desde la consola del navegador:
+
+```javascript
+// En el cliente del atacante, en la consola del navegador:
+import { attackPlayer } from './js/systems/Combat.js';
+
+// Obtener el socketId del jugador objetivo
+const targetSocketId = '[socketId del otro jugador]';
+const targetPlayer = gameState.onlinePlayers.get(targetSocketId);
+
+// Atacar
+attackPlayer(targetSocketId, targetPlayer);
+```
+
+### Método Futuro (UI)
+Se implementará un sistema de interacción donde:
+1. Click derecho en jugador online → Menú contextual
+2. Opción "Atacar" en el menú
+3. O tecla rápida (ej: CTRL + Click)
+
+---
+
+**Fecha de inicio:** 2/2/2026  
+**Última actualización:** 2/2/2026, 11:06 a.m.  
+**Estado:** **✅ Sistema Base Completado** - Pendiente UI de interacción  
 **Rama:** `feature/sistema-combate-pvp`
+
+---
+
+## Commits Realizados
+
+1. **Cliente** (93f3c89): Sistema PvP - configuración, eventos, handlers
+2. **Servidor** (83c8aa4): Handler player_attack con validaciones y criminalidad
