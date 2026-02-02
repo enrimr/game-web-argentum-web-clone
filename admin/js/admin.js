@@ -582,24 +582,241 @@ window.unbanUser = async function(userId, username) {
 };
 
 /**
- * Editar usuario (placeholder)
+ * Editar usuario
  */
-window.editUser = function(userId) {
-    showNotification('Función de edición en desarrollo', 'info');
+window.editUser = async function(userId) {
+    try {
+        // Obtener datos del usuario
+        const response = await fetch(`${API_URL}/admin/users?page=1&limit=100`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        
+        const data = await response.json();
+        const user = data.users.find(u => u._id === userId);
+        
+        if (!user) {
+            showNotification('Usuario no encontrado', 'error');
+            return;
+        }
+
+        showEditUserModal(user);
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error al cargar usuario', 'error');
+    }
 };
 
 /**
- * Ver personaje (placeholder)
+ * Mostrar modal de edición de usuario
  */
-window.viewCharacter = function(charId) {
-    showNotification('Función de vista en desarrollo', 'info');
+function showEditUserModal(user) {
+    const modal = document.getElementById('modalContent');
+    modal.innerHTML = `
+        <h2>✏️ Editar Usuario: ${user.username}</h2>
+        <form id="editUserForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="editEmail" value="${user.email}" required>
+            </div>
+            <div class="form-group">
+                <label>Rol</label>
+                <select id="editRole">
+                    <option value="player" ${user.role === 'player' ? 'selected' : ''}>Player</option>
+                    <option value="moderator" ${user.role === 'moderator' ? 'selected' : ''}>Moderator</option>
+                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="editIsActive" ${user.isActive ? 'checked' : ''}>
+                    Cuenta activa
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+            </div>
+        </form>
+    `;
+
+    document.getElementById('editUserForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveUserChanges(user._id);
+    });
+
+    showModal();
+}
+
+/**
+ * Guardar cambios de usuario
+ */
+async function saveUserChanges(userId) {
+    const email = document.getElementById('editEmail').value;
+    const role = document.getElementById('editRole').value;
+    const isActive = document.getElementById('editIsActive').checked;
+
+    try {
+        const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${currentToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, role, isActive })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('Usuario actualizado exitosamente', 'success');
+            closeModal();
+            loadUsers();
+        } else {
+            showNotification('Error: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error de conexión', 'error');
+    }
+}
+
+/**
+ * Ver personaje completo
+ */
+window.viewCharacter = async function(charId) {
+    try {
+        const response = await fetch(`${API_URL}/characters/${charId}`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showCharacterDetailsModal(data.data);
+        } else {
+            showNotification('Error al cargar personaje', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error de conexión', 'error');
+    }
 };
 
 /**
- * Editar personaje (placeholder)
+ * Mostrar modal de detalles de personaje
+ */
+function showCharacterDetailsModal(char) {
+    const modal = document.getElementById('modalContent');
+    modal.innerHTML = `
+        <h2>⚔️ Detalles de ${char.name}</h2>
+        <div style="max-height: 60vh; overflow-y: auto;">
+            <!-- Información Básica -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">📋 Información Básica</h3>
+                <p><strong>Nombre:</strong> ${char.name}</p>
+                <p><strong>Clase:</strong> ${char.class}</p>
+                <p><strong>Nivel:</strong> ${char.stats.level}</p>
+                <p><strong>Experiencia:</strong> ${char.stats.experience}</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">📊 Estadísticas</h3>
+                <p><strong>HP:</strong> ${char.stats.hp}/${char.stats.maxHp}</p>
+                <p><strong>Mana:</strong> ${char.stats.mana}/${char.stats.maxMana}</p>
+                <p><strong>Stamina:</strong> ${char.stats.stamina}/${char.stats.maxStamina}</p>
+                <p><strong>Oro:</strong> ${char.stats.gold.toLocaleString()} 💰</p>
+            </div>
+
+            <!-- Atributos -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">💪 Atributos</h3>
+                <p><strong>Fuerza:</strong> ${char.stats.strength || 10}</p>
+                <p><strong>Destreza:</strong> ${char.stats.dexterity || 10}</p>
+                <p><strong>Inteligencia:</strong> ${char.stats.intelligence || 10}</p>
+                <p><strong>Constitución:</strong> ${char.stats.constitution || 10}</p>
+                <p><strong>Carisma:</strong> ${char.stats.charisma || 10}</p>
+            </div>
+
+            <!-- Posición -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">📍 Ubicación</h3>
+                <p><strong>Mapa:</strong> ${char.position.map}</p>
+                <p><strong>Posición:</strong> (${char.position.x}, ${char.position.y})</p>
+            </div>
+
+            <!-- Estado -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">🎮 Estado</h3>
+                <p><strong>Online:</strong> ${char.state.isOnline ? '🟢 Sí' : '⚫ No'}</p>
+                <p><strong>Vivo:</strong> ${char.state.isAlive ? '❤️ Sí' : '💀 No'}</p>
+                <p><strong>Meditando:</strong> ${char.state.isMeditating ? '🧘 Sí' : 'No'}</p>
+            </div>
+
+            <!-- Inventario -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">🎒 Inventario</h3>
+                ${char.inventory && char.inventory.length > 0 
+                    ? char.inventory.map(item => `
+                        <p>• ${item.itemId || item.type || 'Item'} x${item.quantity}</p>
+                    `).join('')
+                    : '<p style="color: #a0aec0; font-style: italic;">Inventario vacío</p>'
+                }
+            </div>
+
+            <!-- Equipamiento -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">🛡️ Equipamiento</h3>
+                <p><strong>Arma:</strong> ${char.equipment.weapon || 'Ninguna'}</p>
+                <p><strong>Escudo:</strong> ${char.equipment.shield || 'Ninguno'}</p>
+                <p><strong>Armadura:</strong> ${char.equipment.armor || 'Ninguna'}</p>
+                <p><strong>Casco:</strong> ${char.equipment.helmet || 'Ninguno'}</p>
+            </div>
+
+            <!-- Facción -->
+            <div class="form-group">
+                <h3 style="color: #667eea; margin-bottom: 10px;">⚔️ Facción & Criminalidad</h3>
+                <p><strong>Facción:</strong> ${char.faction || 'Ninguna'}</p>
+                <p><strong>Criminalidad:</strong> ${char.criminalStatus || 0} puntos</p>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+            <button class="btn btn-warning" onclick="editCharacter('${char._id}')">✏️ Editar</button>
+        </div>
+    `;
+
+    showModal();
+}
+
+/**
+ * Editar personaje
  */
 window.editCharacter = function(charId) {
     showNotification('Función de edición en desarrollo', 'info');
 };
+
+/**
+ * Mostrar modal
+ */
+function showModal() {
+    document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+/**
+ * Cerrar modal
+ */
+window.closeModal = function() {
+    document.getElementById('modalOverlay').style.display = 'none';
+};
+
+// Cerrar modal al hacer clic en el overlay
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'modalOverlay') {
+            closeModal();
+        }
+    });
+});
 
 console.log('🔧 Admin Dashboard iniciado');
