@@ -312,6 +312,41 @@ function executeTargetAction() {
                 }
             }
             break;
+            
+        case 'onlinePlayer':
+            // Llegamos a un jugador online - atacar
+            if (target.target && target.target.player && target.target.socketId) {
+                const player = target.target.player;
+                const socketId = target.target.socketId;
+                
+                // Verificar que el jugador todavía existe en onlinePlayers
+                const currentPlayer = gameState.onlinePlayers.get(socketId);
+                if (!currentPlayer) {
+                    addChatMessage('system', '❌ El jugador ya no está conectado');
+                    break;
+                }
+                
+                const playerX = Math.round(currentPlayer.x);
+                const playerY = Math.round(currentPlayer.y);
+                const dist = Math.abs(playerX - gameState.player.x) + Math.abs(playerY - gameState.player.y);
+                
+                if (dist === 1) {
+                    console.log(`⚔️ Llegaste al jugador online, atacando`);
+                    
+                    // Actualizar dirección hacia el jugador
+                    updatePlayerFacingTowardsTarget(playerX, playerY);
+                    
+                    // Atacar al jugador
+                    import('../systems/Combat.js').then(({ attackPlayer }) => {
+                        attackPlayer(socketId, currentPlayer);
+                    });
+                } else {
+                    addChatMessage('system', '❌ El jugador se ha movido, ya no está en rango');
+                }
+            } else {
+                addChatMessage('system', '❌ Jugador ya no disponible');
+            }
+            break;
     }
 
     cancelAutoMovement();

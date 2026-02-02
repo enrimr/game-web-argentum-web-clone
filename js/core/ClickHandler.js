@@ -143,6 +143,9 @@ export function handleCanvasClick(event) {
  */
 function handleEntityClick(clickedEntity, worldCoords) {
     switch (clickedEntity.type) {
+        case 'onlinePlayer':
+            handleOnlinePlayerClick(clickedEntity.entity, clickedEntity.socketId);
+            break;
         case 'bot':
             handleBotClick(clickedEntity.entity);
             break;
@@ -484,5 +487,50 @@ function handleObjectClick(obj) {
         console.log(`🚶 Moviéndose hacia objeto para interactuar`);
         setAutoMoveTarget(obj.x, obj.y, 'object', obj);
         addChatMessage('system', `🎯 Moviendo hacia objeto para interactuar`);
+    }
+}
+
+/**
+ * Manejar clic en jugador online (PvP)
+ * @param {Object} player - El jugador online clickeado
+ * @param {string} socketId - Socket ID del jugador
+ */
+function handleOnlinePlayerClick(player, socketId) {
+    console.log(`👤 Clic en jugador online: ${player.username} (${socketId})`);
+    
+    // Los fantasmas no pueden atacar
+    if (gameState.player.isGhost) {
+        addChatMessage('system', '👻 Como fantasma no puedes atacar.');
+        return;
+    }
+
+    // No puedes atacar a fantasmas
+    if (player.isGhost || !player.isAlive) {
+        addChatMessage('system', '❌ No puedes atacar a un fantasma.');
+        return;
+    }
+    
+    const playerX = Math.round(player.x);
+    const playerY = Math.round(player.y);
+    const dist = Math.abs(playerX - gameState.player.x) + Math.abs(playerY - gameState.player.y);
+
+    // Si está adyacente (distancia = 1), atacar directamente
+    if (dist === 1) {
+        console.log(`⚔️ Atacando directamente a jugador online adyacente`);
+
+        // Actualizar la dirección del jugador para mirar hacia el objetivo
+        updatePlayerFacingTowardsTarget(playerX, playerY);
+
+        // Importar y ejecutar la función de ataque PvP
+        import('../systems/Combat.js').then(({ attackPlayer }) => {
+            attackPlayer(socketId, player);
+        });
+
+        return; // Salir sin iniciar movimiento automático
+    } else {
+        // Si no está adyacente, moverse hacia el jugador
+        console.log(`🚶 Moviéndose hacia jugador online para atacar`);
+        setAutoMoveTarget(playerX, playerY, 'onlinePlayer', { player, socketId });
+        addChatMessage('system', `🎯 Objetivo: Jugador ${player.username}`);
     }
 }

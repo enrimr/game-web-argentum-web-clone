@@ -30,6 +30,22 @@ export function getEntityAtPosition(x, y) {
         return { type: 'door', entity: { x, y, tile: doorTile } };
     }
 
+    // Verificar jugadores online (PRIORIDAD: antes que bots y NPCs)
+    if (gameState.isOnline && gameState.onlinePlayers) {
+        for (const [socketId, player] of gameState.onlinePlayers) {
+            // Solo detectar jugadores en el mismo mapa
+            if (player.map === gameState.currentMap) {
+                // Usar posiciones redondeadas para comparación
+                const playerX = Math.round(player.x);
+                const playerY = Math.round(player.y);
+                
+                if (playerX === x && playerY === y) {
+                    return { type: 'onlinePlayer', entity: player, socketId: socketId };
+                }
+            }
+        }
+    }
+
     // Verificar bots (jugadores bot)
     if (gameState.bots) {
         for (const bot of gameState.bots) {
@@ -89,6 +105,7 @@ export function getTargetDescription(entityInfo) {
         case 'portal':
             return 'Portal';
         case 'player':
+        case 'onlinePlayer':
             return `Jugador ${entityInfo.entity.username || 'Desconocido'}`;
         case 'bot':
             return `Bot ${entityInfo.entity.name}`;
