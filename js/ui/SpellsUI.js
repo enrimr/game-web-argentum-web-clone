@@ -160,7 +160,7 @@ function updateMobileSpellsBar() {
 
     const spellSlots = spellsBar.querySelectorAll('.spell-slot');
 
-    // Actualizar cada slot (máximo 5 hechizos)
+    // Actualizar cada slot (máximo 4 hechizos)
     spellSlots.forEach((slot, index) => {
         // Limpiar contenido previo
         slot.textContent = '';
