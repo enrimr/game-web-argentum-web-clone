@@ -42,8 +42,32 @@ export function initSpellsUI() {
         });
     }
     
+    // Inicializar event listeners de la barra móvil
+    initMobileSpellsBarEvents();
+    
     // Actualizar lista de hechizos (vacía inicialmente)
     updateSpellsList();
+}
+
+/**
+ * Inicializar eventos de la barra de hechizos móvil
+ */
+function initMobileSpellsBarEvents() {
+    const spellsBar = document.getElementById('mobileSpellsBar');
+    if (!spellsBar) return;
+
+    const spellSlots = spellsBar.querySelectorAll('.spell-slot');
+
+    spellSlots.forEach((slot, index) => {
+        slot.addEventListener('click', () => {
+            // Solo procesar si el slot tiene un hechizo
+            if (index < playerSpells.length) {
+                selectSpell(index);
+                // Lanzar directamente el hechizo seleccionado
+                handleCastButtonClick();
+            }
+        });
+    });
 }
 
 /**
@@ -122,6 +146,59 @@ export function updateSpellsList() {
         
         spellsList.appendChild(spellItem);
     });
+
+    // Actualizar barra de hechizos móvil
+    updateMobileSpellsBar();
+}
+
+/**
+ * Actualizar la barra de hechizos móvil
+ */
+function updateMobileSpellsBar() {
+    const spellsBar = document.getElementById('mobileSpellsBar');
+    if (!spellsBar) return;
+
+    const spellSlots = spellsBar.querySelectorAll('.spell-slot');
+
+    // Actualizar cada slot (máximo 5 hechizos)
+    spellSlots.forEach((slot, index) => {
+        // Limpiar contenido previo
+        slot.textContent = '';
+        slot.classList.remove('empty', 'active');
+
+        if (index < playerSpells.length) {
+            const playerSpell = playerSpells[index];
+            const spell = SPELLS[playerSpell.key];
+
+            if (spell) {
+                // Mostrar icono del hechizo
+                slot.textContent = spell.icon;
+                slot.title = `${spell.name} - 🔵 ${spell.manaRequired}`;
+
+                // Añadir costo de mana
+                const manaCost = document.createElement('span');
+                manaCost.className = 'spell-mana-cost';
+                manaCost.textContent = spell.manaRequired;
+                slot.appendChild(manaCost);
+
+                // Marcar como activo si está seleccionado
+                if (index === uiState.selectedSpellIndex) {
+                    slot.classList.add('active');
+                }
+            } else {
+                slot.textContent = '-';
+                slot.classList.add('empty');
+                slot.title = 'Slot vacío';
+            }
+        } else {
+            slot.textContent = '-';
+            slot.classList.add('empty');
+            slot.title = 'Slot vacío';
+        }
+    });
+
+    // Mostrar la barra si hay hechizos
+    spellsBar.style.display = playerSpells.length > 0 ? 'flex' : 'none';
 }
 
 /**
