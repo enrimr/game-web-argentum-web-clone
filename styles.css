@@ -188,9 +188,9 @@ body {
 
 .stats span {
     background: rgba(255, 255, 255, 0.1);
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 5px 2px;
+    /*border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.3);*/
 }
 
 /* Chat section at the top */
@@ -421,6 +421,10 @@ body {
 .stat-value {
     color: #fff;
     font-weight: bold;
+}
+
+.character-panel .stat-value {
+      font-size: 12px; /* Reduced from 14px */    
 }
 
 /* Scrollbar styling */

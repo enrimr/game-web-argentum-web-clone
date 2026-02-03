@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/manual", "destination": "/manual/index.html" },
+    { "source": "/manual/(.*)", "destination": "/manual/$1" },
+
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/admin/(.*)", "destination": "/admin/$1" },
+
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

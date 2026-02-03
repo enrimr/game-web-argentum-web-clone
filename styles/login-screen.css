@@ -1175,7 +1175,7 @@
 
     /* Botón crear personaje más compacto */
     .character-slot.create-new {
-        min-height: 120px;
+        min-height: 90px;
     }
 
     .create-icon {
