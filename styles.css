@@ -1261,8 +1261,7 @@ body {
 
     /* Controls adjustments for mobile */
     .controls {
-        font-size: 9px;
-        padding: 6px;
+        display: none;
     }
 }
 
