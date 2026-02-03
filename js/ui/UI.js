@@ -13,7 +13,26 @@ const { MAX_INVENTORY_SLOTS, INVENTORY_SLOTS_PER_PAGE } = CONFIG;
 
 // Estado del inventario
 let currentInventoryPage = 0;
-const totalPages = Math.ceil(MAX_INVENTORY_SLOTS / INVENTORY_SLOTS_PER_PAGE);
+let currentSlotsPerPage = INVENTORY_SLOTS_PER_PAGE;
+
+/**
+ * Get slots per page based on screen size
+ * @returns {number} Number of slots to display per page
+ */
+function getSlotsPerPage() {
+    const width = window.innerWidth;
+    if (width <= 768) return 6;  // Móvil
+    if (width <= 1024) return 8; // Tablet/intermedio
+    return 9; // Desktop
+}
+
+/**
+ * Update current slots per page based on screen size
+ */
+function updateSlotsPerPage() {
+    currentSlotsPerPage = getSlotsPerPage();
+    return Math.ceil(MAX_INVENTORY_SLOTS / currentSlotsPerPage);
+}
 
 /**
  * Update all UI elements
@@ -162,6 +181,14 @@ function updateMobileHUD() {
  * Update inventory UI (AO style) - Show total quantity per item type
  */
 function updateInventory() {
+    // Update slots per page based on current screen size
+    const totalPages = updateSlotsPerPage();
+    
+    // Ajustar página actual si es necesario
+    if (currentInventoryPage >= totalPages) {
+        currentInventoryPage = Math.max(0, totalPages - 1);
+    }
+
     // Update desktop sidebar inventory
     updateInventorySection('#inventory');
 
@@ -179,10 +206,10 @@ function updateInventorySection(selector) {
 
     const slotElements = inventoryContainer.querySelectorAll('.item-slot');
     
-    // Calculate which items to show based on current page
-    const startIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE;
+    // Calculate which items to show based on current page and current slots per page
+    const startIndex = currentInventoryPage * currentSlotsPerPage;
 
-    for (let i = 0; i < INVENTORY_SLOTS_PER_PAGE && i < slotElements.length; i++) {
+    for (let i = 0; i < currentSlotsPerPage && i < slotElements.length; i++) {
         const actualIndex = startIndex + i;
         const slotEl = slotElements[i];
         if (!slotEl) continue;
@@ -304,6 +331,8 @@ function initInventoryPagination() {
         document.querySelector('.inventory-bottom .inventory')
     ];
     
+    const totalPages = updateSlotsPerPage();
+    
     inventoryContainers.forEach(container => {
         if (!container) return;
         
@@ -356,6 +385,11 @@ function initInventoryPagination() {
         // Insert after inventory container
         container.parentNode.insertBefore(paginationDiv, container.nextSibling);
     });
+    
+    // Añadir listener para resize de ventana
+    window.addEventListener('resize', () => {
+        updateInventory();
+    });
 }
 
 /**
@@ -363,6 +397,7 @@ function initInventoryPagination() {
  * @param {number} direction - Direction to change page (-1 for previous, 1 for next)
  */
 function changeInventoryPage(direction) {
+    const totalPages = updateSlotsPerPage();
     currentInventoryPage += direction;
     
     // Clamp to valid range
@@ -388,19 +423,19 @@ function initInventoryListeners(selector) {
 
     const slotElements = inventoryContainer.querySelectorAll('.item-slot');
 
-    for (let i = 0; i < INVENTORY_SLOTS_PER_PAGE && i < slotElements.length; i++) {
+    for (let i = 0; i < slotElements.length; i++) {
         const slotEl = slotElements[i];
         if (slotEl) {
             // Left click to equip/use
             slotEl.addEventListener('click', () => {
-                const actualIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE + i;
+                const actualIndex = currentInventoryPage * currentSlotsPerPage + i;
                 toggleEquipItem(actualIndex);
             });
 
             // Right click to open context menu (desktop only)
             slotEl.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                const actualIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE + i;
+                const actualIndex = currentInventoryPage * currentSlotsPerPage + i;
                 const item = gameState.player.inventory[actualIndex];
                 if (!item) return; // No menu for empty slots
 
@@ -411,7 +446,7 @@ function initInventoryListeners(selector) {
             let touchTimer;
             slotEl.addEventListener('touchstart', (e) => {
                 touchTimer = setTimeout(() => {
-                    const actualIndex = currentInventoryPage * INVENTORY_SLOTS_PER_PAGE + i;
+                    const actualIndex = currentInventoryPage * currentSlotsPerPage + i;
                     const item = gameState.player.inventory[actualIndex];
                     if (item) {
                         // Show mobile context menu or just use item
