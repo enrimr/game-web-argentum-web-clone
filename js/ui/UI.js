@@ -355,11 +355,12 @@ function initInventoryPagination() {
         paginationDiv.style.padding = '5px';
         paginationDiv.style.background = 'rgba(0,0,0,0.3)';
         paginationDiv.style.borderRadius = '3px';
+        paginationDiv.style.gap = '5px';
         
         // Previous button
         const prevBtn = document.createElement('button');
         prevBtn.textContent = '◀️';
-        prevBtn.className = 'inv-page-btn';
+        prevBtn.className = 'inv-page-btn inv-prev-btn';
         prevBtn.style.background = '#4a5568';
         prevBtn.style.color = 'white';
         prevBtn.style.border = 'none';
@@ -368,17 +369,10 @@ function initInventoryPagination() {
         prevBtn.style.cursor = 'pointer';
         prevBtn.onclick = () => changeInventoryPage(-1);
         
-        // Page indicator
-        const pageIndicator = document.createElement('span');
-        pageIndicator.className = 'page-indicator';
-        pageIndicator.style.color = '#fbbf24';
-        pageIndicator.style.fontSize = '12px';
-        pageIndicator.textContent = `Página ${currentInventoryPage + 1}/${totalPages}`;
-        
         // Next button
         const nextBtn = document.createElement('button');
         nextBtn.textContent = '▶️';
-        nextBtn.className = 'inv-page-btn';
+        nextBtn.className = 'inv-page-btn inv-next-btn';
         nextBtn.style.background = '#4a5568';
         nextBtn.style.color = 'white';
         nextBtn.style.border = 'none';
@@ -388,16 +382,51 @@ function initInventoryPagination() {
         nextBtn.onclick = () => changeInventoryPage(1);
         
         paginationDiv.appendChild(prevBtn);
-        paginationDiv.appendChild(pageIndicator);
         paginationDiv.appendChild(nextBtn);
         
         // Insert after inventory container
         container.parentNode.insertBefore(paginationDiv, container.nextSibling);
     });
     
+    // Actualizar estado inicial de botones
+    updatePaginationButtons();
+    
     // Añadir listener para resize de ventana
     window.addEventListener('resize', () => {
         updateInventory();
+    });
+}
+
+/**
+ * Update pagination buttons state
+ */
+function updatePaginationButtons() {
+    const totalPages = Math.ceil(MAX_INVENTORY_SLOTS / currentSlotsPerPage);
+    
+    // Actualizar botones prev
+    document.querySelectorAll('.inv-prev-btn').forEach(btn => {
+        if (currentInventoryPage === 0) {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        } else {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
+    });
+    
+    // Actualizar botones next
+    document.querySelectorAll('.inv-next-btn').forEach(btn => {
+        if (currentInventoryPage >= totalPages - 1) {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        } else {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
     });
 }
 
@@ -416,10 +445,8 @@ function changeInventoryPage(direction) {
     // Update inventory display
     updateInventory();
     
-    // Update page indicators
-    document.querySelectorAll('.page-indicator').forEach(indicator => {
-        indicator.textContent = `Página ${currentInventoryPage + 1}/${totalPages}`;
-    });
+    // Update pagination buttons state
+    updatePaginationButtons();
 }
 
 /**
