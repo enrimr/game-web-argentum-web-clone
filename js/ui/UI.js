@@ -131,60 +131,31 @@ function updateMobileHUD() {
         miniExpBar.style.width = expPercent + '%';
     }
 
-    // Update panel expandido
-    const expandedHp = document.getElementById('expandedHp');
-    const expandedHpMax = document.getElementById('expandedHpMax');
-    const expandedHpBar = document.getElementById('expandedHpBar');
-    const expandedMana = document.getElementById('expandedMana');
-    const expandedManaMax = document.getElementById('expandedManaMax');
-    const expandedManaBar = document.getElementById('expandedManaBar');
-    const expandedExp = document.getElementById('expandedExp');
-    const expandedExpMax = document.getElementById('expandedExpMax');
-    const expandedExpBar = document.getElementById('expandedExpBar');
-    const expandedLevel = document.getElementById('expandedLevel');
-    const expandedGold = document.getElementById('expandedGold');
-    const expandedMap = document.getElementById('expandedMap');
-    const expandedPos = document.getElementById('expandedPos');
+    // Update grid de info adicional
+    const miniLevel = document.getElementById('miniLevel');
+    const miniGold = document.getElementById('miniGold');
+    const miniMap = document.getElementById('miniMap');
+    const miniPos = document.getElementById('miniPos');
 
-    if (expandedHp) expandedHp.textContent = gameState.player.hp;
-    if (expandedHpMax) expandedHpMax.textContent = gameState.player.maxHp;
-    if (expandedMana) expandedMana.textContent = gameState.player.mana;
-    if (expandedManaMax) expandedManaMax.textContent = gameState.player.maxMana;
-    if (expandedExp) expandedExp.textContent = gameState.player.exp;
-    if (expandedExpMax) expandedExpMax.textContent = gameState.player.expToNextLevel;
-    if (expandedLevel) expandedLevel.textContent = gameState.player.level;
-    if (expandedGold) expandedGold.textContent = gameState.player.gold;
-
-    // Update barras de progreso del panel expandido
-    if (expandedHpBar) {
-        const hpPercent = (gameState.player.hp / gameState.player.maxHp) * 100;
-        expandedHpBar.style.width = hpPercent + '%';
-    }
-    if (expandedManaBar) {
-        const manaPercent = (gameState.player.mana / gameState.player.maxMana) * 100;
-        expandedManaBar.style.width = manaPercent + '%';
-    }
-    if (expandedExpBar) {
-        const expPercent = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
-        expandedExpBar.style.width = expPercent + '%';
-    }
+    if (miniLevel) miniLevel.textContent = gameState.player.level;
+    if (miniGold) miniGold.textContent = gameState.player.gold;
 
     // Update map name
     const mapNames = {
         'field': 'Campo',
         'city': 'Ciudad',
         'dungeon': 'Mazmorra',
-        'newbie_city': 'Ciudad Novatos',
-        'newbie_field': 'Campo Novatos',
-        'dark_forest': 'Bosque Oscuro',
+        'newbie_city': 'Novatos',
+        'newbie_field': 'C.Novatos',
+        'dark_forest': 'B.Oscuro',
         'forest': 'Bosque',
         'canarias_capital': 'Las Palmas',
-        'canarias_playa_canteras': 'Playa Canteras'
+        'canarias_playa_canteras': 'Canteras'
     };
-    if (expandedMap) expandedMap.textContent = mapNames[gameState.currentMap] || 'Campo';
+    if (miniMap) miniMap.textContent = mapNames[gameState.currentMap] || 'Campo';
 
     // Update position
-    if (expandedPos) expandedPos.textContent = `${gameState.player.x},${gameState.player.y}`;
+    if (miniPos) miniPos.textContent = `${gameState.player.x},${gameState.player.y}`;
 }
 
 /**

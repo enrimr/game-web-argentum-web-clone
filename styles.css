@@ -999,24 +999,25 @@ body {
         white-space: nowrap;
     }
 
-    /* NUEVO: Minimalist Mobile HUD */
+    /* NUEVO: Minimalist Mobile HUD - All-in-one */
     .minimalist-hud {
         position: fixed;
         top: 10px;
         left: 10px;
         z-index: 100;
         display: none;
-    }
-
-    /* Mini-barra siempre visible */
-    .mini-stats-bar {
-        display: flex;
-        gap: 6px;
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #ffd700;
         border-radius: 8px;
         padding: 6px 8px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Mini-barras de stats vitales */
+    .mini-stats-bar {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 6px;
     }
 
     .mini-stat {
@@ -1064,194 +1065,37 @@ body {
         z-index: 1;
     }
 
-    /* Botón para expandir */
-    .expand-stats-btn {
-        position: absolute;
-        top: 40px;
-        left: 0;
-        background: rgba(255, 215, 0, 0.9);
-        border: 2px solid #ffd700;
-        color: #000;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .expand-stats-btn:hover {
-        background: rgba(255, 215, 0, 1);
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
-    }
-
-    .expand-stats-btn:active {
-        transform: scale(0.95);
-    }
-
-    /* Panel expandido */
-    .expanded-stats {
-        position: absolute;
-        top: 0;
-        left: 0;
-        background: rgba(0, 0, 0, 0.95);
-        border: 3px solid #ffd700;
-        border-radius: 12px;
-        min-width: 300px;
-        max-width: 90vw;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
-        animation: slideDown 0.3s ease-out;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .expanded-stats-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 15px;
-        border-bottom: 2px solid #ffd700;
-    }
-
-    .expanded-stats-header h4 {
-        margin: 0;
-        color: #ffd700;
-        font-size: 16px;
-        font-weight: bold;
-    }
-
-    .close-stats-btn {
-        background: rgba(244, 67, 54, 0.8);
-        border: 2px solid #f44336;
-        color: white;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s;
-    }
-
-    .close-stats-btn:hover {
-        background: rgba(244, 67, 54, 1);
-        transform: rotate(90deg);
-    }
-
-    .expanded-stats-content {
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    /* Fila de stat con barra */
-    .stat-row {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .stat-icon {
-        font-size: 20px;
-        min-width: 24px;
-        text-align: center;
-    }
-
-    .stat-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .stat-label-value {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: #ffffff;
-        font-weight: bold;
-    }
-
-    .stat-bar-container {
-        height: 14px;
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        border-radius: 7px;
-        overflow: hidden;
-    }
-
-    .stat-bar {
-        height: 100%;
-        transition: width 0.3s ease;
-    }
-
-    .stat-bar.hp-bar-full {
-        background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
-        box-shadow: 0 0 8px rgba(220, 38, 38, 0.5);
-    }
-
-    .stat-bar.mana-bar-full {
-        background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-        box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
-    }
-
-    .stat-bar.exp-bar-full {
-        background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-    }
-
-    /* Grid de stats adicionales */
-    .stats-grid {
+    /* Grid de stats adicionales compacto */
+    .mini-stats-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-top: 8px;
-        padding-top: 12px;
+        gap: 4px;
+        padding-top: 6px;
         border-top: 1px solid rgba(255, 215, 0, 0.3);
     }
 
-    .stat-item {
+    .mini-stat-item {
         display: flex;
-        flex-direction: column;
         align-items: center;
         gap: 4px;
         background: rgba(255, 255, 255, 0.05);
-        padding: 8px;
-        border-radius: 6px;
+        padding: 4px 6px;
+        border-radius: 4px;
         border: 1px solid rgba(255, 215, 0, 0.2);
     }
 
-    .stat-icon-small {
-        font-size: 18px;
+    .mini-stat-icon {
+        font-size: 14px;
     }
 
-    .stat-label-small {
-        font-size: 9px;
-        color: #94a3b8;
-        text-transform: uppercase;
-    }
-
-    .stat-value-small {
-        font-size: 12px;
+    .mini-stat-value {
+        font-size: 10px;
         color: #ffd700;
         font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
     }
 
     /* Ocultar exp-container en móvil */
