@@ -85,36 +85,95 @@
         </div>
     </div>
 
-    <!-- Mobile floating HUD -->
-    <button id="hudToggle" class="mobile-hud-toggle">ℹ️</button>
-    <div id="mobileHUD" class="mobile-hud">
-        <div class="hud-item">
-            <span class="hud-label">❤️ HP:</span>
-            <span class="hud-value"><span id="hudHp">100</span>/<span id="hudHpMax">100</span></span>
+    <!-- Minimalist Mobile HUD -->
+    <div id="minimalistHUD" class="minimalist-hud">
+        <!-- Mini-barra siempre visible -->
+        <div class="mini-stats-bar">
+            <div class="mini-stat hp-stat">
+                <div class="mini-stat-bar hp-bar" id="miniHpBar" style="width: 100%;"></div>
+                <span class="mini-stat-text"><span id="miniHp">100</span>/<span id="miniHpMax">100</span></span>
+            </div>
+            <div class="mini-stat mana-stat">
+                <div class="mini-stat-bar mana-bar" id="miniManaBar" style="width: 100%;"></div>
+                <span class="mini-stat-text"><span id="miniMana">50</span>/<span id="miniManaMax">50</span></span>
+            </div>
         </div>
-        <div class="hud-item">
-            <span class="hud-label">💧 Mana:</span>
-            <span class="hud-value"><span id="hudMana">50</span>/<span id="hudManaMax">50</span></span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">⭐ Nivel:</span>
-            <span class="hud-value"><span id="hudLevel">1</span></span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">💰 Oro:</span>
-            <span class="hud-value"><span id="hudGold">0</span></span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">🗺️ Mapa:</span>
-            <span class="hud-value"><span id="hudMap">Campo</span></span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">📍 Pos:</span>
-            <span class="hud-value"><span id="hudPos">5,5</span></span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">📊 EXP:</span>
-            <span class="hud-value"><span id="hudExp">0/100</span></span>
+        
+        <!-- Botón para expandir -->
+        <button id="expandStatsBtn" class="expand-stats-btn" title="Ver más estadísticas">📊</button>
+        
+        <!-- Panel expandido (oculto por defecto) -->
+        <div id="expandedStats" class="expanded-stats" style="display: none;">
+            <div class="expanded-stats-header">
+                <h4>📊 Estadísticas</h4>
+                <button id="closeStatsBtn" class="close-stats-btn">✕</button>
+            </div>
+            
+            <div class="expanded-stats-content">
+                <!-- Barras de stats vitales -->
+                <div class="stat-row">
+                    <span class="stat-icon">❤️</span>
+                    <div class="stat-info">
+                        <div class="stat-label-value">
+                            <span>HP</span>
+                            <span><span id="expandedHp">100</span>/<span id="expandedHpMax">100</span></span>
+                        </div>
+                        <div class="stat-bar-container">
+                            <div class="stat-bar hp-bar-full" id="expandedHpBar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-icon">💧</span>
+                    <div class="stat-info">
+                        <div class="stat-label-value">
+                            <span>Mana</span>
+                            <span><span id="expandedMana">50</span>/<span id="expandedManaMax">50</span></span>
+                        </div>
+                        <div class="stat-bar-container">
+                            <div class="stat-bar mana-bar-full" id="expandedManaBar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-icon">📊</span>
+                    <div class="stat-info">
+                        <div class="stat-label-value">
+                            <span>EXP</span>
+                            <span><span id="expandedExp">0</span>/<span id="expandedExpMax">100</span></span>
+                        </div>
+                        <div class="stat-bar-container">
+                            <div class="stat-bar exp-bar-full" id="expandedExpBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Info adicional en grid -->
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-icon-small">⭐</span>
+                        <span class="stat-label-small">Nivel</span>
+                        <span class="stat-value-small" id="expandedLevel">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon-small">💰</span>
+                        <span class="stat-label-small">Oro</span>
+                        <span class="stat-value-small" id="expandedGold">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon-small">🗺️</span>
+                        <span class="stat-label-small">Mapa</span>
+                        <span class="stat-value-small" id="expandedMap">Campo</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon-small">📍</span>
+                        <span class="stat-label-small">Pos</span>
+                        <span class="stat-value-small" id="expandedPos">5,5</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
         
@@ -587,25 +646,39 @@
                 });
             }
 
-            // Mobile HUD toggle
-            const hudToggle = document.getElementById('hudToggle');
-            const mobileHUD = document.getElementById('mobileHUD');
+            // Minimalist Mobile HUD toggle
+            const minimalistHUD = document.getElementById('minimalistHUD');
+            const expandStatsBtn = document.getElementById('expandStatsBtn');
+            const expandedStats = document.getElementById('expandedStats');
+            const closeStatsBtn = document.getElementById('closeStatsBtn');
 
-            if (hudToggle && mobileHUD) {
-                let hudVisible = false;
+            if (minimalistHUD) {
+                // Mostrar el HUD minimalista en móvil
+                minimalistHUD.style.display = 'block';
+            }
 
-                hudToggle.addEventListener('click', () => {
-                    hudVisible = !hudVisible;
-                    if (hudVisible) {
-                        mobileHUD.style.display = 'block';
-                        hudToggle.textContent = '❌';
-                        hudToggle.style.background = 'rgba(244, 67, 54, 0.8)';
-                        hudToggle.style.borderColor = '#f44336';
-                    } else {
-                        mobileHUD.style.display = 'none';
-                        hudToggle.textContent = 'ℹ️';
-                        hudToggle.style.background = 'rgba(255, 215, 0, 0.8)';
-                        hudToggle.style.borderColor = '#ffd700';
+            if (expandStatsBtn && expandedStats) {
+                expandStatsBtn.addEventListener('click', () => {
+                    expandedStats.style.display = 'block';
+                    expandStatsBtn.style.display = 'none';
+                });
+            }
+
+            if (closeStatsBtn && expandedStats) {
+                closeStatsBtn.addEventListener('click', () => {
+                    expandedStats.style.display = 'none';
+                    expandStatsBtn.style.display = 'flex';
+                });
+            }
+
+            // Cerrar panel expandido si se hace click fuera de él
+            if (expandedStats) {
+                document.addEventListener('click', (e) => {
+                    if (expandedStats.style.display === 'block' && 
+                        !expandedStats.contains(e.target) && 
+                        !expandStatsBtn.contains(e.target)) {
+                        expandedStats.style.display = 'none';
+                        expandStatsBtn.style.display = 'flex';
                     }
                 });
             }
