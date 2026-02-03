@@ -96,10 +96,10 @@ function updatePlayerStats() {
 }
 
 /**
- * Update mobile floating HUD (Minimalist version)
+ * Update mobile floating HUD (Single row version)
  */
 function updateMobileHUD() {
-    // Update mini-barra siempre visible
+    // Update barras con valores (HP, Mana, EXP)
     const miniHp = document.getElementById('miniHp');
     const miniHpMax = document.getElementById('miniHpMax');
     const miniHpBar = document.getElementById('miniHpBar');
@@ -117,7 +117,7 @@ function updateMobileHUD() {
     if (miniExp) miniExp.textContent = gameState.player.exp;
     if (miniExpMax) miniExpMax.textContent = gameState.player.expToNextLevel;
 
-    // Update mini-barras de progreso
+    // Update barras de progreso
     if (miniHpBar) {
         const hpPercent = (gameState.player.hp / gameState.player.maxHp) * 100;
         miniHpBar.style.width = hpPercent + '%';
@@ -131,7 +131,7 @@ function updateMobileHUD() {
         miniExpBar.style.width = expPercent + '%';
     }
 
-    // Update grid de info adicional
+    // Update stats simples (Nivel, Oro, Mapa, Pos)
     const miniLevel = document.getElementById('miniLevel');
     const miniGold = document.getElementById('miniGold');
     const miniMap = document.getElementById('miniMap');
@@ -140,17 +140,17 @@ function updateMobileHUD() {
     if (miniLevel) miniLevel.textContent = gameState.player.level;
     if (miniGold) miniGold.textContent = gameState.player.gold;
 
-    // Update map name
+    // Update map name (abreviado para single row)
     const mapNames = {
         'field': 'Campo',
         'city': 'Ciudad',
-        'dungeon': 'Mazmorra',
-        'newbie_city': 'Novatos',
-        'newbie_field': 'C.Novatos',
-        'dark_forest': 'B.Oscuro',
-        'forest': 'Bosque',
-        'canarias_capital': 'Las Palmas',
-        'canarias_playa_canteras': 'Canteras'
+        'dungeon': 'Maz',
+        'newbie_city': 'Nov',
+        'newbie_field': 'CNov',
+        'dark_forest': 'BOsc',
+        'forest': 'Bosq',
+        'canarias_capital': 'LP',
+        'canarias_playa_canteras': 'Cant'
     };
     if (miniMap) miniMap.textContent = mapNames[gameState.currentMap] || 'Campo';
 

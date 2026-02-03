@@ -85,40 +85,48 @@
         </div>
     </div>
 
-    <!-- Minimalist Mobile HUD - All-in-one -->
+    <!-- Minimalist Mobile HUD - Single row -->
     <div id="minimalistHUD" class="minimalist-hud">
-        <!-- Barras de stats vitales -->
-        <div class="mini-stats-bar">
+        <div class="mini-stats-row">
+            <!-- Nivel -->
+            <div class="mini-stat-simple">
+                <span class="mini-stat-label">⭐</span>
+                <span class="mini-stat-value" id="miniLevel">1</span>
+            </div>
+            
+            <!-- HP con barra -->
             <div class="mini-stat hp-stat">
                 <div class="mini-stat-bar hp-bar" id="miniHpBar" style="width: 100%;"></div>
                 <span class="mini-stat-text"><span id="miniHp">100</span>/<span id="miniHpMax">100</span></span>
             </div>
+            
+            <!-- Mana con barra -->
             <div class="mini-stat mana-stat">
                 <div class="mini-stat-bar mana-bar" id="miniManaBar" style="width: 100%;"></div>
                 <span class="mini-stat-text"><span id="miniMana">50</span>/<span id="miniManaMax">50</span></span>
             </div>
+            
+            <!-- EXP con barra -->
             <div class="mini-stat exp-stat">
                 <div class="mini-stat-bar exp-bar" id="miniExpBar" style="width: 0%;"></div>
                 <span class="mini-stat-text"><span id="miniExp">0</span>/<span id="miniExpMax">100</span></span>
             </div>
-        </div>
-        
-        <!-- Info adicional en grid compacto -->
-        <div class="mini-stats-grid">
-            <div class="mini-stat-item">
-                <span class="mini-stat-icon">⭐</span>
-                <span class="mini-stat-value" id="miniLevel">1</span>
-            </div>
-            <div class="mini-stat-item">
-                <span class="mini-stat-icon">💰</span>
+            
+            <!-- Oro -->
+            <div class="mini-stat-simple">
+                <span class="mini-stat-label">💰</span>
                 <span class="mini-stat-value" id="miniGold">0</span>
             </div>
-            <div class="mini-stat-item">
-                <span class="mini-stat-icon">🗺️</span>
+            
+            <!-- Mapa -->
+            <div class="mini-stat-simple">
+                <span class="mini-stat-label">🗺️</span>
                 <span class="mini-stat-value" id="miniMap">Campo</span>
             </div>
-            <div class="mini-stat-item">
-                <span class="mini-stat-icon">📍</span>
+            
+            <!-- Posición -->
+            <div class="mini-stat-simple">
+                <span class="mini-stat-label">📍</span>
                 <span class="mini-stat-value" id="miniPos">5,5</span>
             </div>
         </div>
