@@ -5,8 +5,8 @@
 class ApiClient {
     constructor() {
         // URL base del servidor (puede configurarse desde variables de entorno)
-        //this.baseUrl = 'http://localhost:3000/api'; // TESTING: usar servidor local
-        this.baseUrl = 'https://calima-online-server-production.up.railway.app/api'
+        this.baseUrl = 'http://localhost:3000/api'; // TESTING: usar servidor local
+        //this.baseUrl = 'https://calima-online-server-production.up.railway.app/api'
         this.token = localStorage.getItem('authToken');
     }
 
