@@ -706,7 +706,13 @@ export class LoginScreen {
             'clerigo': 'cleric',
             'asesino': 'assassin',
             'paladin': 'paladin',
-            'bardo': 'bard'
+            'bardo': 'bard',
+            'ladron': 'thief',
+            'bandido': 'bandit',
+            'cazador': 'hunter',
+            'druida': 'druid',
+            'trabajador': 'worker',
+            'pirata': 'pirate'
         };
 
         const clientClass = classMapReverse[serverChar.class] || 'warrior';
@@ -1353,7 +1359,13 @@ export class LoginScreen {
                 'cleric': 'clerigo',
                 'assassin': 'asesino',
                 'paladin': 'paladin',
-                'bard': 'bardo'
+                'bard': 'bardo',
+                'thief': 'ladron',
+                'bandit': 'bandido',
+                'hunter': 'cazador',
+                'druid': 'druida',
+                'worker': 'trabajador',
+                'pirate': 'pirata'
             };
 
             const serverClass = classMap[data.class] || data.class;
