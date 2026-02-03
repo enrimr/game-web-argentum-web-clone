@@ -579,12 +579,16 @@ body {
         margin: 0 !important;
         flex: 1;
         max-width: calc(50% - 5px);
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
     .inventory-bottom .inventory {
         display: flex !important;
         gap: 5px !important;
         justify-content: flex-start;
+        flex: 1;
     }
 
     .inventory-bottom .item-slot {
@@ -598,7 +602,27 @@ body {
         font-size: 12px !important;
     }
 
-    /* Barra de hechizos móvil */
+    /* Botones de paginación del inventario móvil */
+    .inventory-bottom .inventory-pagination {
+        display: flex !important;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    .inventory-bottom .inv-page-btn {
+        padding: 2px 6px !important;
+        font-size: 10px !important;
+        height: 15px !important;
+    }
+
+    .inventory-bottom .page-indicator {
+        display: none !important;
+    }
+
+    /* Barra de hechizos móvil - Alineada a la derecha */
     .mobile-spells-bar {
         position: static;
         background: rgba(0, 0, 0, 0.85);
@@ -609,6 +633,7 @@ body {
         display: flex;
         gap: 5px;
         flex: 0 0 auto;
+        margin-left: auto;
     }
 
     .spell-slot {
