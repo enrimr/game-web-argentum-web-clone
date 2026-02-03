@@ -1089,19 +1089,18 @@ body {
         white-space: nowrap;
     }
 
-    /* Barra de hechizos móvil */
+    /* Barra de hechizos móvil - Posicionada sobre el canvas */
     .mobile-spells-bar {
-        position: fixed;
-        top: 42px;
+        position: absolute;
+        bottom: 10px;
         left: 10px;
-        z-index: 99;
+        z-index: 10;
         display: none;
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #8b5cf6;
         border-radius: 6px;
         padding: 4px 6px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        display: flex;
         gap: 5px;
     }
 
