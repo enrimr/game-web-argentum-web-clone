@@ -209,11 +209,20 @@ function updateInventorySection(selector) {
     // Calculate which items to show based on current page and current slots per page
     const startIndex = currentInventoryPage * currentSlotsPerPage;
 
-    for (let i = 0; i < currentSlotsPerPage && i < slotElements.length; i++) {
-        const actualIndex = startIndex + i;
+    // Iterar sobre TODOS los slots
+    for (let i = 0; i < slotElements.length; i++) {
         const slotEl = slotElements[i];
         if (!slotEl) continue;
 
+        // Ocultar slots que exceden currentSlotsPerPage
+        if (i >= currentSlotsPerPage) {
+            slotEl.style.display = 'none';
+            continue;
+        } else {
+            slotEl.style.display = 'flex';
+        }
+
+        const actualIndex = startIndex + i;
         const item = gameState.player.inventory[actualIndex];
 
         // Clear previous content and classes
