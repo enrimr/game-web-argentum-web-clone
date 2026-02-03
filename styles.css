@@ -622,9 +622,18 @@ body {
         display: none !important;
     }
 
-    /* Barra de hechizos móvil - Alineada a la derecha */
-    .mobile-spells-bar {
+    /* Contenedor de hechizos con paginación */
+    .mobile-spells-container {
         position: static;
+        flex: 0 0 auto;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Barra de hechizos móvil */
+    .mobile-spells-bar {
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #8b5cf6;
         border-radius: 6px;
@@ -632,8 +641,34 @@ body {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         display: flex;
         gap: 5px;
-        flex: 0 0 auto;
-        margin-left: auto;
+    }
+
+    /* Paginación de hechizos */
+    .spells-pagination {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .spell-page-btn {
+        background: #4a5568;
+        color: white;
+        border: none;
+        padding: 2px 6px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 10px;
+        height: 15px;
+        transition: all 0.3s;
+    }
+
+    .spell-page-btn:hover:not(:disabled) {
+        background: #6b7280;
+    }
+
+    .spell-page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .spell-slot {
@@ -1235,8 +1270,7 @@ body {
     /* Barra de hechizos móvil - Posicionada sobre el canvas */
     .mobile-spells-bar {
         position: absolute;
-        bottom: 10px;
-        left: 10px;
+        right: 5px;
         z-index: 10;
         display: none;
         background: rgba(0, 0, 0, 0.85);

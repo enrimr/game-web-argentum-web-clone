@@ -13,8 +13,11 @@ const uiState = {
     visible: false,                // Visibilidad del panel de hechizos
     selectedSpellIndex: -1,        // Índice del hechizo seleccionado actualmente
     waitingForTarget: false,       // Si estamos esperando que el jugador seleccione un objetivo
-    currentSpellKey: null          // Clave del hechizo que se está lanzando actualmente
+    currentSpellKey: null,         // Clave del hechizo que se está lanzando actualmente
+    currentSpellPage: 0            // Página actual de hechizos en barra móvil
 };
+
+const SPELLS_PER_PAGE = 4; // 4 hechizos por página en móvil
 
 /**
  * Inicializar la UI de hechizos
@@ -60,14 +63,72 @@ function initMobileSpellsBarEvents() {
 
     spellSlots.forEach((slot, index) => {
         slot.addEventListener('click', () => {
-            // Solo procesar si el slot tiene un hechizo
-            if (index < playerSpells.length) {
-                selectSpell(index);
+            // Calcular índice real del hechizo considerando paginación
+            const actualIndex = uiState.currentSpellPage * SPELLS_PER_PAGE + index;
+            if (actualIndex < playerSpells.length) {
+                selectSpell(actualIndex);
                 // Lanzar directamente el hechizo seleccionado
                 handleCastButtonClick();
             }
         });
     });
+
+    // Configurar botones de paginación
+    const prevBtn = document.querySelector('.spell-prev-btn');
+    const nextBtn = document.querySelector('.spell-next-btn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => changeSpellPage(-1));
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => changeSpellPage(1));
+    }
+}
+
+/**
+ * Cambiar página de hechizos
+ * @param {number} direction - Dirección (-1 anterior, 1 siguiente)
+ */
+function changeSpellPage(direction) {
+    const totalPages = Math.ceil(playerSpells.length / SPELLS_PER_PAGE);
+    uiState.currentSpellPage += direction;
+    
+    // Clamp
+    if (uiState.currentSpellPage < 0) uiState.currentSpellPage = 0;
+    if (uiState.currentSpellPage >= totalPages) uiState.currentSpellPage = totalPages - 1;
+    
+    updateMobileSpellsBar();
+    updateSpellPaginationButtons();
+}
+
+/**
+ * Actualizar estado de botones de paginación de hechizos
+ */
+function updateSpellPaginationButtons() {
+    const totalPages = Math.ceil(playerSpells.length / SPELLS_PER_PAGE);
+    
+    const prevBtn = document.querySelector('.spell-prev-btn');
+    const nextBtn = document.querySelector('.spell-next-btn');
+    
+    if (prevBtn) {
+        if (uiState.currentSpellPage === 0) {
+            prevBtn.disabled = true;
+            prevBtn.style.opacity = '0.5';
+        } else {
+            prevBtn.disabled = false;
+            prevBtn.style.opacity = '1';
+        }
+    }
+    
+    if (nextBtn) {
+        if (uiState.currentSpellPage >= totalPages - 1 || playerSpells.length <= SPELLS_PER_PAGE) {
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
+        } else {
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+        }
+    }
 }
 
 /**
@@ -159,15 +220,18 @@ function updateMobileSpellsBar() {
     if (!spellsBar) return;
 
     const spellSlots = spellsBar.querySelectorAll('.spell-slot');
+    const startIndex = uiState.currentSpellPage * SPELLS_PER_PAGE;
 
-    // Actualizar cada slot (máximo 4 hechizos)
+    // Actualizar cada slot (máximo 4 hechizos por página)
     spellSlots.forEach((slot, index) => {
         // Limpiar contenido previo
         slot.textContent = '';
         slot.classList.remove('empty', 'active');
 
-        if (index < playerSpells.length) {
-            const playerSpell = playerSpells[index];
+        const actualIndex = startIndex + index;
+        
+        if (actualIndex < playerSpells.length) {
+            const playerSpell = playerSpells[actualIndex];
             const spell = SPELLS[playerSpell.key];
 
             if (spell) {
@@ -182,7 +246,7 @@ function updateMobileSpellsBar() {
                 slot.appendChild(manaCost);
 
                 // Marcar como activo si está seleccionado
-                if (index === uiState.selectedSpellIndex) {
+                if (actualIndex === uiState.selectedSpellIndex) {
                     slot.classList.add('active');
                 }
             } else {
@@ -199,6 +263,9 @@ function updateMobileSpellsBar() {
 
     // Mostrar la barra si hay hechizos
     spellsBar.style.display = playerSpells.length > 0 ? 'flex' : 'none';
+    
+    // Actualizar estado de botones de paginación
+    updateSpellPaginationButtons();
 }
 
 /**
