@@ -6,8 +6,8 @@
 class SocketClient {
     constructor() {
         this.socket = null;
-        this.serverUrl = 'http://localhost:3000'; // TESTING: Usar servidor local
-        //this.serverUrl = 'https://calima-online-server-production.up.railway.app';
+        //this.serverUrl = 'http://localhost:3000'; // TESTING: Usar servidor local
+        this.serverUrl = 'https://calima-online-server-production.up.railway.app';
         this.isConnected = false;
         this.characterId = null;
         this.eventHandlers = new Map();
