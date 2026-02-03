@@ -1011,7 +1011,7 @@ body {
     /* Mini-barra siempre visible */
     .mini-stats-bar {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #ffd700;
         border-radius: 8px;
@@ -1021,7 +1021,7 @@ body {
 
     .mini-stat {
         position: relative;
-        min-width: 70px;
+        min-width: 65px;
         height: 24px;
         background: rgba(0, 0, 0, 0.5);
         border-radius: 4px;
@@ -1044,6 +1044,11 @@ body {
     .mini-stat-bar.mana-bar {
         background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
         box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+    }
+
+    .mini-stat-bar.exp-bar {
+        background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
     }
 
     .mini-stat-text {

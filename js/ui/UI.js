@@ -106,11 +106,16 @@ function updateMobileHUD() {
     const miniMana = document.getElementById('miniMana');
     const miniManaMax = document.getElementById('miniManaMax');
     const miniManaBar = document.getElementById('miniManaBar');
+    const miniExp = document.getElementById('miniExp');
+    const miniExpMax = document.getElementById('miniExpMax');
+    const miniExpBar = document.getElementById('miniExpBar');
 
     if (miniHp) miniHp.textContent = gameState.player.hp;
     if (miniHpMax) miniHpMax.textContent = gameState.player.maxHp;
     if (miniMana) miniMana.textContent = gameState.player.mana;
     if (miniManaMax) miniManaMax.textContent = gameState.player.maxMana;
+    if (miniExp) miniExp.textContent = gameState.player.exp;
+    if (miniExpMax) miniExpMax.textContent = gameState.player.expToNextLevel;
 
     // Update mini-barras de progreso
     if (miniHpBar) {
@@ -120,6 +125,10 @@ function updateMobileHUD() {
     if (miniManaBar) {
         const manaPercent = (gameState.player.mana / gameState.player.maxMana) * 100;
         miniManaBar.style.width = manaPercent + '%';
+    }
+    if (miniExpBar) {
+        const expPercent = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
+        miniExpBar.style.width = expPercent + '%';
     }
 
     // Update panel expandido
