@@ -6,8 +6,8 @@
 class SocketClient {
     constructor() {
         this.socket = null;
-        //this.serverUrl = 'http://localhost:3000'; // TESTING: Usar servidor local
-        this.serverUrl = 'https://calima-online-server-production.up.railway.app';
+        this.serverUrl = 'http://localhost:3000'; // TESTING: Usar servidor local
+        //this.serverUrl = 'https://calima-online-server-production.up.railway.app';
         this.isConnected = false;
         this.characterId = null;
         this.eventHandlers = new Map();
@@ -157,6 +157,67 @@ class SocketClient {
             console.log('⛪ Resultado de resurrección:', data);
             this.emit('resurrect_result', data);
         });
+
+        // ===== EVENTOS DE NPCs SINCRONIZADOS =====
+
+        // Evento: NPC spawneado
+        this.socket.on('npc_spawned', (data) => {
+            console.log('✨ NPC spawneado:', data.name, `en (${data.position.x}, ${data.position.y})`);
+            this.emit('npc_spawned', data);
+        });
+
+        // Evento: NPC se movió
+        this.socket.on('npc_moved', (data) => {
+            this.emit('npc_moved', data);
+        });
+
+        // Evento: HP del NPC cambió
+        this.socket.on('npc_hp_changed', (data) => {
+            console.log(`💔 ${data.instanceId} recibió ${data.damage} de daño (HP: ${data.hp}/${data.maxHp})`);
+            this.emit('npc_hp_changed', data);
+        });
+
+        // Evento: NPC murió
+        this.socket.on('npc_died', (data) => {
+            console.log(`💀 NPC murió: ${data.npcName}`);
+            this.emit('npc_died', data);
+        });
+
+        // Evento: NPC respawneó
+        this.socket.on('npc_respawned', (data) => {
+            console.log('🔄 NPC respawneó:', data.name);
+            this.emit('npc_respawned', data);
+        });
+
+        // Evento: Recompensa de NPC recibida
+        this.socket.on('npc_reward', (data) => {
+            console.log('💰 Recompensa de NPC:', data);
+            this.emit('npc_reward', data);
+        });
+
+        // Evento: Loot dropeado por NPC
+        this.socket.on('npc_loot_dropped', (data) => {
+            console.log('📦 Loot dropeado:', data.items);
+            this.emit('npc_loot_dropped', data);
+        });
+
+        // Evento: Acción de combate de NPC
+        this.socket.on('npc_combat_action', (data) => {
+            console.log('⚔️ NPC en combate:', data);
+            this.emit('npc_combat_action', data);
+        });
+
+        // Evento: NPC atacó a jugador
+        this.socket.on('npc_attacked_player', (data) => {
+            console.log('⚠️ Fuiste atacado por NPC:', data.npcName, `(${data.damage} daño)`);
+            this.emit('npc_attacked_player', data);
+        });
+
+        // Evento: Resultado de ataque a NPC
+        this.socket.on('attack_npc_result', (data) => {
+            console.log('⚔️ Resultado de ataque a NPC:', data);
+            this.emit('attack_npc_result', data);
+        });
     }
 
     /**
@@ -227,6 +288,28 @@ class SocketClient {
         if (equipment) data.equipment = equipment;
 
         this.socket.emit('update_stats', data);
+    }
+
+    /**
+     * Atacar a un NPC
+     * @param {string} instanceId - ID de la instancia del NPC
+     * @param {string} weaponType - Tipo de arma (melee, ranged)
+     * @param {object} position - Posición del jugador {x, y}
+     */
+    attackNPC(instanceId, weaponType = 'melee', position) {
+        if (!this.socket || !this.socket.connected) {
+            console.error('Socket no conectado, no se puede atacar NPC');
+            return;
+        }
+
+        const data = {
+            instanceId,
+            weaponType,
+            position
+        };
+
+        console.log('⚔️ Enviando ataque a NPC:', data);
+        this.socket.emit('attack_npc', data);
     }
 
     /**

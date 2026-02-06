@@ -60,6 +60,10 @@
                     <span class="nav-icon">🟢</span>
                     <span class="nav-text">Jugadores Online</span>
                 </a>
+                <a href="#" class="nav-item" data-section="npcs">
+                    <span class="nav-icon">🎭</span>
+                    <span class="nav-text">NPCs Activos</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <button id="logoutBtn" class="btn btn-secondary btn-block">
@@ -206,6 +210,24 @@
                 <div id="onlineSection" class="content-section">
                     <div class="online-players-grid" id="onlinePlayersGrid">
                         <div class="loading-card">Cargando...</div>
+                    </div>
+                </div>
+
+                <!-- NPCs Activos -->
+                <div id="npcsSection" class="content-section">
+                    <div class="section-toolbar">
+                        <select id="mapFilter" class="filter-select">
+                            <option value="">Todos los mapas</option>
+                        </select>
+                        <div class="stats-summary" id="npcStatsSummary">
+                            Total: <strong id="totalNPCs">0</strong> | 
+                            Vivos: <strong id="aliveNPCs">0</strong> | 
+                            Muertos: <strong id="deadNPCs">0</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="npcs-by-map" id="npcsByMap">
+                        <div class="loading-card">Cargando NPCs...</div>
                     </div>
                 </div>
             </div>

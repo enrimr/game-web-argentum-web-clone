@@ -55,7 +55,16 @@ export function getEntityAtPosition(x, y) {
         }
     }
 
-    // Verificar NPCs
+    // Verificar NPCs sincronizados del servidor (en modo online)
+    if (gameState.isOnline && gameState.syncedNPCs) {
+        for (const [instanceId, npc] of gameState.syncedNPCs) {
+            if (npc.map === gameState.currentMap && npc.x === x && npc.y === y && npc.isAlive) {
+                return { type: 'syncedNPC', entity: npc, instanceId: instanceId };
+            }
+        }
+    }
+
+    // Verificar NPCs locales
     for (const npc of gameState.npcs) {
         if (npc.x === x && npc.y === y) {
             return { type: 'npc', entity: npc };

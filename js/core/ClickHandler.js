@@ -149,6 +149,9 @@ function handleEntityClick(clickedEntity, worldCoords) {
         case 'bot':
             handleBotClick(clickedEntity.entity);
             break;
+        case 'syncedNPC':
+            handleSyncedNPCClick(clickedEntity.entity, clickedEntity.instanceId);
+            break;
         case 'enemy':
             handleEnemyClick(clickedEntity.entity);
             break;
@@ -533,4 +536,86 @@ function handleOnlinePlayerClick(player, socketId) {
         setAutoMoveTarget(playerX, playerY, 'onlinePlayer', { player, socketId });
         addChatMessage('system', `🎯 Objetivo: Jugador ${player.username}`);
     }
+}
+
+/**
+ * Manejar clic en NPC sincronizado del servidor
+ * @param {Object} npc - El NPC sincronizado clickeado
+ * @param {string} instanceId - Instance ID del NPC
+ */
+function handleSyncedNPCClick(npc, instanceId) {
+    console.log(`🎭 Clic en NPC sincronizado: ${npc.name} (${instanceId})`);
+    
+    // Los fantasmas no pueden atacar
+    if (gameState.player.isGhost) {
+        addChatMessage('system', '👻 Como fantasma no puedes atacar.');
+        return;
+    }
+
+    // No atacar NPCs muertos
+    if (!npc.isAlive) {
+        addChatMessage('system', '❌ Este NPC ya está muerto.');
+        return;
+    }
+
+    // Verificar si el NPC es hostil (atacable)
+    if (npc.behavior && !npc.behavior.attackable) {
+        addChatMessage('system', '❌ Este NPC no puede ser atacado.');
+        return;
+    }
+    
+    const dist = Math.abs(npc.x - gameState.player.x) + Math.abs(npc.y - gameState.player.y);
+
+    // Verificar si el jugador tiene arco y flechas equipadas para atacar a distancia
+    import('../systems/Inventory.js').then(({ hasRangedWeaponEquipped, hasAmmunitionEquipped }) => {
+        if (hasRangedWeaponEquipped() && hasAmmunitionEquipped()) {
+            console.log(`🏹 Atacando NPC a distancia con arco`);
+
+            // Si el NPC no está en la dirección a la que mira el jugador, girar primero
+            if (!isPlayerFacingTarget(npc.x, npc.y)) {
+                updatePlayerFacingTowardsTarget(npc.x, npc.y);
+            }
+
+            // Atacar al NPC a distancia
+            import('../api/SocketClient.js').then(({ default: socketClient }) => {
+                socketClient.attackNPC(instanceId, 'ranged', {
+                    x: gameState.player.x,
+                    y: gameState.player.y
+                });
+                
+                import('./Renderer.js').then(({ setPlayerAnimationState }) => {
+                    setPlayerAnimationState('attacking');
+                });
+            });
+
+            return;
+        } else {
+            // Si está adyacente (distancia = 1), atacar cuerpo a cuerpo directamente
+            if (dist === 1) {
+                console.log(`⚔️ Atacando directamente a NPC adyacente cuerpo a cuerpo`);
+
+                // Actualizar la dirección del jugador para mirar hacia el NPC
+                updatePlayerFacingTowardsTarget(npc.x, npc.y);
+
+                // Atacar al NPC
+                import('../api/SocketClient.js').then(({ default: socketClient }) => {
+                    socketClient.attackNPC(instanceId, 'melee', {
+                        x: gameState.player.x,
+                        y: gameState.player.y
+                    });
+                    
+                    import('./Renderer.js').then(({ setPlayerAnimationState }) => {
+                        setPlayerAnimationState('attacking');
+                    });
+                });
+
+                return;
+            } else {
+                // Si no está adyacente, moverse hacia el NPC
+                console.log(`🚶 Moviéndose hacia NPC para atacar`);
+                setAutoMoveTarget(npc.x, npc.y, 'syncedNPC', { npc, instanceId });
+                addChatMessage('system', `🎯 Objetivo: ${npc.name}`);
+            }
+        }
+    });
 }

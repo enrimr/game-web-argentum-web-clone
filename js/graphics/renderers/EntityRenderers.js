@@ -320,3 +320,82 @@ export function renderProjectiles(camera, ctx) {
         }
     }
 }
+
+/**
+ * Render synced NPCs from server
+ * @param {Object} camera - Camera position {x, y}
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ */
+export function renderSyncedNPCs(camera, ctx) {
+    // Skip if not online or no synced NPCs
+    if (!gameState.isOnline || !gameState.syncedNPCs) {
+        return;
+    }
+    
+    // Skip rendering if layer is disabled in debug mode
+    if (!layerVisibility.enemies) return;
+    
+    for (const [instanceId, npc] of gameState.syncedNPCs) {
+        // Solo renderizar si está en el mismo mapa y vivo
+        if (npc.map !== gameState.currentMap || !npc.isAlive) {
+            continue;
+        }
+        
+        // Si estamos dentro de un edificio, solo mostrar NPCs dentro del mismo
+        if (gameState.playerInBuilding && !isInsideCurrentBuilding(npc.x, npc.y)) {
+            continue;
+        }
+        
+        if (isInViewport(npc.x, npc.y, camera)) {
+            const screenPos = worldToScreen(npc.x, npc.y);
+            
+            // Usar sprite de enemigo basado en el npcTypeId
+            // 1 = Goblin, 2 = Araña, 3 = Lobo, 100 = Sacerdote
+            let enemyType = 'goblin'; // Por defecto
+            
+            switch(npc.npcTypeId) {
+                case 1:
+                    enemyType = 'goblin';
+                    break;
+                case 2:
+                    enemyType = 'spider';
+                    break;
+                case 3:
+                    enemyType = 'wolf';
+                    break;
+                case 100:
+                    // Sacerdote - usar sprite de NPC
+                    enemyType = null; // No renderizar como enemigo
+                    break;
+                default:
+                    enemyType = 'goblin';
+            }
+            
+            // Si es un NPC no hostil (como sacerdote), usar sprite de NPC
+            if (npc.behavior && !npc.behavior.hostile) {
+                // Usar sprite de NPC estándar
+                const npcSprite = sprites.npc || sprites.player;
+                if (npcSprite) {
+                    ctx.drawImage(npcSprite, screenPos.x, screenPos.y);
+                }
+            } else if (enemyType) {
+                // Usar sprite de enemigo
+                const enemySprite = getEnemySprite(enemyType);
+                if (enemySprite) {
+                    ctx.drawImage(enemySprite, screenPos.x, screenPos.y);
+                }
+            }
+            
+            // Dibujar barra de salud
+            renderHealthBar(screenPos.x, screenPos.y, npc.hp, npc.maxHp, ctx);
+            
+            // Dibujar nombre debajo del NPC (solo si no es hostil o en debug)
+            if (npc.behavior && !npc.behavior.hostile) {
+                ctx.fillStyle = '#fbbf24';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(npc.name, screenPos.x + TILE_SIZE/2, screenPos.y + TILE_SIZE + 10);
+            }
+        }
+    }
+}

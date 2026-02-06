@@ -752,3 +752,154 @@ body {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+/* ===== NPCS SECTION ===== */
+.stats-summary {
+    background: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4a5568;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stats-summary strong {
+    color: #667eea;
+    font-size: 16px;
+}
+
+.npcs-by-map {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.map-npc-group {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e2e8f0;
+    color: #2d3748;
+    font-size: 18px;
+}
+
+.npc-count {
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.npc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.npc-card {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 10px;
+    padding: 15px;
+    border-left: 4px solid #48bb78;
+    transition: all 0.3s;
+}
+
+.npc-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.npc-card.dead {
+    border-left-color: #fc8181;
+    opacity: 0.7;
+}
+
+.npc-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.npc-icon {
+    font-size: 32px;
+}
+
+.npc-info {
+    flex: 1;
+}
+
+.npc-info h4 {
+    color: #2d3748;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.npc-info small {
+    color: #718096;
+    font-size: 12px;
+}
+
+.npc-status {
+    font-size: 20px;
+}
+
+.npc-status.alive {
+    color: #48bb78;
+}
+
+.npc-status.dead {
+    color: #fc8181;
+}
+
+.npc-stats {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    color: #4a5568;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row span:first-child {
+    color: #718096;
+}
+
+.stat-row span:last-child {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.npc-id {
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.npc-id small {
+    color: #a0aec0;
+    font-size: 11px;
+    font-family: monospace;
+}

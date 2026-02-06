@@ -185,6 +185,15 @@ function handleMovement(timestamp) {
                 Math.round(player.y) === newY
             );
 
+        // Check if there's a synced NPC from server in the target position
+        const syncedNPCInPosition = gameState.isOnline && gameState.syncedNPCs && 
+            Array.from(gameState.syncedNPCs.values()).some(npc => 
+                npc.map === gameState.currentMap && 
+                npc.x === newX && 
+                npc.y === newY &&
+                npc.isAlive
+            );
+
         // Debug logging
         if (npcInPosition) {
             console.log(`🚫 Bloqueado por NPC en posición (${newX}, ${newY})`);
@@ -195,11 +204,14 @@ function handleMovement(timestamp) {
         if (onlinePlayerInPosition) {
             console.log(`🚫 Bloqueado por jugador online en posición (${newX}, ${newY})`);
         }
+        if (syncedNPCInPosition) {
+            console.log(`🚫 Bloqueado por NPC sincronizado en posición (${newX}, ${newY})`);
+        }
 
         // Ya no necesitamos esta verificación aquí porque la comprobación de meditación 
         // ahora se realiza al principio de la función para cualquier intento de movimiento
 
-        if (!enemyInPosition && !npcInPosition && !botInPosition && !onlinePlayerInPosition) {
+        if (!enemyInPosition && !npcInPosition && !botInPosition && !onlinePlayerInPosition && !syncedNPCInPosition) {
             gameState.player.x = newX;
             gameState.player.y = newY;
             lastMoveTime = timestamp;
@@ -438,6 +450,44 @@ function handleInteractions() {
                     });
                     
                     return; // Exit after attacking
+                }
+            }
+        }
+    }
+    
+    // Check for synced NPCs - attack if hostile, interact if not
+    if (gameState.isOnline && gameState.syncedNPCs && gameState.syncedNPCs.size > 0) {
+        for (const [instanceId, npc] of gameState.syncedNPCs) {
+            // Skip if NPC is not in current map or dead
+            if (npc.map !== gameState.currentMap || !npc.isAlive) continue;
+            
+            const dist = Math.abs(npc.x - px) + Math.abs(npc.y - py);
+            
+            // Check if player is adjacent (distance 1)
+            if (dist === 1) {
+                // Check if player is facing the NPC
+                if (isTargetInFacingDirection(npc.x, npc.y, playerFacing)) {
+                    // Si es hostil y atacable, atacar
+                    if (npc.behavior && npc.behavior.hostile && npc.behavior.attackable) {
+                        console.log(`⚔️ Atacando NPC sincronizado: ${npc.name} (${instanceId})`);
+                        
+                        // Atacar usando SocketClient
+                        import('../api/SocketClient.js').then(({ default: socketClient }) => {
+                            socketClient.attackNPC(instanceId, 'melee', {
+                                x: gameState.player.x,
+                                y: gameState.player.y
+                            });
+                            
+                            setPlayerAnimationState('attacking');
+                        });
+                    } 
+                    // Si no es hostil, interactuar (diálogo)
+                    else {
+                        addChatMessage('system', `💬 Interactuando con ${npc.name}...`);
+                        // TODO: Implementar diálogo con NPCs no hostiles del servidor
+                    }
+                    
+                    return; // Exit after interaction
                 }
             }
         }

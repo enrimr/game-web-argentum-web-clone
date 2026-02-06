@@ -1482,13 +1482,22 @@ export class LoginScreen {
             
             // IMPORTANTE: Guardar datos del servidor y disparar evento multiplayer-ready
             console.log('💾 Guardando datos del servidor...');
+            console.log('📦 NPCs recibidos del servidor:', data.npcs?.length || 0);
             
             // Guardar datos temporalmente en window para que estén disponibles
             window.__MULTIPLAYER_INIT_DATA__ = {
                 onlinePlayers: data.onlinePlayers || [],
+                npcs: data.npcs || [],  // ✅ AGREGAR NPCs
                 characterData: data.characterData,
                 startPosition: data.startPosition
             };
+            
+            console.log('💾 Datos guardados en __MULTIPLAYER_INIT_DATA__:', {
+                onlinePlayers: window.__MULTIPLAYER_INIT_DATA__.onlinePlayers.length,
+                npcs: window.__MULTIPLAYER_INIT_DATA__.npcs.length,
+                hasCharacterData: !!window.__MULTIPLAYER_INIT_DATA__.characterData,
+                hasStartPosition: !!window.__MULTIPLAYER_INIT_DATA__.startPosition
+            });
             
             // Disparar evento multiplayer-ready para que el juego procese los datos
             // NO llamar a startOnlineGame() aquí porque ya se llamó desde playWithCharacter()

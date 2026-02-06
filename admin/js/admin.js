@@ -188,7 +188,8 @@ function navigateToSection(section) {
         stats: '📊 Estadísticas del Servidor',
         users: '👥 Gestión de Usuarios',
         characters: '⚔️ Gestión de Personajes',
-        online: '🟢 Jugadores Online'
+        online: '🟢 Jugadores Online',
+        npcs: '🎭 NPCs Activos'
     };
     document.getElementById('sectionTitle').textContent = titles[section];
 
@@ -206,6 +207,9 @@ function navigateToSection(section) {
             break;
         case 'online':
             loadOnlinePlayers();
+            break;
+        case 'npcs':
+            loadNPCs();
             break;
     }
 }
@@ -1291,5 +1295,157 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+/**
+ * Cargar NPCs activos
+ */
+async function loadNPCs(mapFilter = '') {
+    const container = document.getElementById('npcsByMap');
+    container.innerHTML = '<div class="loading-card">Cargando NPCs...</div>';
+
+    try {
+        let url = `${API_URL}/admin/npcs`;
+        if (mapFilter) {
+            url += `?map=${mapFilter}`;
+        }
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${currentToken}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            displayNPCs(data.data);
+            
+            // Poblar filtro de mapas si está vacío
+            populateMapFilter(Object.keys(data.data.byMap));
+        } else {
+            container.innerHTML = `<div class="loading-card">Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        console.error('Error cargando NPCs:', error);
+        container.innerHTML = '<div class="loading-card">Error de conexión</div>';
+    }
+}
+
+/**
+ * Mostrar NPCs agrupados por mapa
+ */
+function displayNPCs(npcData) {
+    const container = document.getElementById('npcsByMap');
+    
+    // Actualizar estadísticas
+    document.getElementById('totalNPCs').textContent = npcData.stats.total;
+    document.getElementById('aliveNPCs').textContent = npcData.stats.alive;
+    document.getElementById('deadNPCs').textContent = npcData.stats.dead;
+    
+    if (npcData.stats.total === 0) {
+        container.innerHTML = '<div class="loading-card">No hay NPCs spawneados</div>';
+        return;
+    }
+
+    // Agrupar NPCs por mapa y mostrarlos
+    let html = '';
+    
+    for (const [mapName, npcsInMap] of Object.entries(npcData.byMap)) {
+        html += `
+            <div class="map-npc-group">
+                <h3 class="map-title">
+                    🗺️ ${mapName}
+                    <span class="npc-count">${npcsInMap.length} NPC(s)</span>
+                </h3>
+                <div class="npc-grid">
+                    ${npcsInMap.map(npc => `
+                        <div class="npc-card ${!npc.isAlive ? 'dead' : ''}">
+                            <div class="npc-header">
+                                <span class="npc-icon">${getNPCIcon(npc.npcTypeName)}</span>
+                                <div class="npc-info">
+                                    <h4>${npc.name}</h4>
+                                    <small>${npc.npcTypeName}</small>
+                                </div>
+                                <span class="npc-status ${npc.isAlive ? 'alive' : 'dead'}">
+                                    ${npc.isAlive ? '❤️' : '💀'}
+                                </span>
+                            </div>
+                            <div class="npc-stats">
+                                <div class="stat-row">
+                                    <span>📍 Posición:</span>
+                                    <span>(${npc.position.x}, ${npc.position.y})</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>❤️ HP:</span>
+                                    <span>${npc.stats.hp}/${npc.stats.maxHp}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>⚔️ Nivel:</span>
+                                    <span>${npc.stats.level}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>⚠️ Hostil:</span>
+                                    <span>${npc.behavior.hostile ? 'Sí 🔴' : 'No 🟢'}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>🔄 Spawneado:</span>
+                                    <span>${new Date(npc.spawnedAt).toLocaleTimeString('es-ES')}</span>
+                                </div>
+                            </div>
+                            <div class="npc-id">
+                                <small>ID: ${npc.instanceId.substring(0, 20)}...</small>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+/**
+ * Obtener icono según tipo de NPC
+ */
+function getNPCIcon(npcType) {
+    const icons = {
+        'Goblin': '👹',
+        'Araña Gigante': '🕷️',
+        'Lobo Salvaje': '🐺',
+        'Sacerdote': '⛪',
+        'Comerciante': '🏪',
+        'Guardia': '🛡️',
+        'Herrero': '⚒️'
+    };
+    
+    return icons[npcType] || '🎭';
+}
+
+/**
+ * Poblar filtro de mapas
+ */
+function populateMapFilter(mapNames) {
+    const select = document.getElementById('mapFilter');
+    const currentValue = select.value;
+    
+    // Si ya tiene opciones (aparte de la primera), no repoblar
+    if (select.options.length > 1) return;
+    
+    mapNames.forEach(mapName => {
+        const option = document.createElement('option');
+        option.value = mapName;
+        option.textContent = mapName;
+        select.appendChild(option);
+    });
+    
+    // Restaurar valor seleccionado
+    select.value = currentValue;
+    
+    // Event listener para cambiar mapa
+    select.addEventListener('change', (e) => {
+        loadNPCs(e.target.value);
+    });
+}
 
 console.log('🔧 Admin Dashboard iniciado');

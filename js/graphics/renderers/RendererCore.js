@@ -8,7 +8,7 @@ import { CONFIG } from '../../config.js';
 import { generateAllSprites, updatePlayerSprites } from '../SpriteGenerator.js';
 import { generateCustomCharacterSprites } from '../sprites/CustomCharacterSprites.js';
 import { renderMap, renderTreeLayer, renderPropLayer, renderDoorLayer, renderWindowLayer, renderRoofLayer } from './LayerRenderers.js';
-import { renderPlayer, renderBots, renderNPCs, renderEnemies, renderObjects, renderProjectiles } from './EntityRenderers.js';
+import { renderPlayer, renderBots, renderNPCs, renderEnemies, renderObjects, renderProjectiles, renderSyncedNPCs } from './EntityRenderers.js';
 import { drawMeditationEffects, drawDBZMeditationEffects } from './EffectRenderers.js';
 import { renderOverheadMessages } from '../../ui/Chat.js';
 import { getFactionColor, isEvilFaction } from '../../systems/Factions.js';
@@ -83,6 +83,7 @@ export function render() {
     renderObjects(camera, ctx);
     renderEnemies(camera, ctx);
     renderNPCs(camera, ctx);
+    renderSyncedNPCs(camera, ctx); // Draw synced NPCs from server
     renderBots(camera, ctx); // Draw bots after NPCs but before player
     renderOnlinePlayers(camera, ctx); // Draw online players
     renderProjectiles(camera, ctx);
@@ -390,6 +391,5 @@ function renderPlayerFallback(ctx, screenPos, isGhost = false) {
     ctx.lineWidth = 2;
     ctx.stroke();
 }
-
 
 export { TILE_SIZE, ctx };

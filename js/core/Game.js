@@ -115,6 +115,10 @@ function setupLoginEvents() {
             gameState.onlinePlayers = new Map();
             console.log('🗺️ gameState.onlinePlayers inicializado (vacío):', gameState.onlinePlayers.size);
             
+            // Inicializar mapa de NPCs sincronizados
+            gameState.syncedNPCs = new Map();
+            console.log('🗺️ gameState.syncedNPCs inicializado (vacío):', gameState.syncedNPCs.size);
+            
             // Si hay un personaje seleccionado, asignar su nombre y apariencia al jugador
             if (event.detail.character) {
                 gameState.player.name = event.detail.character.name;
@@ -236,6 +240,48 @@ function setupLoginEvents() {
             console.warn('⚠️ onlinePlayers no es un array o está indefinido:', event.detail.onlinePlayers);
         }
         
+        // Cargar NPCs sincronizados iniciales
+        console.log('🔍 Procesando lista de NPCs sincronizados desde multiplayer-ready...');
+        
+        if (event.detail.npcs && Array.isArray(event.detail.npcs)) {
+            console.log(`📋 Lista recibida con ${event.detail.npcs.length} NPCs`);
+            
+            // Verificar que gameState.syncedNPCs esté inicializado
+            if (!gameState.syncedNPCs) {
+                console.warn('⚠️ gameState.syncedNPCs no está inicializado, creando ahora...');
+                gameState.syncedNPCs = new Map();
+            }
+            
+            event.detail.npcs.forEach((npcData, index) => {
+                
+                const syncedNPC = {
+                    instanceId: npcData.instanceId,
+                    npcTypeId: npcData.npcTypeId,
+                    name: npcData.name,
+                    x: npcData.position.x,
+                    y: npcData.position.y,
+                    map: npcData.position.map,
+                    appearance: npcData.appearance,
+                    hp: npcData.stats.hp,
+                    maxHp: npcData.stats.maxHp,
+                    level: npcData.stats.level,
+                    behavior: npcData.behavior,
+                    isAlive: true
+                };
+                
+                gameState.syncedNPCs.set(npcData.instanceId, syncedNPC);
+                console.log(`✨ NPC añadido: ${npcData.name} en (${npcData.position.x}, ${npcData.position.y})`);
+            });
+            
+            console.log(`✅ Total NPCs sincronizados en gameState.syncedNPCs: ${gameState.syncedNPCs.size}`);
+            
+            if (gameState.syncedNPCs.size > 0) {
+                addChatMessage('system', `🎭 Hay ${gameState.syncedNPCs.size} criatura(s) en este mapa`);
+            }
+        } else {
+            console.warn('⚠️ npcs no es un array o está indefinido:', event.detail.npcs);
+        }
+        
         // Configurar listeners de eventos de jugadores (solo si no se configuraron ya)
         if (!window.__MULTIPLAYER_LISTENERS_SETUP__) {
             setupMultiplayerListeners();
@@ -315,6 +361,48 @@ async function processMultiplayerInitData(data) {
         console.warn('⚠️ onlinePlayers no es un array o está indefinido en datos precargados');
     }
     
+    // Cargar NPCs sincronizados precargados
+    console.log('🔍 Procesando lista de NPCs sincronizados precargados...');
+    if (data.npcs && Array.isArray(data.npcs)) {
+        console.log(`📋 Lista precargada con ${data.npcs.length} NPCs`);
+        
+        // Verificar que gameState.syncedNPCs esté inicializado
+        if (!gameState.syncedNPCs) {
+            console.warn('⚠️ gameState.syncedNPCs no está inicializado, creando ahora...');
+            gameState.syncedNPCs = new Map();
+        }
+        
+        data.npcs.forEach((npcData, index) => {
+            console.log(`🔄 Procesando NPC precargado ${index + 1}/${data.npcs.length}:`, {
+                name: npcData.name,
+                instanceId: npcData.instanceId,
+                position: npcData.position
+            });
+            
+            const syncedNPC = {
+                instanceId: npcData.instanceId,
+                npcTypeId: npcData.npcTypeId,
+                name: npcData.name,
+                x: npcData.position.x,
+                y: npcData.position.y,
+                map: npcData.position.map,
+                appearance: npcData.appearance,
+                hp: npcData.stats.hp,
+                maxHp: npcData.stats.maxHp,
+                level: npcData.stats.level,
+                behavior: npcData.behavior,
+                isAlive: true
+            };
+            
+            gameState.syncedNPCs.set(npcData.instanceId, syncedNPC);
+            console.log(`✨ NPC precargado añadido: ${npcData.name} en (${npcData.position.x}, ${npcData.position.y})`);
+        });
+        
+        console.log(`✅ Total NPCs sincronizados precargados en gameState.syncedNPCs: ${gameState.syncedNPCs.size}`);
+    } else {
+        console.warn('⚠️ npcs no es un array o está indefinido en datos precargados');
+    }
+    
     // Configurar listeners de eventos de jugadores (solo si no se configuraron ya)
     if (!window.__MULTIPLAYER_LISTENERS_SETUP__) {
         setupMultiplayerListeners();
@@ -380,11 +468,45 @@ function setupMultiplayerListeners() {
     // Cuando el jugador local cambia de mapa (recibe lista de jugadores en el nuevo mapa)
     socketClient.on('map_changed', (data) => {
         console.log('🗺️ EVENTO map_changed recibido:', data);
-        console.log(`🗺️ Nuevo mapa: ${data.newMap}, jugadores en el mapa: ${data.playersInMap.length}`);
+        console.log(`🗺️ Nuevo mapa: ${data.newMap}, jugadores: ${data.playersInMap?.length || 0}, NPCs: ${data.npcs?.length || 0}`);
+        
+        // IMPORTANTE: Actualizar el mapa actual PRIMERO
+        gameState.currentMap = data.newMap;
+        console.log(`✅ gameState.currentMap actualizado a: ${gameState.currentMap}`);
         
         // IMPORTANTE: Limpiar jugadores del mapa anterior
         gameState.onlinePlayers.clear();
         console.log('🧹 Jugadores del mapa anterior limpiados');
+        
+        // IMPORTANTE: Limpiar NPCs del mapa anterior
+        if (gameState.syncedNPCs) {
+            gameState.syncedNPCs.clear();
+            console.log('🧹 NPCs del mapa anterior limpiados');
+        }
+        
+        // Regenerar el mapa visual y sus capas
+        const mapResult = generateMap(data.newMap);
+        if (mapResult && typeof mapResult === 'object' && mapResult.map && Array.isArray(mapResult.map)) {
+            gameState.map = mapResult.map;
+            gameState.roofLayer = mapResult.roofLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            gameState.doorLayer = mapResult.doorLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            gameState.windowLayer = mapResult.windowLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            gameState.propLayer = mapResult.propLayer || Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            console.log('✅ Capas del mapa regeneradas');
+        } else if (mapResult && Array.isArray(mapResult)) {
+            gameState.map = mapResult;
+            gameState.roofLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            gameState.doorLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            gameState.windowLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            gameState.propLayer = Array(CONFIG.MAP_HEIGHT).fill().map(() => Array(CONFIG.MAP_WIDTH).fill(0));
+            console.log('✅ Mapa simple regenerado');
+        }
+        
+        // Regenerar contenido del mapa (objetos locales, enemigos locales)
+        gameState.objects = generateObjects(data.newMap);
+        gameState.enemies = generateEnemies(data.newMap);
+        gameState.npcs = generateNPCs(data.newMap);
+        console.log('✅ Contenido del mapa regenerado');
         
         // Obtener mi socketId para filtrar
         const mySocketId = socketClient.getSocketId();
@@ -406,6 +528,37 @@ function setupMultiplayerListeners() {
             
             if (gameState.onlinePlayers.size > 0) {
                 addChatMessage('system', `🗺️ Hay ${gameState.onlinePlayers.size} jugador(es) en este mapa`);
+            }
+        }
+        
+        // Cargar NPCs del nuevo mapa
+        if (data.npcs && Array.isArray(data.npcs)) {
+            console.log(`🔍 Procesando ${data.npcs.length} NPCs del nuevo mapa...`);
+            
+            data.npcs.forEach(npcData => {
+                const syncedNPC = {
+                    instanceId: npcData.instanceId,
+                    npcTypeId: npcData.npcTypeId,
+                    name: npcData.name,
+                    x: npcData.position.x,
+                    y: npcData.position.y,
+                    map: npcData.position.map,
+                    appearance: npcData.appearance,
+                    hp: npcData.stats.hp,
+                    maxHp: npcData.stats.maxHp,
+                    level: npcData.stats.level,
+                    behavior: npcData.behavior,
+                    isAlive: true
+                };
+                
+                gameState.syncedNPCs.set(npcData.instanceId, syncedNPC);
+                console.log(`✨ NPC cargado en nuevo mapa: ${npcData.name} en (${npcData.position.x}, ${npcData.position.y})`);
+            });
+            
+            console.log(`✅ Total NPCs en nuevo mapa: ${gameState.syncedNPCs.size}`);
+            
+            if (gameState.syncedNPCs.size > 0) {
+                addChatMessage('system', `🎭 Hay ${gameState.syncedNPCs.size} criatura(s) en este mapa`);
             }
         }
     });
@@ -500,6 +653,182 @@ function setupMultiplayerListeners() {
             }
         } else {
             console.warn('⚠️ player_state_changed recibido para jugador desconocido:', data.socketId);
+        }
+    });
+
+    // ===== EVENTOS DE NPCs SINCRONIZADOS =====
+
+    // Cuando un NPC es spawneado
+    socketClient.on('npc_spawned', (data) => {
+        console.log('✨ EVENTO npc_spawned recibido:', data);
+        
+        const syncedNPC = {
+            instanceId: data.instanceId,
+            npcTypeId: data.npcTypeId,
+            name: data.name,
+            x: data.position.x,
+            y: data.position.y,
+            map: data.position.map,
+            appearance: data.appearance,
+            hp: data.stats.hp,
+            maxHp: data.stats.maxHp,
+            level: data.stats.level,
+            behavior: data.behavior,
+            isAlive: true
+        };
+        
+        gameState.syncedNPCs.set(data.instanceId, syncedNPC);
+        console.log(`✨ NPC añadido: ${data.name} en (${data.position.x}, ${data.position.y})`);
+    });
+
+    // Cuando un NPC se mueve
+    socketClient.on('npc_moved', (data) => {
+        const npc = gameState.syncedNPCs.get(data.instanceId);
+        if (npc) {
+            npc.x = data.position.x;
+            npc.y = data.position.y;
+            npc.heading = data.position.heading;
+            console.log(`🔄 NPC ${npc.name} movido a (${data.position.x}, ${data.position.y})`);
+        }
+    });
+
+    // Cuando cambia el HP de un NPC
+    socketClient.on('npc_hp_changed', (data) => {
+        const npc = gameState.syncedNPCs.get(data.instanceId);
+        if (npc) {
+            npc.hp = data.hp;
+            npc.maxHp = data.maxHp;
+            console.log(`💔 NPC recibió ${data.damage} de daño (HP: ${data.hp}/${data.maxHp})`);
+        }
+    });
+
+    // Cuando un NPC muere
+    socketClient.on('npc_died', (data) => {
+        console.log('💀 EVENTO npc_died recibido:', data);
+        
+        const npc = gameState.syncedNPCs.get(data.instanceId);
+        if (npc) {
+            npc.isAlive = false;
+            npc.hp = 0;
+            console.log(`💀 NPC ${data.npcName} ha muerto`);
+            
+            // Eliminar NPC después de un breve delay para mostrar animación de muerte
+            setTimeout(() => {
+                gameState.syncedNPCs.delete(data.instanceId);
+                console.log(`🗑️ NPC ${data.npcName} eliminado del mapa`);
+            }, 1000);
+        }
+    });
+
+    // Cuando un NPC respawnea
+    socketClient.on('npc_respawned', (data) => {
+        console.log('🔄 EVENTO npc_respawned recibido:', data);
+        
+        const syncedNPC = {
+            instanceId: data.instanceId,
+            npcTypeId: data.npcTypeId,
+            name: data.name,
+            x: data.position.x,
+            y: data.position.y,
+            map: data.position.map,
+            appearance: data.appearance,
+            hp: data.stats.hp,
+            maxHp: data.stats.maxHp,
+            level: data.stats.level,
+            behavior: data.behavior,
+            isAlive: true
+        };
+        
+        gameState.syncedNPCs.set(data.instanceId, syncedNPC);
+        console.log(`🔄 NPC respawneado: ${data.name} en (${data.position.x}, ${data.position.y})`);
+    });
+
+    // Cuando recibimos recompensa de un NPC
+    socketClient.on('npc_reward', (data) => {
+        console.log('💰 EVENTO npc_reward recibido:', data);
+        
+        let rewardMessage = `💰 Has recibido `;
+        const rewards = [];
+        
+        if (data.experience > 0) {
+            rewards.push(`${data.experience} EXP`);
+        }
+        
+        if (data.gold > 0) {
+            rewards.push(`${data.gold} oro`);
+        }
+        
+        rewardMessage += rewards.join(' y ');
+        
+        if (data.wasKiller) {
+            rewardMessage += ` (¡Golpe final!)`;
+        }
+        
+        addChatMessage('system', rewardMessage);
+        
+        // Actualizar stats del jugador (si están disponibles en gameState)
+        if (data.experience > 0 && gameState.player) {
+            gameState.player.experience = (gameState.player.experience || 0) + data.experience;
+        }
+        
+        if (data.gold > 0 && gameState.player) {
+            gameState.player.gold = (gameState.player.gold || 0) + data.gold;
+        }
+        
+        // Actualizar UI
+        updateUI();
+    });
+
+    // Cuando un NPC dropea loot
+    socketClient.on('npc_loot_dropped', (data) => {
+        console.log('📦 EVENTO npc_loot_dropped recibido:', data);
+        
+        const itemNames = data.items.map(item => `${item.amount}x Item#${item.itemId}`).join(', ');
+        addChatMessage('system', `📦 Items dropeados: ${itemNames}`);
+    });
+
+    // Cuando vemos acción de combate de un NPC
+    socketClient.on('npc_combat_action', (data) => {
+        console.log('⚔️ EVENTO npc_combat_action recibido:', data);
+        // Mostrar efecto visual de combate si está en la pantalla
+    });
+
+    // Cuando somos atacados por un NPC
+    socketClient.on('npc_attacked_player', (data) => {
+        console.log('⚠️ EVENTO npc_attacked_player recibido:', data);
+        
+        addChatMessage('combat', `⚠️ ${data.npcName} te ataca y te causa ${data.damage} de daño!`);
+        
+        // Actualizar HP del jugador local
+        if (gameState.player) {
+            gameState.player.hp = Math.max(0, gameState.player.hp - data.damage);
+            updateUI();
+            
+            // Verificar muerte
+            if (gameState.player.hp <= 0) {
+                import('../systems/Combat.js').then(({ enterGhostMode }) => {
+                    enterGhostMode(data.npcName);
+                });
+            }
+        }
+    });
+
+    // Resultado de atacar a un NPC
+    socketClient.on('attack_npc_result', (data) => {
+        console.log('⚔️ EVENTO attack_npc_result recibido:', data);
+        
+        if (data.success) {
+            // Obtener nombre del NPC desde gameState.syncedNPCs
+            const npc = gameState.syncedNPCs.get(data.instanceId);
+            const npcName = npc ? npc.name : 'NPC';
+            
+            addChatMessage('combat', `⚔️ Atacas a ${npcName} y causas ${data.damage} de daño!`);
+            
+            if (data.npcDied) {
+                addChatMessage('combat', `💀 ¡Has matado a ${npcName}!`);
+            }
+        } else {
+            addChatMessage('combat', `❌ ${data.reason}`);
         }
     });
 }

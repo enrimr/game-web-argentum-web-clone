@@ -121,7 +121,16 @@ export function updateAutoMovement(timestamp) {
                     Math.round(player.y) === newY
                 );
 
-            if (!enemyAtPosition && !npcAtPosition && !botAtPosition && !onlinePlayerAtPosition) {
+            // Verificar que no haya un NPC sincronizado bloqueando el camino
+            const syncedNPCAtPosition = gameState.isOnline && gameState.syncedNPCs && 
+                Array.from(gameState.syncedNPCs.values()).some(npc => 
+                    npc.map === gameState.currentMap && 
+                    npc.x === newX && 
+                    npc.y === newY &&
+                    npc.isAlive
+                );
+
+            if (!enemyAtPosition && !npcAtPosition && !botAtPosition && !onlinePlayerAtPosition && !syncedNPCAtPosition) {
                 // Movimiento válido encontrado
                 player.x = newX;
                 player.y = newY;
@@ -242,7 +251,7 @@ function executeTargetAction() {
 
         case 'position':
             // Solo movimiento - ya completado
-            addChatMessage('system', '✅ Posición alcanzada');
+            // addChatMessage('system', '✅ Posición alcanzada'); // Comentado para no hacer spam
             break;
             
         case 'portal':
@@ -345,6 +354,44 @@ function executeTargetAction() {
                 }
             } else {
                 addChatMessage('system', '❌ Jugador ya no disponible');
+            }
+            break;
+
+        case 'syncedNPC':
+            // Llegamos a un NPC sincronizado - atacar
+            if (target.target && target.target.npc && target.target.instanceId) {
+                const npc = target.target.npc;
+                const instanceId = target.target.instanceId;
+                
+                // Verificar que el NPC todavía existe en syncedNPCs
+                const currentNPC = gameState.syncedNPCs.get(instanceId);
+                if (!currentNPC || !currentNPC.isAlive) {
+                    addChatMessage('system', '❌ El NPC ya no está disponible');
+                    break;
+                }
+                
+                const dist = Math.abs(currentNPC.x - gameState.player.x) + Math.abs(currentNPC.y - gameState.player.y);
+                
+                if (dist === 1) {
+                    console.log(`⚔️ Llegaste al NPC, atacando`);
+                    
+                    // Actualizar dirección hacia el NPC
+                    updatePlayerFacingTowardsTarget(currentNPC.x, currentNPC.y);
+                    
+                    // Atacar al NPC
+                    import('../api/SocketClient.js').then(({ default: socketClient }) => {
+                        socketClient.attackNPC(instanceId, 'melee', {
+                            x: gameState.player.x,
+                            y: gameState.player.y
+                        });
+                        
+                        setPlayerAnimationState('attacking');
+                    });
+                } else {
+                    addChatMessage('system', '❌ El NPC se ha movido, ya no está en rango');
+                }
+            } else {
+                addChatMessage('system', '❌ NPC ya no disponible');
             }
             break;
     }

@@ -100,7 +100,7 @@ export function enterGhostMode(killedBy = null) {
     }
 
     addChatMessage('system', '💀 ¡Has muerto! Ahora eres un fantasma.');
-    addChatMessage('system', '👻 Como fantasma puedes caminar, usar teletransportadores y hablar con sacerdotes.');
+    // addChatMessage('system', '👻 Como fantasma puedes caminar, usar teletransportadores y hablar con sacerdotes.');
     addChatMessage('system', '⛪ Busca un sacerdote para resucitarte y recuperar tus objetos.');
 }
 
@@ -118,7 +118,7 @@ export function botEnterGhostMode(bot) {
     // Drop all bot items
     dropAllBotItems(bot);
     
-    addChatMessage('system', `💀 ${bot.name} ha muerto y se ha convertido en fantasma.`);
+    // addChatMessage('system', `💀 ${bot.name} ha muerto y se ha convertido en fantasma.`); // Comentado para no hacer spam
 }
 
 /**
@@ -212,9 +212,10 @@ function dropAllBotItems(bot) {
         head: null
     };
 
-    if (itemsDropped > 0) {
-        addChatMessage('system', `📦 ${bot.name} ha soltado ${itemsDropped} objetos en (${botX}, ${botY}).`);
-    }
+    // Comentado para no hacer spam con mensajes de bots
+    // if (itemsDropped > 0) {
+    //     addChatMessage('system', `📦 ${bot.name} ha soltado ${itemsDropped} objetos en (${botX}, ${botY}).`);
+    // }
 }
 
 /**
