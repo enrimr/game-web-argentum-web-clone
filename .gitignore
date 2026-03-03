@@ -3,3 +3,4 @@ ao-server/
 ao-recursos/
 .DS_Store
 .env
+/env.js

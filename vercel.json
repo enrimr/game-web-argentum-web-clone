@@ -7,6 +7,8 @@
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/admin/(.*)", "destination": "/admin/$1" },
 
+    { "source": "/env.js", "destination": "/api/env" },
+
     { "source": "/", "destination": "/index.html" }
   ]
 }

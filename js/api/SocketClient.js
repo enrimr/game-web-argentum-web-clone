@@ -2,12 +2,13 @@
  * Cliente WebSocket para comunicación en tiempo real con el servidor
  * Requiere Socket.io client library
  */
+import { SERVER_CONFIG } from '../config.js';
 
 class SocketClient {
     constructor() {
         this.socket = null;
-        this.serverUrl = 'http://localhost:3000'; // TESTING: Usar servidor local
-        //this.serverUrl = 'https://calima-online-server-production.up.railway.app';
+        // URL del servidor WebSocket — se configura en js/config.js (SERVER_CONFIG.WS_URL)
+        this.serverUrl = SERVER_CONFIG.WS_URL;
         this.isConnected = false;
         this.characterId = null;
         this.eventHandlers = new Map();
@@ -193,6 +194,18 @@ class SocketClient {
         this.socket.on('npc_reward', (data) => {
             console.log('💰 Recompensa de NPC:', data);
             this.emit('npc_reward', data);
+        });
+
+        // Evento: Subida de nivel
+        this.socket.on('level_up', (data) => {
+            console.log('🎉🎉🎉 ¡SUBISTE DE NIVEL! 🎉🎉🎉', data);
+            this.emit('level_up', data);
+        });
+
+        // Evento: Actualización de stats
+        this.socket.on('stats_update', (data) => {
+            console.log('📊 Stats actualizados:', data);
+            this.emit('stats_update', data);
         });
 
         // Evento: Loot dropeado por NPC

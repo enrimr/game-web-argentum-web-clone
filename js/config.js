@@ -3,6 +3,21 @@
  * Todas las constantes y valores de balance en un solo lugar
  */
 
+// ==================== URLs DEL SERVIDOR ====================
+// Las URLs se leen de window.ENV (definido en env.js, ignorado por git).
+// Si env.js no existe, se usan los valores de fallback definidos aquí.
+//
+// Para cambiar de entorno, edita env.js (cópialo desde env.example.js).
+
+export const SERVER_CONFIG = {
+    API_URL: (typeof window !== 'undefined' && window.ENV?.API_URL)
+        ? window.ENV.API_URL
+        : 'http://localhost:3000/api',
+    WS_URL: (typeof window !== 'undefined' && window.ENV?.WS_URL)
+        ? window.ENV.WS_URL
+        : 'http://localhost:3000',
+};
+
 export const CONFIG = {
     // Dimensiones del juego
     TILE_SIZE: 32,
