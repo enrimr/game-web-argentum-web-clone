@@ -1,28 +1,27 @@
 # Dockerfile para Calima Online Client
-# Usa nginx para servir archivos estáticos en producción
-# Las URLs del servidor se inyectan mediante variables de entorno Docker:
-#   API_URL  → URL de la API REST
-#   WS_URL   → URL del WebSocket (Socket.io)
-#
-# Ejemplo de uso:
-#   docker build -t calima-client .
-#   docker run -p 8080:80 \
-#     -e API_URL=https://mi-servidor.com/api \
-#     -e WS_URL=https://mi-servidor.com \
-#     calima-client
+# Usa nginx para servir archivos estáticos con soporte para rutas SPA
 
 FROM nginx:alpine
 
-# Copiar archivos del cliente al directorio de nginx
-COPY . /usr/share/nginx/html
+# Instalar bash para el entrypoint script
+RUN apk add --no-cache bash
+
+# Crear directorio de trabajo
+WORKDIR /usr/share/nginx/html
+
+# Copiar archivos del cliente
+COPY . .
 
 # Copiar configuración de nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Script de arranque: genera env.js con las variables de entorno y arranca nginx
+# Copiar y hacer ejecutable el script de entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
+# Exponer puerto 80
 EXPOSE 80
 
+# Usar el script de entrypoint personalizado
 ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

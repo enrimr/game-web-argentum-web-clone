@@ -1,71 +1,41 @@
-#!/bin/sh
-# docker-entrypoint.sh
-# 1. Genera env.js con las variables de entorno (API_URL, WS_URL)
-# 2. Genera nginx.conf usando el puerto que Railway asigna via $PORT
-# 3. Arranca nginx
+#!/bin/bash
+set -e
 
-API_URL="${API_URL:-http://localhost:3000/api}"
-WS_URL="${WS_URL:-http://localhost:3000}"
-PORT="${PORT:-80}"
+echo "Starting Calima Online Client..."
 
-# Generar env.js
-cat > /usr/share/nginx/html/env.js <<EOF
-window.ENV = {
-    API_URL: "${API_URL}",
-    WS_URL: "${WS_URL}"
-};
-EOF
+# Verificar que los archivos existen
+echo "Checking files..."
+ls -la /usr/share/nginx/html/
 
-echo "✅ env.js generado:"
-echo "   API_URL = ${API_URL}"
-echo "   WS_URL  = ${WS_URL}"
-echo "   PORT    = ${PORT}"
+# Verificar directorios importantes
+echo "Checking admin directory..."
+ls -la /usr/share/nginx/html/admin/ 2>/dev/null || echo "Warning: /admin directory not found"
 
-# Generar nginx.conf con el puerto correcto (Railway usa $PORT dinámico)
-cat > /etc/nginx/conf.d/default.conf <<EOF
-server {
-    listen ${PORT};
-    server_name _;
+echo "Checking manual directory..."
+ls -la /usr/share/nginx/html/manual/ 2>/dev/null || echo "Warning: /manual directory not found"
 
-    root /usr/share/nginx/html;
-    index index.html;
+# Si existe el archivo de variables de entorno, procesarlo
+if [ -f "/usr/share/nginx/html/env.example.js" ]; then
+    echo "Processing environment variables..."
+    
+    # Crear env.js desde env.example.js si no existe
+    if [ ! -f "/usr/share/nginx/html/env.js" ]; then
+        cp /usr/share/nginx/html/env.example.js /usr/share/nginx/html/env.js
+    fi
+    
+    # Reemplazar variables de entorno si están definidas
+    if [ -n "$API_URL" ]; then
+        sed -i "s|API_URL:.*|API_URL: '${API_URL}',|g" /usr/share/nginx/html/env.js
+    fi
+    
+    if [ -n "$WS_URL" ]; then
+        sed -i "s|WS_URL:.*|WS_URL: '${WS_URL}',|g" /usr/share/nginx/html/env.js
+    fi
+fi
 
-    gzip on;
-    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+# Verificar configuración de nginx
+echo "Testing nginx configuration..."
+nginx -t
 
-    # Evita que nginx incluya el puerto interno en los redirects (p.ej. /admin → /admin/)
-    port_in_redirect off;
-
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options SAMEORIGIN;
-
-    # env.js sin cache
-    location = /env.js {
-        add_header Cache-Control "no-store, no-cache, must-revalidate";
-        expires -1;
-    }
-
-    # Archivos estáticos con cache larga
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    location /manual {
-        try_files \$uri \$uri/ /manual/index.html;
-    }
-
-    location /admin {
-        try_files \$uri \$uri/ /admin/index.html;
-    }
-
-    location / {
-        try_files \$uri \$uri/ /index.html;
-    }
-}
-EOF
-
-echo "✅ nginx.conf generado con puerto ${PORT}"
-
-# Arrancar nginx en foreground
-exec nginx -g "daemon off;"
+echo "Starting nginx..."
+exec "$@"
