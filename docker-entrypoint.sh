@@ -37,7 +37,7 @@ echo "✅ env.js generated successfully"
 
 # Generar nginx.conf con el puerto correcto (Railway usa $PORT dinámico)
 echo "Generating nginx.conf for port ${PORT}..."
-cat > /etc/nginx/conf.d/default.conf <<EOF
+cat > /etc/nginx/conf.d/default.conf <<'EOF'
 server {
     listen ${PORT};
     server_name _;
@@ -50,6 +50,7 @@ server {
 
     # Evita que nginx incluya el puerto interno en los redirects
     port_in_redirect off;
+    absolute_redirect off;
 
     # Comprimir respuestas
     gzip on;
@@ -69,40 +70,50 @@ server {
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-        try_files \$uri =404;
+        try_files $uri =404;
+    }
+
+    # Redirect /admin sin barra a /admin/ con barra
+    location = /admin {
+        return 301 $scheme://$http_host/admin/;
     }
 
     # Servir el directorio /admin como archivos estáticos
     location /admin/ {
-        try_files \$uri \$uri/ \$uri/index.html =404;
+        try_files $uri $uri/ /admin/index.html =404;
+    }
+
+    # Redirect /manual sin barra a /manual/ con barra
+    location = /manual {
+        return 301 $scheme://$http_host/manual/;
     }
 
     # Servir el directorio /manual como archivos estáticos
     location /manual/ {
-        try_files \$uri \$uri/ \$uri/index.html =404;
+        try_files $uri $uri/ /manual/index.html =404;
     }
 
     # Servir el directorio /api como archivos estáticos
     location /api/ {
-        try_files \$uri \$uri/ =404;
+        try_files $uri $uri/ =404;
     }
 
     # Servir directorios de recursos estáticos
     location /img/ {
-        try_files \$uri =404;
+        try_files $uri =404;
     }
 
     location /resources/ {
-        try_files \$uri =404;
+        try_files $uri =404;
     }
 
     location /styles/ {
-        try_files \$uri =404;
+        try_files $uri =404;
     }
 
     # Para la raíz y todas las demás rutas, servir index.html (SPA routing)
     location / {
-        try_files \$uri \$uri/ /index.html;
+        try_files $uri $uri/ /index.html;
     }
 
     # Manejo de errores
@@ -113,6 +124,9 @@ server {
     }
 }
 EOF
+
+# Reemplazar ${PORT} en el archivo generado
+sed -i "s/\${PORT}/${PORT}/g" /etc/nginx/conf.d/default.conf
 
 echo "✅ nginx.conf generated for port ${PORT}"
 
