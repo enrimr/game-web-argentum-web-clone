@@ -64,10 +64,15 @@ function updatePlayerStats() {
         levelEl.textContent = gameState.player.level;
     }
     if (expEl) {
-        expEl.textContent = `${gameState.player.exp}/${gameState.player.expToNextLevel}`;
+        // Usar 'experience' que es lo que actualiza el servidor
+        const currentExp = gameState.player.experience || gameState.player.exp || 0;
+        const expToNext = gameState.player.expToNextLevel || 100;
+        expEl.textContent = `${currentExp}/${expToNext}`;
     }
     if (expBarEl) {
-        const expPercent = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
+        const currentExp = gameState.player.experience || gameState.player.exp || 0;
+        const expToNext = gameState.player.expToNextLevel || 100;
+        const expPercent = (currentExp / expToNext) * 100;
         expBarEl.style.width = expPercent + '%';
     }
 
@@ -133,8 +138,12 @@ function updateMobileHUD() {
     if (miniHpMax) miniHpMax.textContent = gameState.player.maxHp;
     if (miniMana) miniMana.textContent = gameState.player.mana;
     if (miniManaMax) miniManaMax.textContent = gameState.player.maxMana;
-    if (miniExp) miniExp.textContent = gameState.player.exp;
-    if (miniExpMax) miniExpMax.textContent = gameState.player.expToNextLevel;
+    // Usar 'experience' que es lo que actualiza el servidor
+    const currentExp = gameState.player.experience || gameState.player.exp || 0;
+    const expToNext = gameState.player.expToNextLevel || 100;
+    
+    if (miniExp) miniExp.textContent = currentExp;
+    if (miniExpMax) miniExpMax.textContent = expToNext;
 
     // Update barras de progreso
     if (miniHpBar) {
@@ -146,7 +155,7 @@ function updateMobileHUD() {
         miniManaBar.style.width = manaPercent + '%';
     }
     if (miniExpBar) {
-        const expPercent = (gameState.player.exp / gameState.player.expToNextLevel) * 100;
+        const expPercent = (currentExp / expToNext) * 100;
         miniExpBar.style.width = expPercent + '%';
     }
 
@@ -157,7 +166,7 @@ function updateMobileHUD() {
     const miniPos = document.getElementById('miniPos');
 
     if (miniLevel) miniLevel.textContent = gameState.player.level;
-    if (miniGold) miniGold.textContent = gameState.player.gold;
+    if (miniGold) miniGold.textContent = gameState.player.gold || 0;
 
     // Update map name (abreviado para single row)
     const mapNames = {

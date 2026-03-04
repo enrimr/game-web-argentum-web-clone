@@ -624,6 +624,49 @@ function setupMultiplayerListeners() {
         });
     });
 
+    // Cuando subimos de nivel
+    socketClient.on('level_up', (data) => {
+        console.log('🎉🎉🎉 EVENTO level_up RECIBIDO 🎉🎉🎉');
+        console.log('  Datos completos:', data);
+        console.log(`  Nuevo nivel: ${data.newLevel}`);
+        console.log(`  Nuevo HP máximo: ${data.newMaxHp}`);
+        console.log(`  Nuevo Mana máximo: ${data.newMaxMana}`);
+        
+        if (gameState.player) {
+            const oldLevel = gameState.player.level;
+            const oldMaxHp = gameState.player.maxHp;
+            const oldMaxMana = gameState.player.maxMana;
+            
+            // Actualizar nivel
+            gameState.player.level = data.newLevel;
+            
+            // Actualizar HP (máximo y actual - curado completamente)
+            gameState.player.maxHp = data.newMaxHp;
+            gameState.player.hp = data.newMaxHp;
+            
+            // Actualizar Mana (máximo y actual - recarga completa)
+            gameState.player.maxMana = data.newMaxMana;
+            gameState.player.mana = data.newMaxMana;
+            
+            console.log(`  🔄 Stats actualizados:`);
+            console.log(`    Nivel: ${oldLevel} → ${gameState.player.level}`);
+            console.log(`    HP: ${oldMaxHp} → ${gameState.player.maxHp} (curado a ${gameState.player.hp})`);
+            console.log(`    Mana: ${oldMaxMana} → ${gameState.player.maxMana} (recargado a ${gameState.player.mana})`);
+        }
+        
+        addChatMessage('system', `🎉 ¡HAS SUBIDO AL NIVEL ${data.newLevel}!`);
+        addChatMessage('system', `✨ HP Máximo: ${data.newMaxHp} (+10) | Mana Máximo: ${data.newMaxMana} (+5)`);
+        addChatMessage('system', `💚 ¡Has sido curado completamente!`);
+        
+        // Actualizar UI
+        updateUI();
+        
+        console.log('  ✅ level_up procesado completamente\n');
+        
+        // TODO: Reproducir sonido de level up cuando esté disponible
+        // audioManager.playSound('levelup');
+    });
+
     // Cuando cambia el estado de un jugador (muerte/resurrección)
     socketClient.on('player_state_changed', (data) => {
         console.log('👻 EVENTO player_state_changed recibido:', data);
@@ -688,7 +731,6 @@ function setupMultiplayerListeners() {
             npc.x = data.position.x;
             npc.y = data.position.y;
             npc.heading = data.position.heading;
-            console.log(`🔄 NPC ${npc.name} movido a (${data.position.x}, ${data.position.y})`);
         }
     });
 
@@ -745,17 +787,24 @@ function setupMultiplayerListeners() {
 
     // Cuando recibimos recompensa de un NPC
     socketClient.on('npc_reward', (data) => {
-        console.log('💰 EVENTO npc_reward recibido:', data);
+        console.log('💰💰💰 EVENTO npc_reward RECIBIDO 💰💰💰');
+        console.log('  Datos completos:', data);
+        console.log(`  NPC: ${data.npcName}`);
+        console.log(`  EXP: ${data.experience}`);
+        console.log(`  Oro: ${data.gold}`);
+        console.log(`  Killer: ${data.wasKiller}`);
         
         let rewardMessage = `💰 Has recibido `;
         const rewards = [];
         
         if (data.experience > 0) {
             rewards.push(`${data.experience} EXP`);
+            console.log(`  ✅ Añadiendo ${data.experience} EXP al mensaje`);
         }
         
         if (data.gold > 0) {
             rewards.push(`${data.gold} oro`);
+            console.log(`  ✅ Añadiendo ${data.gold} oro al mensaje`);
         }
         
         rewardMessage += rewards.join(' y ');
@@ -764,19 +813,27 @@ function setupMultiplayerListeners() {
             rewardMessage += ` (¡Golpe final!)`;
         }
         
+        console.log(`  📝 Mensaje final: ${rewardMessage}`);
         addChatMessage('system', rewardMessage);
         
         // Actualizar stats del jugador (si están disponibles en gameState)
+        console.log('  🔄 Actualizando gameState.player...');
         if (data.experience > 0 && gameState.player) {
-            gameState.player.experience = (gameState.player.experience || 0) + data.experience;
+            const oldExp = gameState.player.experience || 0;
+            gameState.player.experience = oldExp + data.experience;
+            console.log(`    EXP: ${oldExp} → ${gameState.player.experience}`);
         }
         
         if (data.gold > 0 && gameState.player) {
-            gameState.player.gold = (gameState.player.gold || 0) + data.gold;
+            const oldGold = gameState.player.gold || 0;
+            gameState.player.gold = oldGold + data.gold;
+            console.log(`    Oro: ${oldGold} → ${gameState.player.gold}`);
         }
         
         // Actualizar UI
+        console.log('  🔄 Actualizando UI...');
         updateUI();
+        console.log('  ✅ npc_reward procesado completamente\n');
     });
 
     // Cuando un NPC dropea loot

@@ -513,18 +513,41 @@ function displayOnlinePlayers(players) {
         return;
     }
 
-    grid.innerHTML = players.map(player => `
-        <div class="online-player-card ${player.isGhost ? 'ghost' : ''}">
-            <h4>${player.username} ${player.isGhost ? '👻' : '❤️'}</h4>
-            <div class="player-details">
-                <p><strong>Nivel:</strong> ${player.level}</p>
-                <p><strong>Mapa:</strong> ${player.map}</p>
-                <p><strong>HP:</strong> ${player.hp}/${player.maxHp}</p>
-                <p><strong>Facción:</strong> ${player.faction}</p>
-                <p><strong>Estado:</strong> ${player.isGhost ? 'Fantasma' : 'Vivo'}</p>
+    grid.innerHTML = players.map(player => {
+        // Solo hacer clickable si tiene characterId
+        const isClickable = player.characterId && player.characterId !== 'undefined';
+        const clickHandler = isClickable ? `onclick="viewCharacter('${player.characterId}')"` : '';
+        const cursorStyle = isClickable ? 'cursor: pointer;' : 'cursor: default;';
+        const hoverEffects = isClickable 
+            ? `onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.3)';"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';"`
+            : '';
+        
+        return `
+            <div class="online-player-card ${player.isGhost ? 'ghost' : ''}" 
+                 ${clickHandler}
+                 style="${cursorStyle} transition: transform 0.2s, box-shadow 0.2s;"
+                 ${hoverEffects}>
+                <h4>${player.username} ${player.isGhost ? '👻' : '❤️'}</h4>
+                <div class="player-details">
+                    <p><strong>Nivel:</strong> ${player.level}</p>
+                    <p><strong>Mapa:</strong> ${player.map}</p>
+                    <p><strong>HP:</strong> ${player.hp}/${player.maxHp}</p>
+                    <p><strong>Facción:</strong> ${player.faction}</p>
+                    <p><strong>Estado:</strong> ${player.isGhost ? 'Fantasma' : 'Vivo'}</p>
+                </div>
+                ${isClickable ? `
+                    <div style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                        <small style="color: #667eea;">👁️ Click para ver detalles completos</small>
+                    </div>
+                ` : `
+                    <div style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                        <small style="color: #a0aec0;">ℹ️ Reconectarse para ver detalles</small>
+                    </div>
+                `}
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 /**
@@ -1038,6 +1061,10 @@ function showEditCharacterModal(char) {
                     <input type="number" id="editLevel" value="${char.stats.level}" min="1" max="100">
                 </div>
                 <div class="form-group">
+                    <label>Experiencia</label>
+                    <input type="number" id="editExperience" value="${char.stats.experience || 0}" min="0">
+                </div>
+                <div class="form-group">
                     <label>Oro</label>
                     <input type="number" id="editGold" value="${char.stats.gold}" min="0">
                 </div>
@@ -1222,6 +1249,7 @@ async function saveCharacterChanges(characterId) {
         class: document.getElementById('editClass').value,
         stats: {
             level: parseInt(document.getElementById('editLevel').value),
+            experience: parseInt(document.getElementById('editExperience').value),
             gold: parseInt(document.getElementById('editGold').value),
             hp: parseInt(document.getElementById('editHp').value),
             maxHp: parseInt(document.getElementById('editMaxHp').value),

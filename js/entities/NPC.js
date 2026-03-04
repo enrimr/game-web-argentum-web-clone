@@ -631,7 +631,8 @@ export class NPC extends Character {
                 if (isAdjacent) {
                     const damage = Math.floor(Math.random() * (this.damage.max - this.damage.min + 1)) + this.damage.min;
                     nearestCriminal.hp -= damage;
-                    console.log(`⚔️ Guardia ${this.name} ataca a ${nearestCriminal.name} - ${damage} daño (${nearestCriminal.hp}/${nearestCriminal.maxHp} HP)`);
+                    // Log comentado para reducir spam en consola
+                    // console.log(`⚔️ Guardia ${this.name} ataca a ${nearestCriminal.name} - ${damage} daño (${nearestCriminal.hp}/${nearestCriminal.maxHp} HP)`);
                     
                     // Check if criminal died
                     if (nearestCriminal.hp <= 0) {
