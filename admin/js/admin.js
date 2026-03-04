@@ -4,8 +4,12 @@
  */
 
 // Configuración
-const API_URL = 'http://localhost:3000/api';
+// Usar la URL de la API desde las variables de entorno
+const API_URL = window.ENV?.API_URL || 'http://localhost:3000/api';
 let currentUser = null;
+
+// Log para debugging
+console.log('Admin Panel - Using API_URL:', API_URL);
 let currentToken = null;
 let currentSection = 'stats';
 
