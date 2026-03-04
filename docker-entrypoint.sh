@@ -33,6 +33,9 @@ server {
     gzip on;
     gzip_types text/plain text/css application/javascript application/json image/svg+xml;
 
+    # Evita que nginx incluya el puerto interno en los redirects (p.ej. /admin → /admin/)
+    port_in_redirect off;
+
     add_header X-Content-Type-Options nosniff;
     add_header X-Frame-Options SAMEORIGIN;
 
