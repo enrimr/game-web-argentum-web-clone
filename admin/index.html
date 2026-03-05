@@ -64,6 +64,10 @@
                     <span class="nav-icon">🎭</span>
                     <span class="nav-text">NPCs Activos</span>
                 </a>
+                <a href="#" class="nav-item" data-section="maintenance">
+                    <span class="nav-icon">🔧</span>
+                    <span class="nav-text">Mantenimiento</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <button id="logoutBtn" class="btn btn-secondary btn-block">
@@ -210,6 +214,117 @@
                 <div id="onlineSection" class="content-section">
                     <div class="online-players-grid" id="onlinePlayersGrid">
                         <div class="loading-card">Cargando...</div>
+                    </div>
+                </div>
+
+                <!-- Mantenimiento del Servidor -->
+                <div id="maintenanceSection" class="content-section">
+                    <!-- Stats en tiempo real -->
+                    <div id="maintenanceStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                        <div class="stat-card">
+                            <div class="stat-icon">🎭</div>
+                            <div class="stat-info">
+                                <div class="stat-label">NPCs Vivos</div>
+                                <div class="stat-value" id="maint-npc-alive">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">💀</div>
+                            <div class="stat-info">
+                                <div class="stat-label">NPCs Muertos</div>
+                                <div class="stat-value" id="maint-npc-dead">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">👻</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Fantasmas</div>
+                                <div class="stat-value" id="maint-char-ghosts">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🖥️</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Memoria</div>
+                                <div class="stat-value" id="maint-memory">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Uptime</div>
+                                <div class="stat-value" id="maint-uptime">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log de acciones -->
+                    <div style="background: #1a202c; border-radius: 10px; padding: 15px; margin-bottom: 25px;">
+                        <h3 style="color: #68d391; margin-bottom: 10px; font-size: 14px;">📋 Log de Acciones</h3>
+                        <div id="maintenanceLog" style="font-family: monospace; font-size: 12px; color: #a0aec0; max-height: 150px; overflow-y: auto; line-height: 1.8;">
+                            <span style="color: #4a5568;">Esperando acciones...</span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones de NPCs -->
+                    <div style="background: #f7fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+                        <h3 style="color: #2d3748; margin-bottom: 15px;">🎭 Gestión de NPCs</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            
+                            <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 24px; margin-bottom: 8px;">🌱</div>
+                                <h4 style="margin-bottom: 5px; color: #2d3748;">Spawnear NPCs</h4>
+                                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">Inicializa todos los tipos de NPCs activos en sus mapas configurados.</p>
+                                <button class="btn btn-primary btn-sm" onclick="runMaintenance('seed-npcs', '¿Spawnear todos los NPCs?')">
+                                    ▶️ Ejecutar
+                                </button>
+                            </div>
+
+                            <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 24px; margin-bottom: 8px;">🧹</div>
+                                <h4 style="margin-bottom: 5px; color: #2d3748;">Limpiar NPCs Muertos</h4>
+                                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">Elimina todas las instancias de NPCs muertos de la base de datos.</p>
+                                <button class="btn btn-warning btn-sm" onclick="runMaintenance('clean-dead-npcs', '¿Eliminar todos los NPCs muertos?')">
+                                    ▶️ Ejecutar
+                                </button>
+                            </div>
+
+                            <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
+                                <h4 style="margin-bottom: 5px; color: #2d3748;">Respawnear Todo</h4>
+                                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">Respawnea inmediatamente todos los NPCs muertos sin esperar el temporizador.</p>
+                                <button class="btn btn-primary btn-sm" onclick="runMaintenance('respawn-all-npcs', '¿Respawnear todos los NPCs muertos ahora?')">
+                                    ▶️ Ejecutar
+                                </button>
+                            </div>
+
+                            <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0; border-left: 3px solid #fc8181;">
+                                <div style="font-size: 24px; margin-bottom: 8px;">🔄</div>
+                                <h4 style="margin-bottom: 5px; color: #2d3748;">Reiniciar Sistema NPCs</h4>
+                                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">⚠️ Elimina TODAS las instancias y reinicializa desde cero. Úsalo con cuidado.</p>
+                                <button class="btn btn-danger btn-sm" onclick="runMaintenance('reset-npc-system', '⚠️ ATENCIÓN: Esto eliminará TODOS los NPCs y los reinicrializará. ¿Continuar?')">
+                                    ▶️ Ejecutar
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Acciones de Personajes -->
+                    <div style="background: #f7fafc; border-radius: 10px; padding: 20px; border: 1px solid #e2e8f0;">
+                        <h3 style="color: #2d3748; margin-bottom: 15px;">⚔️ Gestión de Personajes</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            
+                            <div style="background: white; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 24px; margin-bottom: 8px;">⛪</div>
+                                <h4 style="margin-bottom: 5px; color: #2d3748;">Revivir Todos</h4>
+                                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">Revive a todos los personajes que estén muertos (fantasmas) con 100 HP.</p>
+                                <button class="btn btn-success btn-sm" onclick="runMaintenance('revive-all-characters', '¿Revivir a todos los personajes muertos?')">
+                                    ▶️ Ejecutar
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 

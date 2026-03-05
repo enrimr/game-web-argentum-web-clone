@@ -193,7 +193,8 @@ function navigateToSection(section) {
         users: '👥 Gestión de Usuarios',
         characters: '⚔️ Gestión de Personajes',
         online: '🟢 Jugadores Online',
-        npcs: '🎭 NPCs Activos'
+        npcs: '🎭 NPCs Activos',
+        maintenance: '🔧 Mantenimiento del Servidor'
     };
     document.getElementById('sectionTitle').textContent = titles[section];
 
@@ -214,6 +215,9 @@ function navigateToSection(section) {
             break;
         case 'npcs':
             loadNPCs();
+            break;
+        case 'maintenance':
+            loadMaintenanceStats();
             break;
     }
 }
@@ -1479,5 +1483,102 @@ function populateMapFilter(mapNames) {
         loadNPCs(e.target.value);
     });
 }
+
+/**
+ * ==================== MANTENIMIENTO ====================
+ */
+
+/**
+ * Cargar estadísticas de mantenimiento
+ */
+async function loadMaintenanceStats() {
+    try {
+        const response = await fetch(`${API_URL}/admin/maintenance/server-stats`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            const s = data.data;
+            document.getElementById('maint-npc-alive').textContent = s.npcs.alive;
+            document.getElementById('maint-npc-dead').textContent = s.npcs.dead;
+            document.getElementById('maint-char-ghosts').textContent = s.characters.ghosts;
+            document.getElementById('maint-memory').textContent = s.server.memory.heapUsed;
+            document.getElementById('maint-uptime').textContent = s.server.uptimeFormatted;
+        }
+    } catch (error) {
+        console.error('Error cargando stats de mantenimiento:', error);
+    }
+}
+
+/**
+ * Ejecutar acción de mantenimiento
+ * @param {string} action - Nombre de la acción (seed-npcs, clean-dead-npcs, etc.)
+ * @param {string} confirmMsg - Mensaje de confirmación
+ */
+window.runMaintenance = async function(action, confirmMsg) {
+    if (!confirm(confirmMsg)) return;
+
+    const logEl = document.getElementById('maintenanceLog');
+    const now = new Date().toLocaleTimeString('es-ES');
+
+    // Añadir entrada al log
+    const addLog = (msg, color = '#a0aec0') => {
+        const line = document.createElement('div');
+        line.innerHTML = `<span style="color:#4a5568;">[${now}]</span> <span style="color:${color};">${msg}</span>`;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+        // Limpiar el placeholder si existe
+        const placeholder = logEl.querySelector('span');
+        if (placeholder && placeholder.textContent === 'Esperando acciones...') {
+            placeholder.remove();
+        }
+    };
+
+    addLog(`⏳ Ejecutando: ${action}...`, '#fbd38d');
+
+    // Deshabilitar botones durante la ejecución
+    const buttons = document.querySelectorAll('#maintenanceSection button[onclick]');
+    buttons.forEach(b => b.disabled = true);
+
+    try {
+        const response = await fetch(`${API_URL}/admin/maintenance/${action}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${currentToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            addLog(`✅ ${data.message}`, '#68d391');
+            
+            // Mostrar detalles si existen
+            if (data.data) {
+                const details = Object.entries(data.data)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(' | ');
+                addLog(`   📊 ${details}`, '#90cdf4');
+            }
+
+            showNotification(data.message, 'success');
+
+            // Recargar stats después de la acción
+            setTimeout(() => loadMaintenanceStats(), 1000);
+        } else {
+            addLog(`❌ Error: ${data.message}`, '#fc8181');
+            showNotification(data.message, 'error');
+        }
+    } catch (error) {
+        console.error(`Error en acción ${action}:`, error);
+        addLog(`❌ Error de conexión: ${error.message}`, '#fc8181');
+        showNotification('Error de conexión con el servidor', 'error');
+    } finally {
+        // Re-habilitar botones
+        buttons.forEach(b => b.disabled = false);
+    }
+};
 
 console.log('🔧 Admin Dashboard iniciado');
