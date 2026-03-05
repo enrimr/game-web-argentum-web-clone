@@ -648,10 +648,15 @@ function setupMultiplayerListeners() {
             gameState.player.maxMana = data.newMaxMana;
             gameState.player.mana = data.newMaxMana;
             
+            // Actualizar experiencia y límite del nuevo nivel
+            gameState.player.experience = data.currentExp || 0;
+            gameState.player.expToNextLevel = data.expForNext || 0;
+            
             console.log(`  🔄 Stats actualizados:`);
             console.log(`    Nivel: ${oldLevel} → ${gameState.player.level}`);
             console.log(`    HP: ${oldMaxHp} → ${gameState.player.maxHp} (curado a ${gameState.player.hp})`);
             console.log(`    Mana: ${oldMaxMana} → ${gameState.player.maxMana} (recargado a ${gameState.player.mana})`);
+            console.log(`    EXP: ${gameState.player.experience}/${gameState.player.expToNextLevel}`);
         }
         
         addChatMessage('system', `🎉 ¡HAS SUBIDO AL NIVEL ${data.newLevel}!`);
@@ -665,6 +670,38 @@ function setupMultiplayerListeners() {
         
         // TODO: Reproducir sonido de level up cuando esté disponible
         // audioManager.playSound('levelup');
+    });
+
+    // Cuando el servidor actualiza stats (exp, oro, nivel) - se emite tras matar un NPC
+    socketClient.on('stats_update', (data) => {
+        console.log('📊 EVENTO stats_update recibido:', data);
+        
+        if (gameState.player) {
+            // Actualizar experiencia actual y límite para el siguiente nivel
+            if (data.experience !== undefined) {
+                gameState.player.experience = data.experience;
+            }
+            if (data.expForNext !== undefined) {
+                gameState.player.expToNextLevel = data.expForNext;
+            }
+            // Actualizar nivel (puede haber subido)
+            if (data.level !== undefined) {
+                gameState.player.level = data.level;
+            }
+            // Actualizar oro
+            if (data.gold !== undefined) {
+                gameState.player.gold = data.gold;
+            }
+            // Actualizar HP/Mana si vienen (ej. tras level up)
+            if (data.hp !== undefined) gameState.player.hp = data.hp;
+            if (data.maxHp !== undefined) gameState.player.maxHp = data.maxHp;
+            if (data.mana !== undefined) gameState.player.mana = data.mana;
+            if (data.maxMana !== undefined) gameState.player.maxMana = data.maxMana;
+            
+            console.log(`  ✅ Stats actualizados: EXP=${gameState.player.experience}/${gameState.player.expToNextLevel}, Nivel=${gameState.player.level}, Oro=${gameState.player.gold}`);
+        }
+        
+        updateUI();
     });
 
     // Cuando cambia el estado de un jugador (muerte/resurrección)

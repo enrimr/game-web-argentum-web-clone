@@ -153,6 +153,23 @@ class MultiplayerManager {
             player.level = characterData.stats.level || 1;
             player.experience = characterData.stats.experience || 0;
             player.gold = characterData.stats.gold || 0;
+            
+            // Calcular experiencia necesaria para el siguiente nivel
+            // Tabla sincronizada con calima-online-server/src/config/experienceTable.js
+            const EXP_TABLE = {
+                1: 0, 2: 100, 3: 250, 4: 500, 5: 900,
+                6: 1500, 7: 2300, 8: 3400, 9: 4800, 10: 6500,
+                11: 8500, 12: 11000, 13: 14000, 14: 17500, 15: 21500,
+                16: 26000, 17: 31000, 18: 36500, 19: 42500, 20: 49000,
+                21: 56000, 22: 63500, 23: 71500, 24: 80000, 25: 89000,
+                26: 98500, 27: 108500, 28: 119000, 29: 130000, 30: 142000,
+                31: 155000, 32: 169000, 33: 184000, 34: 200000, 35: 217000,
+                36: 235000, 37: 254000, 38: 274000, 39: 295000, 40: 317000,
+                41: 340000, 42: 364000, 43: 389000, 44: 415000, 45: 442000,
+                46: 470000, 47: 499000, 48: 529000, 49: 560000, 50: 592000
+            };
+            const nextLevel = Math.min(player.level + 1, 50);
+            player.expToNextLevel = EXP_TABLE[nextLevel] || EXP_TABLE[50];
             player.strength = characterData.stats.strength || 18;
             player.dexterity = characterData.stats.dexterity || 18;
             player.intelligence = characterData.stats.intelligence || 18;
