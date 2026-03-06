@@ -848,14 +848,18 @@
         const minimapToggleBtn = document.getElementById('minimapToggleBtn');
 
         if (minimapToggleBtn && minimapOverlay) {
-            // Activar el flag minimapVisible llamando a toggleMinimap() tras un delay
-            // (el mapa debe estar cargado para renderizar)
+            // Activar minimap en desktop esperando a que el mapa esté cargado
+            // El evento 'multiplayer-ready' o un delay largo garantizan que el mapa está listo
             if (window.innerWidth >= 900) {
-                setTimeout(() => {
-                    if (typeof toggleMinimap === 'function') {
-                        toggleMinimap(); // activa minimapVisible=true y renderiza
-                    }
-                }, 500);
+                // Activar minimap cuando el juego emite 'login-complete'
+                // (Game.js lo dispara en la línea 96 al iniciar la sesión)
+                window.addEventListener('login-complete', () => {
+                    setTimeout(() => {
+                        if (typeof toggleMinimap === 'function') {
+                            toggleMinimap();
+                        }
+                    }, 300);
+                }, { once: true });
             }
 
             minimapToggleBtn.addEventListener('click', () => {
