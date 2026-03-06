@@ -226,6 +226,11 @@
 /* ── Ocultar el chat-section antiguo ── */
 .chat-section { display: none !important; }
 
+/* ── Barra inferior (inventario + magias) solo en móvil ── */
+.mobile-bottom-bars {
+    display: block; /* visible en móvil */
+}
+
 /* =====================================================
    DESKTOP (≥ 900px)
    ─ El canvas mantiene su tamaño original
@@ -234,15 +239,14 @@
    ===================================================== */
 @media (min-width: 900px) {
 
-    /* El .main-game ya tiene position:relative en el CSS original.
-       Solo nos aseguramos de que el chat se posicione dentro de él. */
+    /* El .main-game ya tiene position:relative en el CSS original. */
     .main-game {
         position: relative;
     }
 
-    /* Restaurar padding (no es necesario en desktop) */
+    /* Ocultar inventario/magias de la barra inferior en desktop */
     .mobile-bottom-bars {
-        padding-bottom: 0;
+        display: none !important;
     }
 
     .mmorpg-chat {
