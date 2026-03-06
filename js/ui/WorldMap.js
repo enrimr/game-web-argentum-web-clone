@@ -22,132 +22,30 @@ function initWorldMapCanvas() {
 }
 
 /**
- * Toggle world map visibility
+ * Toggle world map visibility.
+ * The canvas lives inside the modal; we just set the flag and render.
  */
 export function toggleWorldMap() {
     // Initialize canvas if not already done
     initWorldMapCanvas();
-    
-    const container = document.getElementById('worldMapContainer');
-    const button = document.getElementById('toggleWorldMap');
-    const mapDetailsElement = document.getElementById('worldMapDetails');
-    
-    if (!container || !button) return; // Safety check
-    
+
     worldMapVisible = !worldMapVisible;
 
     if (worldMapVisible) {
-        // Ocultar la información del mapa original
-        if (mapDetailsElement) {
-            mapDetailsElement.innerHTML = '';
-            mapDetailsElement.style.display = 'none';
-        }
-        
-        // Centrar el mapa en pantalla y mostrarlo
-        centerWorldMapOnScreen();
-        container.style.display = 'flex';
-        button.textContent = 'Ocultar Mapa del Mundo';
-        
-        // Crear el botón de cierre si no existe o actualizarlo si ya existe
-        let closeButton = document.getElementById('closeWorldMapBtn');
-        if (!closeButton) {
-            closeButton = document.createElement('button');
-            closeButton.id = 'closeWorldMapBtn';
-            closeButton.className = 'world-map-close-btn';
-            closeButton.textContent = '✕';
-            closeButton.style.position = 'absolute';
-            closeButton.style.top = '5px';
-            closeButton.style.right = '5px';
-            closeButton.style.background = 'rgba(200, 0, 0, 0.7)';
-            closeButton.style.color = 'white';
-            closeButton.style.border = 'none';
-            closeButton.style.borderRadius = '50%';
-            closeButton.style.width = '24px';
-            closeButton.style.height = '24px';
-            closeButton.style.cursor = 'pointer';
-            closeButton.style.fontSize = '14px';
-            closeButton.style.fontWeight = 'bold';
-            closeButton.style.display = 'flex';
-            closeButton.style.justifyContent = 'center';
-            closeButton.style.alignItems = 'center';
-            closeButton.style.zIndex = '1000';
-            closeButton.addEventListener('click', closeWorldMap);
-            container.appendChild(closeButton);
-        } else {
-            closeButton.style.display = 'flex';
-        }
-        
         renderWorldMap();
-    } else {
-        closeWorldMap();
     }
 }
 
 /**
- * Close the world map
+ * Close the world map (clears the flag and the canvas)
  */
 function closeWorldMap() {
-    const container = document.getElementById('worldMapContainer');
-    const button = document.getElementById('toggleWorldMap');
-    const mapDetailsElement = document.getElementById('worldMapDetails');
-    
-    if (!container || !button) return; // Safety check
-    
     worldMapVisible = false;
-    container.style.display = 'none';
-    button.textContent = 'Mostrar Mapa del Mundo';
-    
-    // Restaurar visibilidad de elementos originales
-    if (mapDetailsElement) {
-        mapDetailsElement.style.display = 'block';
-        mapDetailsElement.innerHTML = '';
-    }
-    
-    // Ocultar el botón de cierre
-    const closeButton = document.getElementById('closeWorldMapBtn');
-    if (closeButton) {
-        closeButton.style.display = 'none';
-    }
-    
+
     // Limpiar el canvas
     if (worldMapCanvas && worldMapCtx) {
         worldMapCtx.clearRect(0, 0, worldMapCanvas.width, worldMapCanvas.height);
     }
-}
-
-/**
- * Center the world map on screen
- */
-function centerWorldMapOnScreen() {
-    const container = document.getElementById('worldMapContainer');
-    if (!container) return;
-    
-    // Limpiar cualquier contenido HTML existente, excepto el canvas
-    const canvas = worldMapCanvas;
-    container.innerHTML = '';
-    if (canvas) {
-        container.appendChild(canvas);
-    }
-    
-    // Establecer estilos para posicionar el mapa en el centro de la pantalla
-    container.style.position = 'fixed';
-    container.style.top = '50%';
-    container.style.left = '50%';
-    container.style.transform = 'translate(-50%, -50%)';
-    container.style.maxWidth = '80%';
-    container.style.maxHeight = '80%';
-    container.style.width = 'auto';
-    container.style.height = 'auto';
-    container.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-    container.style.border = '2px solid #ffd700';
-    container.style.borderRadius = '8px';
-    container.style.padding = '20px';
-    container.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.5)';
-    container.style.zIndex = '1000';
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.alignItems = 'center';
-    container.style.justifyContent = 'center';
 }
 
 /**

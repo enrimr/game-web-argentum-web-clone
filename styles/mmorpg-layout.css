@@ -359,9 +359,11 @@
     animation: modal-in 0.18s ease;
 }
 
+/* Modal grande para el mapa del mundo - ocupa hasta el 92% de la pantalla */
 .game-modal-lg {
     min-width: 540px;
-    max-width: 600px;
+    max-width: 92vw;
+    width: 92vw;
 }
 
 @keyframes modal-in {

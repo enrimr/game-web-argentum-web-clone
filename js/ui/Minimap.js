@@ -34,32 +34,24 @@ function initMinimapCanvas() {
 export function toggleMinimap() {
     // Initialize canvas if not already done
     initMinimapCanvas();
-    
-    const container = document.getElementById('minimapContainer');
-    const button = document.getElementById('toggleMinimap');
-    
-    if (!container || !button) return; // Safety check
-    
+
     minimapVisible = !minimapVisible;
 
     if (minimapVisible) {
-        container.style.display = 'block';
-        button.textContent = 'Ocultar Minimap';
         renderMinimap();
-    } else {
-        container.style.display = 'none';
-        button.textContent = 'Mostrar Minimap';
     }
 }
 
 /**
  * Render the minimap
+ * Does NOT check minimapVisible - callers decide when to render.
+ * updateMinimap() (called from game loop) still respects the flag.
  */
 export function renderMinimap() {
     // Initialize canvas if not already done
     initMinimapCanvas();
     
-    if (!minimapVisible || !minimapCanvas || !minimapCtx) return;
+    if (!minimapCanvas || !minimapCtx) return;
 
     const scaleX = minimapCanvas.width / MAP_WIDTH;
     const scaleY = minimapCanvas.height / MAP_HEIGHT;
