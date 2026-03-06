@@ -186,9 +186,11 @@
                 </div>
             </div>
             
-            <!-- Sidebar with inventory and quests -->
-            <div class="sidebar">
-                <div class="panel">
+            <!-- Sidebar rediseñado: menú compacto + hechizos desplegados -->
+            <div class="sidebar sidebar-mmorpg">
+
+                <!-- ── Inventario (siempre visible) ── -->
+                <div class="panel panel-compact">
                     <h3>📦 Inventario</h3>
                     <div id="inventory" class="inventory">
                         <div class="item-slot empty" title="Espacio vacío">-</div>
@@ -202,61 +204,94 @@
                         <div class="item-slot empty" title="Espacio vacío">-</div>
                     </div>
                 </div>
-                
-                <div class="panel character-panel">
-                    <h3> Personaje</h3>
-                    <div class="character-info">
-                        <p><span class="stat-label">Nivel:</span> <span class="stat-value">1</span></p>
-                        <p><span class="stat-label">Clase:</span> <span class="stat-value">Guerrero</span></p>
-                        <p><span class="stat-label">Enemigos:</span> <span class="stat-value" id="enemiesKilled">0</span></p>
-                        <p><span class="stat-label">Cofres:</span> <span class="stat-value" id="chestsOpened">0</span></p>
-                    </div>
-                    <button id="toggleSkillsBtn" onclick="toggleSkillsPanel()" class="minimap-toggle" style="margin-top: 8px;">📊 Ver Habilidades</button>
-                </div>
 
-                <div class="panel">
-                    <h3>✨ Hechizos
-                        <button id="toggleSpellsList" class="spells-toggle">Mostrar</button>
-                    </h3>
-                    <div id="sidebarSpellsList" class="spells-list" style="display: none;">
-                        <!-- Los hechizos se cargarán dinámicamente aquí -->
-                    </div>
-                    <div class="spells-actions" style="display: none;">
-                        <button id="castSpellBtn">Lanzar</button>
-                        <button id="meditateBtn">Meditar</button>
+                <!-- ── Hechizos desplegados por defecto ── -->
+                <div class="panel panel-compact panel-spells">
+                    <h3>✨ Hechizos</h3>
+                    <div id="sidebarSpellsList" class="spells-list spells-list-open">
+                        <!-- Se cargan dinámicamente -->
                     </div>
                 </div>
 
-                <div class="panel">
-                    <h3>📖 Ayuda & Audio</h3>
-                    <a href="/manual" target="_blank" class="minimap-toggle" style="display: block; text-align: center; text-decoration: none; margin-bottom: 8px;">Ver Manual del Juego</a>
-                    <button id="toggleMusicBtn" onclick="toggleMusic()" class="minimap-toggle" style="margin-bottom: 8px; background: #10b981;">🎵 Música: ON</button>
-                    <button id="toggleSfxBtn" onclick="toggleSfx()" class="minimap-toggle" style="background: #10b981;">🔊 Efectos: ON</button>
+                <!-- ── Barra de menú compacta con iconos ── -->
+                <div class="sidebar-menu-bar">
+                    <button class="smenu-btn active" data-panel="smenu-char"    title="Personaje">⚔️</button>
+                    <button class="smenu-btn"        data-panel="smenu-skills"  title="Habilidades">📊</button>
+                    <button class="smenu-btn"        data-panel="smenu-maps"    title="Mapas">🗺️</button>
+                    <button class="smenu-btn"        data-panel="smenu-audio"   title="Audio">🔊</button>
+                    <button class="smenu-btn"        data-panel="smenu-help"    title="Ayuda">📖</button>
                 </div>
 
-                <div class="panel">
-                    <h3>🗺️ Mapas</h3>
-                    <button id="toggleMinimap" onclick="toggleMinimap()" class="minimap-toggle">Mostrar Minimap</button>
+                <!-- ── Paneles de contenido del menú ── -->
+
+                <!-- Personaje -->
+                <div id="smenu-char" class="smenu-panel active">
+                    <div class="smenu-row">
+                        <span class="smenu-label">Nivel</span>
+                        <span class="smenu-value" id="sideLevel">1</span>
+                    </div>
+                    <div class="smenu-row">
+                        <span class="smenu-label">HP</span>
+                        <span class="smenu-value"><span id="hp">100</span>/<span id="hpMax">100</span></span>
+                    </div>
+                    <div class="smenu-row">
+                        <span class="smenu-label">Mana</span>
+                        <span class="smenu-value"><span id="mana">50</span>/<span id="manaMax">50</span></span>
+                    </div>
+                    <div class="smenu-row">
+                        <span class="smenu-label">EXP</span>
+                        <span class="smenu-value"><span id="exp">0/100</span></span>
+                    </div>
+                    <div class="smenu-row">
+                        <span class="smenu-label">Oro</span>
+                        <span class="smenu-value"><span id="gold">0</span></span>
+                    </div>
+                    <div class="smenu-row">
+                        <span class="smenu-label">Facción</span>
+                        <span class="smenu-value" id="playerFaction">-</span>
+                    </div>
+                    <div class="smenu-row">
+                        <span class="smenu-label">Status</span>
+                        <span class="smenu-value" id="criminalStatus">-</span>
+                    </div>
+                </div>
+
+                <!-- Habilidades -->
+                <div id="smenu-skills" class="smenu-panel">
+                    <button onclick="toggleSkillsPanel()" class="smenu-action-btn">📊 Ver Habilidades</button>
+                </div>
+
+                <!-- Mapas -->
+                <div id="smenu-maps" class="smenu-panel">
+                    <button onclick="toggleMinimap()" class="smenu-action-btn">🗺️ Minimapa</button>
+                    <button onclick="toggleWorldMap()" class="smenu-action-btn" style="margin-top:6px;">🌍 Mapa del Mundo</button>
+                    <button onclick="toggleMapEditor()" class="smenu-action-btn" style="margin-top:6px; background:#4a5568;">🛠️ Editor</button>
                     <div id="minimapContainer" class="minimap-container" style="display: none;">
                         <canvas id="minimapCanvas" width="200" height="150"></canvas>
-                        <div class="minimap-legend">
-                            <div class="legend-item"><span class="legend-color" style="background: #2d5016;"></span> Terreno</div>
-                            <div class="legend-item"><span class="legend-color" style="background: #8b5cf6;"></span> Portal Ciudad</div>
-                            <div class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Portal Mazmorra</div>
-                            <div class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Jugador</div>
-                        </div>
                     </div>
-                    <button id="toggleWorldMap" onclick="toggleWorldMap()" class="minimap-toggle" style="margin-top: 8px;">Mostrar Mapa del Mundo</button>
                     <div id="worldMapContainer" class="world-map-container" style="display: none;">
                         <canvas id="worldMapCanvas" width="400" height="300"></canvas>
-                        <div class="world-map-info">
-                            <p>🗺️ <strong>Mapa del Mundo Argentum</strong></p>
-                            <p>Haz click en un mapa para viajar (si tienes acceso)</p>
-                            <div id="worldMapDetails" class="world-map-details"></div>
-                        </div>
+                        <div id="worldMapDetails" class="world-map-details"></div>
                     </div>
-                    <button id="toggleMapEditor" onclick="toggleMapEditor()" class="minimap-toggle" style="margin-top: 8px; background: #4a5568;">🗺️ Editor de Mapas</button>
                 </div>
+
+                <!-- Audio -->
+                <div id="smenu-audio" class="smenu-panel">
+                    <button id="toggleMusicBtn" onclick="toggleMusic()" class="smenu-action-btn" style="background:#10b981;">🎵 Música: ON</button>
+                    <button id="toggleSfxBtn"   onclick="toggleSfx()"   class="smenu-action-btn" style="margin-top:6px; background:#10b981;">🔊 Efectos: ON</button>
+                </div>
+
+                <!-- Ayuda -->
+                <div id="smenu-help" class="smenu-panel">
+                    <a href="/manual" target="_blank" class="smenu-action-btn" style="display:block; text-align:center; text-decoration:none;">📖 Manual del Juego</a>
+                    <div class="smenu-controls" style="margin-top:10px; font-size:11px; color:#9ca3af; line-height:1.8;">
+                        <p>🎮 Flechas/WASD → Mover</p>
+                        <p>⎵ Espacio → Atacar</p>
+                        <p>⏎ Enter → Chat</p>
+                        <p>⎋ Escape → Cerrar chat</p>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -719,6 +754,20 @@
                 };
             }
         }
+
+        // ── Sidebar MMORPG: tabs de menú ──
+        document.querySelectorAll('.smenu-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Activar botón
+                document.querySelectorAll('.smenu-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // Mostrar panel correspondiente
+                const panelId = btn.dataset.panel;
+                document.querySelectorAll('.smenu-panel').forEach(p => p.classList.remove('active'));
+                const panel = document.getElementById(panelId);
+                if (panel) panel.classList.add('active');
+            });
+        });
 
         // Mobile menu functions
         window.closeMobileMenu = function() {

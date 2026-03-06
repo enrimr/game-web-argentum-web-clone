@@ -226,6 +226,120 @@
 /* ── Ocultar el chat-section antiguo ── */
 .chat-section { display: none !important; }
 
+/* =====================================================
+   SIDEBAR MMORPG — Menú compacto + hechizos desplegados
+   ===================================================== */
+
+/* Hechizos desplegados por defecto (sin botón mostrar/ocultar) */
+.spells-list-open {
+    display: block !important;
+}
+
+/* Panel más compacto para reducir padding */
+.panel-compact {
+    padding: 8px 10px;
+}
+
+.panel-compact h3 {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+/* ── Barra de menú de iconos ── */
+.sidebar-menu-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(15, 20, 35, 0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 4px;
+    margin: 6px 0 0 0;
+    gap: 2px;
+}
+
+.smenu-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(200,200,220,0.55);
+    font-size: 16px;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    touch-action: manipulation;
+    position: relative;
+}
+
+.smenu-btn:hover {
+    color: #e2e8f0;
+    background: rgba(255,255,255,0.08);
+}
+
+.smenu-btn.active {
+    color: #fbbf24;
+    background: rgba(251,191,36,0.12);
+}
+
+/* ── Paneles de contenido del menú ── */
+.smenu-panel {
+    display: none;
+    padding: 8px 4px 4px;
+}
+
+.smenu-panel.active {
+    display: block;
+}
+
+/* Filas de stats del personaje */
+.smenu-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: background 0.1s;
+}
+
+.smenu-row:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.smenu-label {
+    color: rgba(200,200,220,0.6);
+    font-size: 11px;
+}
+
+.smenu-value {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* Botones de acción dentro de los paneles */
+.smenu-action-btn {
+    display: block;
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px;
+    color: #e2e8f0;
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+    touch-action: manipulation;
+}
+
+.smenu-action-btn:hover,
+.smenu-action-btn:active {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.22);
+}
+
 /* ── Barra inferior (inventario + magias) solo en móvil ── */
 .mobile-bottom-bars {
     display: block; /* visible en móvil */
