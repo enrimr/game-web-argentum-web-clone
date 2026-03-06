@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="styles/skills.css">
     <link rel="stylesheet" href="styles/preloader.css">
     <link rel="stylesheet" href="styles/admin-panel.css">
+    <link rel="stylesheet" href="styles/mmorpg-layout.css">
     <link rel="icon" type="image/png" sizes="32x32" href="/resources/images/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/resources/images/favicon/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png">
@@ -145,43 +146,43 @@
             </div>
         </div>
         
-        <!-- Chat section at the top -->
-        <div class="chat-section">
-            <div class="chat-header">
-                <h3>💬 Chat del Juego</h3>
-                <button id="toggleChat" class="chat-toggle">💬</button>
-                <div id="chatNotification" class="chat-notification" style="display: none;">●</div>
-            </div>
-            <div id="chatLog" class="chat-log">
-                <p><span class="system">Sistema:</span> ¡Bienvenido a Calima Online!</p>
-                <p><span class="system">Sistema:</span> Usa las flechas o WASD para moverte por el mapa.</p>
-                <p><span class="system">Sistema:</span> Presiona ESPACIO para interactuar con objetos o atacar enemigos.</p>
-                <p><span class="system">Sistema:</span> Presiona E para abrir y cerrar puertas.</p>
-                <p><span class="system">Sistema:</span> También puedes desplazarte e interactuar con el mundo con el cursor del ratón.</p>
-            </div>
-            <form id="chatForm" class="chat-form">
-                <div class="chat-input-row">
-                    <select id="chatTargetSelector" class="chat-target-selector">
-                        <option value="global">Global</option>
-                        <option value="local">Cercanos</option>
-                        <option value="group">Grupo</option>
-                        <option value="private">Jugador</option>
-                    </select>
-                    <div id="chatPlayerSelectorContainer" style="display: none;">
-                        <select id="chatPlayerSelector" class="chat-player-selector"></select>
-                    </div>
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." autocomplete="off">
-                    <button type="submit" class="chat-send-btn">Enviar</button>
-                </div>
-            </form>
-        </div>
-        
         <!-- Main game area with canvas and sidebar -->
         <div class="game-area">
             <div class="main-game">
                 <canvas id="gameCanvas" width="640" height="416"></canvas>
+
+                <!-- Chat MMORPG superpuesto sobre el canvas (esquina inferior izquierda) -->
+                <div id="mmorpgChat" class="mmorpg-chat">
+                    <div class="mmorpg-chat-header">
+                        <div class="mmorpg-chat-tabs">
+                            <button class="chat-tab active" data-target="global">Global</button>
+                            <button class="chat-tab" data-target="local">Cercanos</button>
+                            <button class="chat-tab" data-target="group">Grupo</button>
+                            <button class="chat-tab" data-target="private">Privado</button>
+                        </div>
+                        <div class="mmorpg-chat-controls">
+                            <div id="chatNotification" class="chat-notification" style="display: none;">●</div>
+                            <button id="toggleChat" class="chat-minimize-btn" title="Minimizar chat">_</button>
+                        </div>
+                    </div>
+                    <div id="chatLog" class="chat-log mmorpg-chat-log">
+                        <p><span class="system">Sistema:</span> ¡Bienvenido a Calima Online!</p>
+                        <p><span class="system">Sistema:</span> Usa las flechas o WASD para moverte por el mapa.</p>
+                        <p><span class="system">Sistema:</span> Presiona ESPACIO para interactuar/atacar.</p>
+                    </div>
+                    <form id="chatForm" class="mmorpg-chat-form">
+                        <div class="chat-input-row">
+                            <div id="chatPlayerSelectorContainer" style="display: none;">
+                                <select id="chatPlayerSelector" class="chat-player-selector"></select>
+                            </div>
+                            <input type="hidden" id="chatTargetSelector" value="global">
+                            <input type="text" id="chatInput" class="mmorpg-chat-input" placeholder="Presiona Enter para chatear..." autocomplete="off">
+                        </div>
+                    </form>
+                </div>
+
                 <div class="controls">
-                    <p>🎮 Controles: Flechas o WASD para moverte | ESPACIO para interactuar/atacar</p>
+                    <p>🎮 Flechas/WASD para moverte | ESPACIO para atacar | Enter para chatear</p>
                 </div>
             </div>
             
@@ -610,34 +611,72 @@
                 minimalistHUD.style.display = 'block';
             }
 
-            // Chat toggle
-            const chatLog = document.getElementById('chatLog');
+            // ── Chat MMORPG: minimizar/expandir ──
+            const mmorpgChat = document.getElementById('mmorpgChat');
             const chatToggle = document.getElementById('toggleChat');
             const chatNotification = document.getElementById('chatNotification');
 
-            if (chatToggle && chatLog) {
-                let chatVisible = true;
-
+            if (chatToggle && mmorpgChat) {
                 chatToggle.addEventListener('click', () => {
-                    chatVisible = !chatVisible;
-                    if (chatVisible) {
-                        chatLog.style.display = 'block';
-                        chatToggle.textContent = '⬆️';
-                        if (chatNotification) chatNotification.style.display = 'none';
-                    } else {
-                        chatLog.style.display = 'none';
-                        chatToggle.textContent = '💬';
+                    const isMinimized = mmorpgChat.classList.toggle('minimized');
+                    chatToggle.textContent = isMinimized ? '□' : '_';
+                    if (!isMinimized && chatNotification) {
+                        chatNotification.style.display = 'none';
                     }
                 });
             }
 
-            // Chat notification system - intercept addChatMessage
+            // ── Chat MMORPG: tabs ──
+            const chatTabs = document.querySelectorAll('.chat-tab');
+            const chatTargetInput = document.getElementById('chatTargetSelector');
+            const chatPlayerSelectorContainer = document.getElementById('chatPlayerSelectorContainer');
+
+            chatTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    chatTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const target = tab.dataset.target;
+                    if (chatTargetInput) chatTargetInput.value = target;
+                    // Mostrar selector de jugador solo en modo privado
+                    if (chatPlayerSelectorContainer) {
+                        chatPlayerSelectorContainer.style.display = target === 'private' ? 'block' : 'none';
+                    }
+                    // Enfocar el input
+                    const input = document.getElementById('chatInput');
+                    if (input) input.focus();
+                });
+            });
+
+            // ── Abrir chat al pulsar Enter en el juego ──
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const chatInput = document.getElementById('chatInput');
+                    if (chatInput && document.activeElement !== chatInput) {
+                        e.preventDefault();
+                        // Expandir si estaba minimizado
+                        if (mmorpgChat && mmorpgChat.classList.contains('minimized')) {
+                            mmorpgChat.classList.remove('minimized');
+                            if (chatToggle) chatToggle.textContent = '_';
+                        }
+                        chatInput.focus();
+                    }
+                }
+                // Escape cierra el chat input
+                if (e.key === 'Escape') {
+                    const chatInput = document.getElementById('chatInput');
+                    if (chatInput && document.activeElement === chatInput) {
+                        chatInput.blur();
+                    }
+                }
+            });
+
+            // ── Notificación cuando el chat está minimizado ──
             const originalAddMessage = window.addChatMessage;
-            if (originalAddMessage && chatNotification && chatLog) {
+            if (originalAddMessage && chatNotification && mmorpgChat) {
                 window.addChatMessage = function(type, message) {
                     originalAddMessage(type, message);
-                    if (chatLog.style.display === 'none') {
-                        chatNotification.style.display = 'block';
+                    if (mmorpgChat.classList.contains('minimized')) {
+                        if (chatNotification) chatNotification.style.display = 'block';
                     }
                 };
             }
