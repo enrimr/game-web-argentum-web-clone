@@ -181,6 +181,12 @@
                     </form>
                 </div>
 
+                <!-- ── Minimap en esquina superior derecha del canvas ── -->
+                <div id="minimapContainer" class="minimap-canvas-overlay">
+                    <canvas id="minimapCanvas" width="160" height="120"></canvas>
+                    <button id="minimapToggleBtn" class="minimap-overlay-btn" title="Ocultar minimapa">✕</button>
+                </div>
+
                 <div class="controls">
                     <p>🎮 Flechas/WASD para moverte | ESPACIO para atacar | Enter para chatear</p>
                 </div>
@@ -215,11 +221,11 @@
 
                 <!-- ── Barra de 5 iconos (abre modales) ── -->
                 <div class="sidebar-menu-bar">
-                    <button class="smenu-btn" data-modal="modal-char"   title="Personaje">⚔️</button>
-                    <button class="smenu-btn" data-modal="modal-skills" title="Habilidades">📊</button>
-                    <button class="smenu-btn" data-modal="modal-map"    title="Mapa del mundo">🗺️</button>
-                    <button class="smenu-btn" data-modal="modal-audio"  title="Configuración">🔊</button>
-                    <a class="smenu-btn" href="/manual" target="_blank"  title="Ayuda">📖</a>
+                    <button class="smenu-btn" data-modal="modal-char"  title="Personaje">⚔️</button>
+                    <button class="smenu-btn" data-skills title="Habilidades">📊</button>
+                    <button class="smenu-btn" data-modal="modal-map"   title="Mapa del mundo">🗺️</button>
+                    <button class="smenu-btn" data-modal="modal-audio" title="Configuración">🔊</button>
+                    <a class="smenu-btn" href="/manual" target="_blank" title="Ayuda">📖</a>
                 </div>
 
             </div>
@@ -247,21 +253,6 @@
                 </div>
             </div>
 
-            <!-- Modal: Habilidades (wrapper del panel existente) -->
-            <div id="modal-skills" class="game-modal" style="display:none;">
-                <div class="game-modal-inner">
-                    <div class="game-modal-header">
-                        <h3>📊 Habilidades</h3>
-                        <button class="game-modal-close" data-close="modal-skills">✕</button>
-                    </div>
-                    <div class="game-modal-body" style="padding:0;">
-                        <!-- El panel de habilidades se renderiza aquí o se llama al toggle -->
-                        <div style="padding:16px; text-align:center;">
-                            <button onclick="toggleSkillsPanel()" class="smenu-action-btn">📊 Abrir Panel de Habilidades</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Modal: Mapa del Mundo -->
             <div id="modal-map" class="game-modal game-modal-lg" style="display:none;">
@@ -293,18 +284,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Minimap integrado en esquina superior derecha del canvas -->
-            <div id="minimapContainer" class="minimap-canvas-overlay">
-                <canvas id="minimapCanvas" width="160" height="120"></canvas>
-                <button id="minimapToggleBtn" class="minimap-overlay-btn" title="Mostrar/Ocultar minimapa">🗺️</button>
-            </div>
-
-            <!-- Contenedor oculto para el mapa del mundo legacy -->
-            <div style="display:none;">
-                <div id="worldMapContainerLegacy"></div>
-            </div>
-        </div>
 
         <!-- Contenedor de barras inferiores sobre el canvas -->
         <div class="mobile-bottom-bars">
@@ -812,6 +791,19 @@
         function closeGameModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'none';
+        }
+
+        // Botón de habilidades (abre directamente el panel, sin modal)
+        const skillsBtn = document.querySelector('.smenu-btn[data-skills]');
+        if (skillsBtn) {
+            skillsBtn.addEventListener('click', () => {
+                document.querySelectorAll('.smenu-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.game-modal').forEach(m => m.style.display = 'none');
+                skillsBtn.classList.add('active');
+                toggleSkillsPanel();
+                // Desactivar el icono después de un momento (el panel ya está abierto)
+                setTimeout(() => skillsBtn.classList.remove('active'), 300);
+            });
         }
 
         // Botones de la barra de iconos
