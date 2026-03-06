@@ -611,17 +611,55 @@
                 minimalistHUD.style.display = 'block';
             }
 
-            // ── Chat MMORPG: minimizar/expandir ──
+            // ── Chat MMORPG: expandir/minimizar (mobile-first) ──
             const mmorpgChat = document.getElementById('mmorpgChat');
             const chatToggle = document.getElementById('toggleChat');
             const chatNotification = document.getElementById('chatNotification');
 
+            // Detectar si estamos en desktop (≥900px)
+            const isDesktop = () => window.innerWidth >= 900;
+
+            function updateChatState() {
+                if (isDesktop()) {
+                    // Desktop: chat siempre visible salvo minimized explícito
+                    mmorpgChat.classList.remove('expanded');
+                    chatToggle.textContent = mmorpgChat.classList.contains('minimized') ? '□' : '_';
+                } else {
+                    // Móvil: chat por defecto sólo tabs (sin expanded)
+                    mmorpgChat.classList.remove('minimized');
+                    chatToggle.textContent = mmorpgChat.classList.contains('expanded') ? '▼' : '▲';
+                }
+            }
+
+            // Inicializar estado al cargar
+            updateChatState();
+            window.addEventListener('resize', updateChatState);
+
             if (chatToggle && mmorpgChat) {
-                chatToggle.addEventListener('click', () => {
-                    const isMinimized = mmorpgChat.classList.toggle('minimized');
-                    chatToggle.textContent = isMinimized ? '□' : '_';
-                    if (!isMinimized && chatNotification) {
-                        chatNotification.style.display = 'none';
+                chatToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (isDesktop()) {
+                        // Desktop: toggle minimizado
+                        const isMin = mmorpgChat.classList.toggle('minimized');
+                        chatToggle.textContent = isMin ? '□' : '_';
+                        if (!isMin && chatNotification) chatNotification.style.display = 'none';
+                    } else {
+                        // Móvil: toggle expandido
+                        const isExpanded = mmorpgChat.classList.toggle('expanded');
+                        chatToggle.textContent = isExpanded ? '▼' : '▲';
+                        if (isExpanded && chatNotification) chatNotification.style.display = 'none';
+                    }
+                });
+            }
+
+            // En móvil: tocar la cabecera también expande/colapsa
+            const chatHeader = document.querySelector('.mmorpg-chat-header');
+            if (chatHeader) {
+                chatHeader.addEventListener('click', (e) => {
+                    if (!isDesktop() && !e.target.closest('button')) {
+                        const isExpanded = mmorpgChat.classList.toggle('expanded');
+                        chatToggle.textContent = isExpanded ? '▼' : '▲';
+                        if (isExpanded && chatNotification) chatNotification.style.display = 'none';
                     }
                 });
             }
