@@ -772,20 +772,19 @@
                 }).catch(() => {});
             }
 
-            // Modal de mapa del mundo: llamar al render
+            // Modal de mapa del mundo: activar flag y renderizar
             if (modalId === 'modal-map') {
                 modal.style.display = 'block';
                 setTimeout(() => {
-                    // Llamar al render del mapa mundial si está disponible
-                    if (typeof toggleWorldMap === 'function') {
-                        const canvas = document.getElementById('worldMapCanvas');
-                        if (canvas) {
-                            import('./js/ui/WorldMap.js').then(({ renderWorldMap }) => {
-                                if (renderWorldMap) renderWorldMap();
-                            }).catch(() => {});
+                    import('./js/ui/WorldMap.js').then(({ isWorldMapVisible, toggleWorldMap: twm, renderWorldMap }) => {
+                        // Si el flag worldMapVisible está en false, activarlo primero
+                        if (!isWorldMapVisible()) {
+                            twm(); // activa el flag y renderiza
+                        } else if (renderWorldMap) {
+                            renderWorldMap();
                         }
-                    }
-                }, 50);
+                    }).catch(() => {});
+                }, 60);
                 return;
             }
 
@@ -844,17 +843,33 @@
             }
         });
 
-        // ── Minimap overlay en esquina superior derecha ──
+        // ── Minimap overlay: inicializar como visible en desktop ──
         const minimapOverlay = document.getElementById('minimapContainer');
         const minimapToggleBtn = document.getElementById('minimapToggleBtn');
-        const minimapCanvas = document.getElementById('minimapCanvas');
 
         if (minimapToggleBtn && minimapOverlay) {
+            // Activar el flag minimapVisible llamando a toggleMinimap() tras un delay
+            // (el mapa debe estar cargado para renderizar)
+            if (window.innerWidth >= 900) {
+                setTimeout(() => {
+                    if (typeof toggleMinimap === 'function') {
+                        toggleMinimap(); // activa minimapVisible=true y renderiza
+                    }
+                }, 500);
+            }
+
             minimapToggleBtn.addEventListener('click', () => {
                 minimapOverlay.classList.toggle('minimap-hidden');
-                minimapToggleBtn.title = minimapOverlay.classList.contains('minimap-hidden')
-                    ? 'Mostrar minimapa'
-                    : 'Ocultar minimapa';
+                const hidden = minimapOverlay.classList.contains('minimap-hidden');
+                minimapToggleBtn.textContent = hidden ? '🗺️' : '✕';
+                minimapToggleBtn.title = hidden ? 'Mostrar minimapa' : 'Ocultar minimapa';
+                // Sincronizar con el flag interno de Minimap.js
+                if (!hidden && typeof toggleMinimap === 'function') {
+                    import('./js/ui/Minimap.js').then(({ isMinimapVisible, renderMinimap }) => {
+                        if (!isMinimapVisible()) toggleMinimap();
+                        else renderMinimap();
+                    }).catch(() => {});
+                }
             });
         }
 

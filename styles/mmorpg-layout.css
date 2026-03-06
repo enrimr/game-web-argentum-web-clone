@@ -454,7 +454,9 @@
    MINIMAP OVERLAY — Esquina superior derecha del canvas
    ===================================================== */
 
+/* Minimap solo en desktop */
 .minimap-canvas-overlay {
+    display: none; /* oculto en móvil por defecto */
     position: absolute;
     top: 8px;
     right: 8px;
@@ -511,6 +513,11 @@
    ─ Ya no usa fixed → no tapa nada
    ===================================================== */
 @media (min-width: 900px) {
+
+    /* Mostrar minimap en desktop */
+    .minimap-canvas-overlay {
+        display: block;
+    }
 
     /* El .main-game ya tiene position:relative en el CSS original. */
     .main-game {
