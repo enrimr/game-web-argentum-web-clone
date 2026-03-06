@@ -186,7 +186,7 @@
                 </div>
             </div>
             
-            <!-- Sidebar rediseñado: menú compacto + hechizos desplegados -->
+            <!-- Sidebar: inventario + hechizos + barra de iconos de menú -->
             <div class="sidebar sidebar-mmorpg">
 
                 <!-- ── Inventario (siempre visible) ── -->
@@ -206,92 +206,103 @@
                 </div>
 
                 <!-- ── Hechizos desplegados por defecto ── -->
-                <div class="panel panel-compact panel-spells">
+                <div class="panel panel-compact panel-spells" style="flex:1; overflow-y:auto;">
                     <h3>✨ Hechizos</h3>
                     <div id="sidebarSpellsList" class="spells-list spells-list-open">
                         <!-- Se cargan dinámicamente -->
                     </div>
                 </div>
 
-                <!-- ── Barra de menú compacta con iconos ── -->
+                <!-- ── Barra de 5 iconos (abre modales) ── -->
                 <div class="sidebar-menu-bar">
-                    <button class="smenu-btn active" data-panel="smenu-char"    title="Personaje">⚔️</button>
-                    <button class="smenu-btn"        data-panel="smenu-skills"  title="Habilidades">📊</button>
-                    <button class="smenu-btn"        data-panel="smenu-maps"    title="Mapas">🗺️</button>
-                    <button class="smenu-btn"        data-panel="smenu-audio"   title="Audio">🔊</button>
-                    <button class="smenu-btn"        data-panel="smenu-help"    title="Ayuda">📖</button>
+                    <button class="smenu-btn" data-modal="modal-char"   title="Personaje">⚔️</button>
+                    <button class="smenu-btn" data-modal="modal-skills" title="Habilidades">📊</button>
+                    <button class="smenu-btn" data-modal="modal-map"    title="Mapa del mundo">🗺️</button>
+                    <button class="smenu-btn" data-modal="modal-audio"  title="Configuración">🔊</button>
+                    <a class="smenu-btn" href="/manual" target="_blank"  title="Ayuda">📖</a>
                 </div>
 
-                <!-- ── Paneles de contenido del menú ── -->
+            </div>
 
-                <!-- Personaje -->
-                <div id="smenu-char" class="smenu-panel active">
-                    <div class="smenu-row">
-                        <span class="smenu-label">Nivel</span>
-                        <span class="smenu-value" id="sideLevel">1</span>
+            <!-- ═══ MODALES FLOTANTES ═══ -->
+
+            <!-- Modal: Personaje -->
+            <div id="modal-char" class="game-modal" style="display:none;">
+                <div class="game-modal-inner">
+                    <div class="game-modal-header">
+                        <h3>⚔️ Personaje</h3>
+                        <button class="game-modal-close" data-close="modal-char">✕</button>
                     </div>
-                    <div class="smenu-row">
-                        <span class="smenu-label">HP</span>
-                        <span class="smenu-value"><span id="hp">100</span>/<span id="hpMax">100</span></span>
-                    </div>
-                    <div class="smenu-row">
-                        <span class="smenu-label">Mana</span>
-                        <span class="smenu-value"><span id="mana">50</span>/<span id="manaMax">50</span></span>
-                    </div>
-                    <div class="smenu-row">
-                        <span class="smenu-label">EXP</span>
-                        <span class="smenu-value"><span id="exp">0/100</span></span>
-                    </div>
-                    <div class="smenu-row">
-                        <span class="smenu-label">Oro</span>
-                        <span class="smenu-value"><span id="gold">0</span></span>
-                    </div>
-                    <div class="smenu-row">
-                        <span class="smenu-label">Facción</span>
-                        <span class="smenu-value" id="playerFaction">-</span>
-                    </div>
-                    <div class="smenu-row">
-                        <span class="smenu-label">Status</span>
-                        <span class="smenu-value" id="criminalStatus">-</span>
+                    <div class="game-modal-body">
+                        <div class="modal-stat-row"><span>Nivel</span><span id="modal-level">1</span></div>
+                        <div class="modal-stat-row"><span>HP</span><span id="modal-hp">100/100</span></div>
+                        <div class="modal-stat-row"><span>Mana</span><span id="modal-mana">50/50</span></div>
+                        <div class="modal-stat-row"><span>EXP</span><span id="modal-exp">0/100</span></div>
+                        <div class="modal-stat-row"><span>Oro</span><span id="modal-gold">0</span></div>
+                        <div class="modal-stat-row"><span>Facción</span><span id="modal-faction">-</span></div>
+                        <div class="modal-stat-row"><span>Status</span><span id="modal-status">-</span></div>
+                        <div class="modal-stat-row"><span>Pos</span><span id="modal-pos">-</span></div>
+                        <div class="modal-stat-row"><span>Mapa</span><span id="modal-map-id">-</span></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Habilidades -->
-                <div id="smenu-skills" class="smenu-panel">
-                    <button onclick="toggleSkillsPanel()" class="smenu-action-btn">📊 Ver Habilidades</button>
-                </div>
-
-                <!-- Mapas -->
-                <div id="smenu-maps" class="smenu-panel">
-                    <button onclick="toggleMinimap()" class="smenu-action-btn">🗺️ Minimapa</button>
-                    <button onclick="toggleWorldMap()" class="smenu-action-btn" style="margin-top:6px;">🌍 Mapa del Mundo</button>
-                    <button onclick="toggleMapEditor()" class="smenu-action-btn" style="margin-top:6px; background:#4a5568;">🛠️ Editor</button>
-                    <div id="minimapContainer" class="minimap-container" style="display: none;">
-                        <canvas id="minimapCanvas" width="200" height="150"></canvas>
+            <!-- Modal: Habilidades (wrapper del panel existente) -->
+            <div id="modal-skills" class="game-modal" style="display:none;">
+                <div class="game-modal-inner">
+                    <div class="game-modal-header">
+                        <h3>📊 Habilidades</h3>
+                        <button class="game-modal-close" data-close="modal-skills">✕</button>
                     </div>
-                    <div id="worldMapContainer" class="world-map-container" style="display: none;">
-                        <canvas id="worldMapCanvas" width="400" height="300"></canvas>
-                        <div id="worldMapDetails" class="world-map-details"></div>
+                    <div class="game-modal-body" style="padding:0;">
+                        <!-- El panel de habilidades se renderiza aquí o se llama al toggle -->
+                        <div style="padding:16px; text-align:center;">
+                            <button onclick="toggleSkillsPanel()" class="smenu-action-btn">📊 Abrir Panel de Habilidades</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Audio -->
-                <div id="smenu-audio" class="smenu-panel">
-                    <button id="toggleMusicBtn" onclick="toggleMusic()" class="smenu-action-btn" style="background:#10b981;">🎵 Música: ON</button>
-                    <button id="toggleSfxBtn"   onclick="toggleSfx()"   class="smenu-action-btn" style="margin-top:6px; background:#10b981;">🔊 Efectos: ON</button>
-                </div>
-
-                <!-- Ayuda -->
-                <div id="smenu-help" class="smenu-panel">
-                    <a href="/manual" target="_blank" class="smenu-action-btn" style="display:block; text-align:center; text-decoration:none;">📖 Manual del Juego</a>
-                    <div class="smenu-controls" style="margin-top:10px; font-size:11px; color:#9ca3af; line-height:1.8;">
-                        <p>🎮 Flechas/WASD → Mover</p>
-                        <p>⎵ Espacio → Atacar</p>
-                        <p>⏎ Enter → Chat</p>
-                        <p>⎋ Escape → Cerrar chat</p>
+            <!-- Modal: Mapa del Mundo -->
+            <div id="modal-map" class="game-modal game-modal-lg" style="display:none;">
+                <div class="game-modal-inner">
+                    <div class="game-modal-header">
+                        <h3>🌍 Mapa del Mundo</h3>
+                        <button class="game-modal-close" data-close="modal-map">✕</button>
+                    </div>
+                    <div class="game-modal-body" style="display:flex; justify-content:center;">
+                        <div id="worldMapContainer" class="world-map-container">
+                            <canvas id="worldMapCanvas" width="500" height="360"></canvas>
+                            <div id="worldMapDetails" class="world-map-details"></div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- Modal: Configuración de Audio -->
+            <div id="modal-audio" class="game-modal" style="display:none;">
+                <div class="game-modal-inner">
+                    <div class="game-modal-header">
+                        <h3>⚙️ Configuración</h3>
+                        <button class="game-modal-close" data-close="modal-audio">✕</button>
+                    </div>
+                    <div class="game-modal-body">
+                        <p class="modal-section-title">🔊 Audio</p>
+                        <button id="toggleMusicBtn" onclick="toggleMusic()" class="smenu-action-btn" style="background:#10b981;">🎵 Música: ON</button>
+                        <button id="toggleSfxBtn" onclick="toggleSfx()" class="smenu-action-btn" style="margin-top:8px; background:#10b981;">🔊 Efectos: ON</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Minimap integrado en esquina superior derecha del canvas -->
+            <div id="minimapContainer" class="minimap-canvas-overlay">
+                <canvas id="minimapCanvas" width="160" height="120"></canvas>
+                <button id="minimapToggleBtn" class="minimap-overlay-btn" title="Mostrar/Ocultar minimapa">🗺️</button>
+            </div>
+
+            <!-- Contenedor oculto para el mapa del mundo legacy -->
+            <div style="display:none;">
+                <div id="worldMapContainerLegacy"></div>
             </div>
         </div>
 
@@ -755,19 +766,101 @@
             }
         }
 
-        // ── Sidebar MMORPG: tabs de menú ──
-        document.querySelectorAll('.smenu-btn').forEach(btn => {
+        // ── Modales flotantes ──
+        function openGameModal(modalId) {
+            // Cerrar todos los modales primero
+            document.querySelectorAll('.game-modal').forEach(m => m.style.display = 'none');
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            // Rellenar datos del modal de personaje en tiempo real
+            if (modalId === 'modal-char') {
+                import('./js/state.js').then(({ gameState }) => {
+                    const p = gameState.player;
+                    document.getElementById('modal-level').textContent = p.level || 1;
+                    document.getElementById('modal-hp').textContent = `${p.hp || 0}/${p.maxHp || 100}`;
+                    document.getElementById('modal-mana').textContent = `${p.mana || 0}/${p.maxMana || 50}`;
+                    document.getElementById('modal-exp').textContent = document.getElementById('exp')?.textContent || '0/100';
+                    document.getElementById('modal-gold').textContent = p.gold || 0;
+                    document.getElementById('modal-faction').textContent = p.faction || '-';
+                    document.getElementById('modal-status').textContent = document.getElementById('criminalStatus')?.textContent || '-';
+                    document.getElementById('modal-pos').textContent = `${p.x || 0}, ${p.y || 0}`;
+                    document.getElementById('modal-map-id').textContent = gameState.currentMap || '-';
+                }).catch(() => {});
+            }
+
+            // Modal de mapa del mundo: llamar al render
+            if (modalId === 'modal-map') {
+                modal.style.display = 'block';
+                setTimeout(() => {
+                    // Llamar al render del mapa mundial si está disponible
+                    if (typeof toggleWorldMap === 'function') {
+                        const canvas = document.getElementById('worldMapCanvas');
+                        if (canvas) {
+                            import('./js/ui/WorldMap.js').then(({ renderWorldMap }) => {
+                                if (renderWorldMap) renderWorldMap();
+                            }).catch(() => {});
+                        }
+                    }
+                }, 50);
+                return;
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeGameModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'none';
+        }
+
+        // Botones de la barra de iconos
+        document.querySelectorAll('.smenu-btn[data-modal]').forEach(btn => {
             btn.addEventListener('click', () => {
-                // Activar botón
-                document.querySelectorAll('.smenu-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                // Mostrar panel correspondiente
-                const panelId = btn.dataset.panel;
-                document.querySelectorAll('.smenu-panel').forEach(p => p.classList.remove('active'));
-                const panel = document.getElementById(panelId);
-                if (panel) panel.classList.add('active');
+                const modalId = btn.dataset.modal;
+                const modal = document.getElementById(modalId);
+                // Toggle: si ya está abierto, cerrarlo
+                if (modal && modal.style.display !== 'none') {
+                    closeGameModal(modalId);
+                    btn.classList.remove('active');
+                } else {
+                    document.querySelectorAll('.smenu-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    openGameModal(modalId);
+                }
             });
         });
+
+        // Botones de cierre de modales
+        document.querySelectorAll('.game-modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modalId = btn.dataset.close;
+                closeGameModal(modalId);
+                document.querySelectorAll('.smenu-btn').forEach(b => b.classList.remove('active'));
+            });
+        });
+
+        // Cerrar modal con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.game-modal').forEach(m => m.style.display = 'none');
+                document.querySelectorAll('.smenu-btn').forEach(b => b.classList.remove('active'));
+            }
+        });
+
+        // ── Minimap overlay en esquina superior derecha ──
+        const minimapOverlay = document.getElementById('minimapContainer');
+        const minimapToggleBtn = document.getElementById('minimapToggleBtn');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+
+        if (minimapToggleBtn && minimapOverlay) {
+            minimapToggleBtn.addEventListener('click', () => {
+                minimapOverlay.classList.toggle('minimap-hidden');
+                minimapToggleBtn.title = minimapOverlay.classList.contains('minimap-hidden')
+                    ? 'Mostrar minimapa'
+                    : 'Ocultar minimapa';
+            });
+        }
 
         // Mobile menu functions
         window.closeMobileMenu = function() {
