@@ -575,56 +575,67 @@ body {
         pointer-events: all;
     }
 
-    /* ── Inventario móvil: izquierda, tamaño justo para 6 slots + flechas ── */
+    /* ── Inventario móvil: izquierda, UNA sola fila con slots + flechas ── */
     .inventory-bottom {
         position: static !important;
-        flex: 0 0 auto;          /* no estira, ocupa solo lo necesario */
+        flex: 0 0 auto !important;   /* no estira */
+        max-width: calc(50% - 4px) !important; /* máximo la mitad del ancho disponible */
         background: rgba(0, 0, 0, 0.85) !important;
         border: 2px solid #ffd700 !important;
         border-radius: 6px !important;
         padding: 4px 5px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
         margin: 0 !important;
+        /* Todo en una sola fila horizontal */
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: nowrap !important;
         align-items: center !important;
-        gap: 4px !important;
+        gap: 3px !important;
+        overflow: hidden !important;
     }
 
     .inventory-bottom .inventory {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 4px !important;
+        gap: 3px !important;
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
     }
 
     .inventory-bottom .item-slot {
-        width: 32px !important;
-        height: 32px !important;
-        min-height: 32px !important;
-        font-size: 16px !important;
+        width: 30px !important;
+        height: 30px !important;
+        min-height: 30px !important;
+        max-width: 30px !important;
+        font-size: 15px !important;
         flex-shrink: 0 !important;
     }
 
     .inventory-bottom .item-slot.empty {
-        font-size: 12px !important;
+        font-size: 11px !important;
     }
 
-    /* Paginación inventario: flechas ◀ ▶ en fila */
+    /* Paginación inventario: flechas ◀▶ en la misma fila, anulando margin-top del JS */
     .inventory-bottom .inventory-pagination {
         display: flex !important;
         flex-direction: row !important;
         gap: 2px !important;
-        margin: 0 !important;
+        margin: 0 !important;          /* anula margin-top:5px del inline style */
+        margin-top: 0 !important;
         padding: 0 !important;
         background: transparent !important;
+        flex-shrink: 0 !important;
+        align-self: center !important;
     }
 
     .inventory-bottom .inv-page-btn {
-        padding: 4px 7px !important;
+        padding: 3px 6px !important;
         font-size: 11px !important;
         height: 26px !important;
         line-height: 1 !important;
+        flex-shrink: 0 !important;
     }
 
     .inventory-bottom .page-indicator {
