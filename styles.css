@@ -556,15 +556,18 @@ body {
     }
 
     /* Contenedor de barras inferiores sobre el canvas */
+    /* ── Barra inferior móvil: inventario izq. | magias der. ── */
     .mobile-bottom-bars {
         position: absolute;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
+        bottom: 8px;
+        left: 6px;
+        right: 6px;
         z-index: 10;
         display: flex;
-        gap: 10px;
+        flex-direction: row;
+        align-items: center;
         justify-content: space-between;
+        gap: 6px;
         pointer-events: none;
     }
 
@@ -572,27 +575,27 @@ body {
         pointer-events: all;
     }
 
-    /* Inventario móvil reposicionado */
+    /* ── Inventario móvil: izquierda, tamaño justo para 6 slots + flechas ── */
     .inventory-bottom {
         position: static !important;
+        flex: 0 0 auto;          /* no estira, ocupa solo lo necesario */
         background: rgba(0, 0, 0, 0.85) !important;
         border: 2px solid #ffd700 !important;
         border-radius: 6px !important;
-        padding: 4px 6px !important;
+        padding: 4px 5px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
         margin: 0 !important;
-        /*flex: 1;
-        max-width: calc(50% - 5px);*/
-        display: flex;
-        align-items: center;
-        gap: 5px;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 4px !important;
     }
 
     .inventory-bottom .inventory {
         display: flex !important;
-        gap: 5px !important;
-        justify-content: flex-start;
-        flex: 1;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
     }
 
     .inventory-bottom .item-slot {
@@ -600,70 +603,73 @@ body {
         height: 32px !important;
         min-height: 32px !important;
         font-size: 16px !important;
+        flex-shrink: 0 !important;
     }
 
     .inventory-bottom .item-slot.empty {
         font-size: 12px !important;
     }
 
-    /* Botones de paginación del inventario móvil */
+    /* Paginación inventario: flechas ◀ ▶ en fila */
     .inventory-bottom .inventory-pagination {
         display: flex !important;
-        flex-direction: column;
-        gap: 2px;
+        flex-direction: row !important;
+        gap: 2px !important;
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
     }
 
     .inventory-bottom .inv-page-btn {
-        padding: 2px 6px !important;
-        font-size: 10px !important;
-        height: 15px !important;
+        padding: 4px 7px !important;
+        font-size: 11px !important;
+        height: 26px !important;
+        line-height: 1 !important;
     }
 
     .inventory-bottom .page-indicator {
         display: none !important;
     }
 
-    /* Contenedor de hechizos con paginación */
+    /* ── Magias móvil: derecha, slots + flechas ◀ ▶ en fila ── */
     .mobile-spells-container {
-        position: static;
-        flex: 0 0 auto;
-        margin-left: auto;
-        display: flex;
-        align-items: center;
-        gap: 5px;
+        flex: 0 0 auto;          /* no estira */
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 4px !important;
     }
 
-    /* Barra de hechizos móvil */
     .mobile-spells-bar {
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #8b5cf6;
         border-radius: 6px;
-        padding: 4px 6px;
+        padding: 4px 5px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        display: flex;
-        gap: 5px;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 4px;
     }
 
-    /* Paginación de hechizos */
+    /* Paginación de hechizos: flechas en fila (no en columna) */
     .spells-pagination {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 2px !important;
+        align-items: center !important;
     }
 
     .spell-page-btn {
         background: #4a5568;
         color: white;
         border: none;
-        padding: 2px 6px;
+        padding: 4px 7px;
         border-radius: 3px;
         cursor: pointer;
-        font-size: 10px;
-        height: 15px;
-        transition: all 0.3s;
+        font-size: 11px;
+        height: 26px;
+        line-height: 1;
+        transition: background 0.2s;
     }
 
     .spell-page-btn:hover:not(:disabled) {
