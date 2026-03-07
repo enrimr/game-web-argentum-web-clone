@@ -854,38 +854,36 @@
         const minimapToggleBtn = document.getElementById('minimapToggleBtn');
 
         if (minimapToggleBtn && minimapOverlay) {
-            // Activar minimap en desktop cuando el mapa ya esté cargado (tras login-complete + delay)
+            const minimapCanvas = document.getElementById('minimapCanvas');
+
+            // Activar minimapa en desktop cuando el juego esté listo
             if (window.innerWidth >= 900) {
                 window.addEventListener('login-complete', () => {
-                    // Esperar a que initGame() termine de generar gameState.map
                     setTimeout(() => {
-                        // El overlay ya es visible por CSS en desktop; solo activar el flag y dibujar
-                        if (typeof toggleMinimap === 'function') {
-                            toggleMinimap(); // pone minimapVisible=true y renderiza
-                        }
+                        // Activar flag interno y renderizar por primera vez
+                        toggleMinimap();
                     }, 800);
                 }, { once: true });
             }
 
+            // Botón ✕/🗺️: alterna visibilidad del canvas directamente
             minimapToggleBtn.addEventListener('click', () => {
-                const isHidden = minimapOverlay.classList.contains('minimap-hidden');
-                if (isHidden) {
-                    // MOSTRAR: quitar clase oculta, activar flag y dibujar
-                    minimapOverlay.classList.remove('minimap-hidden');
+                const canvasHidden = minimapCanvas && minimapCanvas.style.display === 'none';
+                if (canvasHidden) {
+                    // MOSTRAR canvas
+                    if (minimapCanvas) minimapCanvas.style.display = 'block';
                     minimapToggleBtn.textContent = '✕';
                     minimapToggleBtn.title = 'Ocultar minimapa';
-                    // Asegurarse de que el flag esté activo; si no lo está, activarlo
-                    import('./js/ui/Minimap.js').then(({ isMinimapVisible, renderMinimap }) => {
-                        if (!isMinimapVisible()) toggleMinimap(); // activa y dibuja
-                        else renderMinimap();                      // ya activo, solo redibujar
-                    });
+                    // Redibujar el contenido
+                    toggleMinimap(); // si estaba desactivado, lo activa y dibuja
                 } else {
-                    // OCULTAR: añadir clase oculta y desactivar flag
-                    minimapOverlay.classList.add('minimap-hidden');
+                    // OCULTAR canvas
+                    if (minimapCanvas) minimapCanvas.style.display = 'none';
                     minimapToggleBtn.textContent = '🗺️';
                     minimapToggleBtn.title = 'Mostrar minimapa';
+                    // Desactivar flag para que el game loop no siga dibujando
                     import('./js/ui/Minimap.js').then(({ isMinimapVisible }) => {
-                        if (isMinimapVisible()) toggleMinimap(); // desactiva el flag
+                        if (isMinimapVisible()) toggleMinimap();
                     });
                 }
             });
