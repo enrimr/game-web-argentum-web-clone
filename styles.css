@@ -556,18 +556,15 @@ body {
     }
 
     /* Contenedor de barras inferiores sobre el canvas */
-    /* ── Barra inferior móvil: inventario izq. | magias der. ── */
     .mobile-bottom-bars {
         position: absolute;
-        bottom: 8px;
-        left: 6px;
-        right: 6px;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
         z-index: 10;
         display: flex;
-        flex-direction: row;
-        align-items: center;
+        gap: 10px;
         justify-content: space-between;
-        gap: 6px;
         pointer-events: none;
     }
 
@@ -575,112 +572,96 @@ body {
         pointer-events: all;
     }
 
-    /* ── Inventario móvil: izquierda, UNA sola fila con slots + flechas ── */
+    /* Inventario móvil reposicionado */
     .inventory-bottom {
         position: static !important;
-        flex: 0 0 auto !important;   /* no estira */
-        max-width: calc(50% - 4px) !important; /* máximo la mitad del ancho disponible */
         background: rgba(0, 0, 0, 0.85) !important;
         border: 2px solid #ffd700 !important;
         border-radius: 6px !important;
-        padding: 4px 5px !important;
+        padding: 4px 6px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
         margin: 0 !important;
-        /* Todo en una sola fila horizontal */
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-        gap: 3px !important;
-        overflow: hidden !important;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
     .inventory-bottom .inventory {
         display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 3px !important;
-        flex-shrink: 1 !important;
-        min-width: 0 !important;
+        gap: 5px !important;
+        justify-content: flex-start;
+        flex: 1;
     }
 
     .inventory-bottom .item-slot {
-        width: 30px !important;
-        height: 30px !important;
-        min-height: 30px !important;
-        max-width: 30px !important;
-        font-size: 15px !important;
-        flex-shrink: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        font-size: 16px !important;
     }
 
     .inventory-bottom .item-slot.empty {
-        font-size: 11px !important;
+        font-size: 12px !important;
     }
 
-    /* Paginación inventario: flechas ◀▶ en la misma fila, anulando margin-top del JS */
+    /* Botones de paginación del inventario móvil */
     .inventory-bottom .inventory-pagination {
         display: flex !important;
-        flex-direction: row !important;
-        gap: 2px !important;
-        margin: 0 !important;          /* anula margin-top:5px del inline style */
-        margin-top: 0 !important;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
-        flex-shrink: 0 !important;
-        align-self: center !important;
     }
 
     .inventory-bottom .inv-page-btn {
-        padding: 3px 6px !important;
-        font-size: 11px !important;
-        height: 26px !important;
-        line-height: 1 !important;
-        flex-shrink: 0 !important;
+        padding: 2px 6px !important;
+        font-size: 10px !important;
+        height: 15px !important;
     }
 
     .inventory-bottom .page-indicator {
         display: none !important;
     }
 
-    /* ── Magias móvil: derecha, slots + flechas ◀ ▶ en fila ── */
+    /* Contenedor de hechizos con paginación */
     .mobile-spells-container {
-        flex: 0 0 auto;          /* no estira */
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        gap: 4px !important;
+        position: static;
+        flex: 0 0 auto;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
+    /* Barra de hechizos móvil */
     .mobile-spells-bar {
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #8b5cf6;
         border-radius: 6px;
-        padding: 4px 5px;
+        padding: 4px 6px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 4px;
+        display: flex;
+        gap: 5px;
     }
 
-    /* Paginación de hechizos: flechas en fila (no en columna) */
+    /* Paginación de hechizos */
     .spells-pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 2px !important;
-        align-items: center !important;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
     }
 
     .spell-page-btn {
         background: #4a5568;
         color: white;
         border: none;
-        padding: 4px 7px;
+        padding: 2px 6px;
         border-radius: 3px;
         cursor: pointer;
-        font-size: 11px;
-        height: 26px;
-        line-height: 1;
-        transition: background 0.2s;
+        font-size: 10px;
+        height: 15px;
+        transition: all 0.3s;
     }
 
     .spell-page-btn:hover:not(:disabled) {
