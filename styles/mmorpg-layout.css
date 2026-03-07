@@ -464,12 +464,15 @@
     right: 8px;
     z-index: 150;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible; /* no recortar el botón cuando el canvas está oculto */
     border: 1px solid rgba(255,255,255,0.15);
     box-shadow: 0 2px 12px rgba(0,0,0,0.5);
     background: rgba(0,0,0,0.5);
     opacity: 0.85;
     transition: opacity 0.2s;
+    /* Tamaño mínimo para que el botón siempre sea visible aunque el canvas esté oculto */
+    min-width: 28px;
+    min-height: 28px;
 }
 
 .minimap-canvas-overlay:hover {
@@ -478,29 +481,30 @@
 
 .minimap-canvas-overlay canvas {
     display: block;
-}
-
-.minimap-canvas-overlay.minimap-hidden canvas {
-    display: none;
+    border-radius: 6px 6px 0 0;
 }
 
 .minimap-overlay-btn {
+    /* Siempre visible en la esquina superior derecha del contenedor */
     position: absolute;
     top: 4px;
     right: 4px;
-    background: rgba(0,0,0,0.6);
-    border: none;
-    color: rgba(255,255,255,0.7);
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
     font-size: 12px;
-    padding: 2px 5px;
+    padding: 2px 6px;
     border-radius: 4px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s;
+    z-index: 10;
+    line-height: 1.4;
 }
 
 .minimap-overlay-btn:hover {
-    background: rgba(255,255,255,0.15);
-    color: #fff;
+    background: rgba(255,215,0,0.25);
+    border-color: rgba(255,215,0,0.5);
+    color: #ffd700;
 }
 
 /* ── Barra inferior (inventario + magias) solo en móvil ── */
