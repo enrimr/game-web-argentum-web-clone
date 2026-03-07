@@ -383,15 +383,8 @@ function initInventoryPagination() {
         
         // Create pagination controls container
         const paginationDiv = document.createElement('div');
+        // El estilo lo pone el CSS (.inventory-pagination) para que funcione bien en móvil y desktop
         paginationDiv.className = 'inventory-pagination';
-        paginationDiv.style.display = 'flex';
-        paginationDiv.style.justifyContent = 'space-between';
-        paginationDiv.style.alignItems = 'center';
-        paginationDiv.style.marginTop = '5px';
-        paginationDiv.style.padding = '5px';
-        paginationDiv.style.background = 'rgba(0,0,0,0.3)';
-        paginationDiv.style.borderRadius = '3px';
-        paginationDiv.style.gap = '5px';
         
         // Previous button
         const prevBtn = document.createElement('button');
