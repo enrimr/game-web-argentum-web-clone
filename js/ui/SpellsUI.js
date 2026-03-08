@@ -201,10 +201,15 @@ export function updateSpellsList() {
             spellCard.appendChild(hotkey);
         }
 
+        // Barra de mana en la parte inferior (ancho proporcional al coste)
+        const manaBar = document.createElement('span');
+        manaBar.className = 'spell-card-mana-bar';
+
         spellCard.appendChild(typeBadge);
         spellCard.appendChild(iconEl);
         spellCard.appendChild(nameEl);
         spellCard.appendChild(manaEl);
+        spellCard.appendChild(manaBar);
 
         // Evento al hacer clic
         spellCard.addEventListener('click', () => selectSpell(index));

@@ -1,8 +1,9 @@
 /**
- * Estilos para el panel de hechizos
+ * spells.css — Panel de hechizos rediseñado
+ * Estilo: tarjetas compactas tipo grimorio con fondo degradado por tipo
  */
 
-/* Estilos para el panel lateral de hechizos */
+/* ── Toggle btn ── */
 .spells-toggle {
     margin-left: 5px;
     padding: 3px 8px;
@@ -13,264 +14,175 @@
     cursor: pointer;
     font-size: 0.7rem;
 }
+.spells-toggle:hover { background: #7d4ca6; }
 
-.spells-toggle:hover {
-    background: #7d4ca6;
-}
-
-/* Lista de hechizos */
-.spells-list {
-    overflow-y: auto;
-    margin-bottom: 10px;
-    max-height: 250px;
-    background-color: rgba(30, 30, 50, 0.5);
-    border-radius: 5px;
-    padding: 5px;
-}
-
-/* Mensaje de lista vacía */
+/* ── Mensaje vacío ── */
 .empty-message {
     text-align: center;
-    padding: 20px;
-    color: #888;
+    padding: 16px 8px;
+    color: rgba(200,200,220,0.5);
     font-style: italic;
+    font-size: 11px;
 }
 
-/* Item de hechizo */
-.spell-item {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    background-color: rgba(60, 60, 90, 0.5);
-    position: relative;
-}
-
-.spell-item:hover {
-    background-color: rgba(80, 80, 120, 0.7);
-}
-
-.spell-item.selected {
-    background-color: rgba(100, 70, 140, 0.8);
-    box-shadow: 0 0 8px rgba(138, 75, 175, 0.8);
-}
-
-/* Elementos dentro de los items de hechizo */
-.spell-icon {
-    font-size: 1.5rem;
-    margin-right: 10px;
-    width: 30px;
-    text-align: center;
-}
-
-.spell-name {
-    flex-grow: 1;
-    font-weight: bold;
-}
-
-.spell-details {
-    color: #b3b3cc;
-    font-size: 0.85rem;
-    margin-left: 5px;
-}
-
-.spell-hotkey {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: rgba(138, 75, 175, 0.7);
-    color: white;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: bold;
-}
-
-/* Botones de acción */
-.spells-actions {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 5px;
-    margin-bottom: 10px;
-}
-
-.spells-actions button {
-    padding: 5px 10px;
-    background-color: #6a3b8a;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    flex-grow: 1;
-    margin: 0 3px;
-    font-size: 0.85rem;
-}
-
-.spells-actions button:hover {
-    background-color: #8a4baf;
-}
-
-.spells-actions button:active {
-    background-color: #5a2d7a;
-}
-
-/* Modificadores del cursor para selección de objetivo */
-body.targeting {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="%238a4baf" stroke-width="2"/><circle cx="16" cy="16" r="2" fill="%238a4baf"/><line x1="16" y1="2" x2="16" y2="8" stroke="%238a4baf" stroke-width="2"/><line x1="16" y1="24" x2="16" y2="30" stroke="%238a4baf" stroke-width="2"/><line x1="2" y1="16" x2="8" y2="16" stroke="%238a4baf" stroke-width="2"/><line x1="24" y1="16" x2="30" y2="16" stroke="%238a4baf" stroke-width="2"/></svg>') 16 16, crosshair;
-}
-
-/* Visual effect for targeting mode */
-body.targeting #gameCanvas {
-    box-shadow: 0 0 20px rgba(138, 75, 175, 0.6);
-    border: 2px solid #8a4baf;
-}
-
-/* Style for the cancel button in targeting mode */
-#castSpellBtn.cancel-mode {
-    background-color: #a33;
-}
-
-#castSpellBtn.cancel-mode:hover {
-    background-color: #c33;
-}
-
-/* Barra de desplazamiento personalizada */
-.spells-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.spells-list::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-}
-
-.spells-list::-webkit-scrollbar-thumb {
-    background: #6a3b8a;
-    border-radius: 4px;
-}
-
-.spells-list::-webkit-scrollbar-thumb:hover {
-    background: #8a4baf;
-}
-
-/* =====================================================
-   TARJETAS DE HECHIZOS — estilo inventario 2 por fila
-   ===================================================== */
-
-/* Contenedor: grid de 2 columnas */
+/* ── Grid de tarjetas: 2 columnas ── */
 #sidebarSpellsList {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
-    padding: 4px;
+    gap: 6px;
+    padding: 4px 2px;
 }
 
-/* Tarjeta individual */
+/* ═══════════════════════════════════════
+   TARJETA DE HECHIZO
+   ═══════════════════════════════════════ */
 .spell-card {
     position: relative;
-    aspect-ratio: 1;
-    min-height: 58px;
-    background: rgba(60, 40, 90, 0.7);
-    border: 2px solid rgba(139, 92, 246, 0.4);
-    border-radius: 6px;
+    height: 72px;
+    border-radius: 8px;
+    cursor: pointer;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    /* fondo base — sobreescrito por tipo */
+    background: linear-gradient(145deg, #1a1030 0%, #2d1f50 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    overflow: hidden;
-    padding: 3px;
+    justify-content: flex-end;
+    padding-bottom: 5px;
+    user-select: none;
 }
 
+/* Fondos por tipo */
+.spell-card.type-damage  { background: linear-gradient(145deg, #2d0a0a 0%, #5a1010 100%); border-color: rgba(239,68,68,0.35); }
+.spell-card.type-heal    { background: linear-gradient(145deg, #062010 0%, #0d4020 100%); border-color: rgba(34,197,94,0.35); }
+.spell-card.type-buff    { background: linear-gradient(145deg, #06122a 0%, #0e2455 100%); border-color: rgba(59,130,246,0.35); }
+.spell-card.type-debuff  { background: linear-gradient(145deg, #1e1000 0%, #3d2000 100%); border-color: rgba(245,158,11,0.35); }
+.spell-card.type-summon  { background: linear-gradient(145deg, #1a0630 0%, #360c5c 100%); border-color: rgba(168,85,247,0.35); }
+.spell-card.type-area    { background: linear-gradient(145deg, #220808 0%, #4a0f0f 100%); border-color: rgba(239,68,68,0.35); }
+.spell-card.type-other   { background: linear-gradient(145deg, #101020 0%, #20204a 100%); border-color: rgba(139,92,246,0.35); }
+
+/* Hover */
 .spell-card:hover {
-    background: rgba(80, 55, 120, 0.85);
-    border-color: #8b5cf6;
-    transform: scale(1.05);
+    transform: translateY(-2px) scale(1.03);
+    border-color: rgba(255,255,255,0.35);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
     z-index: 2;
 }
+.spell-card.type-damage:hover  { box-shadow: 0 4px 14px rgba(239,68,68,0.45); border-color: rgba(239,68,68,0.7); }
+.spell-card.type-heal:hover    { box-shadow: 0 4px 14px rgba(34,197,94,0.45); border-color: rgba(34,197,94,0.7); }
+.spell-card.type-buff:hover    { box-shadow: 0 4px 14px rgba(59,130,246,0.45); border-color: rgba(59,130,246,0.7); }
+.spell-card.type-debuff:hover  { box-shadow: 0 4px 14px rgba(245,158,11,0.45); border-color: rgba(245,158,11,0.7); }
+.spell-card.type-summon:hover  { box-shadow: 0 4px 14px rgba(168,85,247,0.45); border-color: rgba(168,85,247,0.7); }
 
+/* Seleccionado */
 .spell-card.selected {
-    background: rgba(109, 40, 217, 0.6);
-    border-color: #a78bfa;
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.7);
+    transform: scale(1.04);
+    border-width: 2px;
 }
+.spell-card.type-damage.selected  { border-color: #ef4444; box-shadow: 0 0 14px rgba(239,68,68,0.7), inset 0 0 8px rgba(239,68,68,0.15); }
+.spell-card.type-heal.selected    { border-color: #22c55e; box-shadow: 0 0 14px rgba(34,197,94,0.7), inset 0 0 8px rgba(34,197,94,0.15); }
+.spell-card.type-buff.selected    { border-color: #3b82f6; box-shadow: 0 0 14px rgba(59,130,246,0.7), inset 0 0 8px rgba(59,130,246,0.15); }
+.spell-card.type-debuff.selected  { border-color: #f59e0b; box-shadow: 0 0 14px rgba(245,158,11,0.7), inset 0 0 8px rgba(245,158,11,0.15); }
+.spell-card.type-summon.selected  { border-color: #a855f7; box-shadow: 0 0 14px rgba(168,85,247,0.7), inset 0 0 8px rgba(168,85,247,0.15); }
+.spell-card.selected:not([class*='type-']) { border-color: #a78bfa; box-shadow: 0 0 14px rgba(139,92,246,0.7); }
 
-/* Icono principal del hechizo */
+/* ── Icono central grande ── */
 .spell-card-icon {
-    font-size: 22px;
+    font-size: 26px;
     line-height: 1;
-    margin-top: 4px;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
 }
 
-/* Nombre corto debajo del icono */
+/* ── Nombre en la base ── */
 .spell-card-name {
     font-size: 9px;
-    color: #e9d5ff;
+    font-weight: 600;
+    color: rgba(240,230,255,0.9);
     text-align: center;
+    letter-spacing: 0.3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    margin-top: 2px;
-    line-height: 1.1;
+    max-width: 90%;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
 
-/* Coste de mana — esquina inferior derecha */
+/* ── Barra de mana (franja inferior de color) ── */
+.spell-card-mana-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(59,130,246,0.25);
+}
+.spell-card-mana-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #3b82f6;
+    box-shadow: 0 0 6px #3b82f6;
+}
+
+/* ── Etiqueta de mana (esquina inf izquierda) ── */
 .spell-card-mana {
     position: absolute;
-    bottom: 2px;
-    right: 3px;
+    bottom: 5px;
+    left: 5px;
     font-size: 8px;
-    font-weight: bold;
+    font-weight: 700;
     color: #93c5fd;
-    background: rgba(0, 0, 0, 0.65);
-    padding: 1px 3px;
-    border-radius: 3px;
-    line-height: 1.2;
+    background: rgba(0,0,10,0.7);
+    border: 1px solid rgba(59,130,246,0.4);
+    border-radius: 4px;
+    padding: 1px 4px;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
 }
 
-/* Badge de tipo — esquina superior izquierda */
+/* ── Badge de tipo (esquina sup derecha) ── */
 .spell-card-type-badge {
     position: absolute;
-    top: 2px;
-    left: 3px;
-    font-size: 9px;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
     line-height: 1;
-    background: rgba(0, 0, 0, 0.55);
-    border-radius: 3px;
-    padding: 1px 2px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
 }
 
-/* Número de hotkey — esquina superior derecha */
+/* ── Número de hotkey (esquina sup izquierda) ── */
 .spell-card-hotkey {
     position: absolute;
-    top: 2px;
-    right: 3px;
+    top: 3px;
+    left: 4px;
     font-size: 8px;
-    color: rgba(255, 215, 0, 0.8);
-    font-weight: bold;
-    background: rgba(0, 0, 0, 0.55);
+    font-weight: 700;
+    color: rgba(255,215,0,0.75);
+    background: rgba(0,0,0,0.55);
     border-radius: 3px;
     padding: 1px 3px;
-    line-height: 1.2;
+    line-height: 1.3;
+    font-family: 'Courier New', monospace;
 }
 
-/* Colores de borde por tipo */
-.spell-card.type-damage  { border-color: rgba(239, 68,  68,  0.55); }
-.spell-card.type-heal    { border-color: rgba( 34, 197,  94,  0.55); }
-.spell-card.type-buff    { border-color: rgba( 59, 130, 246,  0.55); }
-.spell-card.type-debuff  { border-color: rgba(245, 158,  11,  0.55); }
-.spell-card.type-summon  { border-color: rgba(168, 85,  247,  0.55); }
-.spell-card.type-area    { border-color: rgba(239, 68,  68,  0.55); }
+/* ── Brillo de partícula en hover ── */
+.spell-card::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -40%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity 0.2s;
+    opacity: 0;
+}
+.spell-card:hover::before { opacity: 1; }
 
-.spell-card.type-damage.selected  { box-shadow: 0 0 10px rgba(239, 68,  68,  0.7); }
-.spell-card.type-heal.selected    { box-shadow: 0 0 10px rgba( 34, 197,  94,  0.7); }
-.spell-card.type-buff.selected    { box-shadow: 0 0 10px rgba( 59, 130, 246,  0.7); }
-.spell-card.type-debuff.selected  { box-shadow: 0 0 10px rgba(245, 158,  11,  0.7); }
+/* ── Lista antigua (retrocompatibilidad oculta) ── */
+.spell-item { display: none; }
