@@ -337,8 +337,9 @@ export function toggleSpellsPanel(visible = null) {
     }
     
     // Actualizar estado y visibilidad
+    // IMPORTANTE: usar 'grid' (no 'block') para respetar el grid de 2 columnas del CSS
     uiState.visible = visible;
-    spellsList.style.display = visible ? 'block' : 'none';
+    spellsList.style.display = visible ? 'grid' : 'none';
     spellsActions.style.display = visible ? 'flex' : 'none';
     
     // Actualizar texto del botón
