@@ -149,63 +149,67 @@ export function updateSpellsList() {
         return;
     }
     
-    // Añadir cada hechizo a la lista
+    // Añadir cada hechizo como tarjeta estilo inventario (2 por fila)
     playerSpells.forEach((playerSpell, index) => {
         const spellKey = playerSpell.key;
         const spell = SPELLS[spellKey];
         
         if (!spell) return;
         
-        const spellItem = document.createElement('div');
-        spellItem.className = 'spell-item';
-        if (index === uiState.selectedSpellIndex) {
-            spellItem.classList.add('selected');
-        }
-        
-        // Información del hechizo
-        const spellIcon = document.createElement('span');
-        spellIcon.className = 'spell-icon';
-        spellIcon.textContent = spell.icon;
-        
-        const spellName = document.createElement('span');
-        spellName.className = 'spell-name';
-        spellName.textContent = spell.name;
-        
-        // Agregar tipo y mana
-        const spellDetails = document.createElement('span');
-        spellDetails.className = 'spell-details';
-        
-        let typeText;
-        switch (spell.type) {
-            case SPELL_TYPES.DAMAGE: typeText = 'Daño'; break;
-            case SPELL_TYPES.HEAL: typeText = 'Cura'; break;
-            case SPELL_TYPES.BUFF: typeText = 'Mejora'; break;
-            case SPELL_TYPES.DEBUFF: typeText = 'Debilita'; break;
-            case SPELL_TYPES.SUMMON: typeText = 'Invoca'; break;
-            default: typeText = 'Magia';
-        }
-        
-        spellDetails.textContent = `${typeText} | 🔵 ${spell.manaRequired}`;
-        
-        // Estructura del item
-        spellItem.appendChild(spellIcon);
-        spellItem.appendChild(spellName);
-        spellItem.appendChild(spellDetails);
-        
-        // Número de tecla para el atajo
+        // Icono de tipo de hechizo
+        const TYPE_ICONS = {
+            [SPELL_TYPES.DAMAGE]:      { icon: '⚔️', label: 'Daño',    cls: 'type-damage'  },
+            [SPELL_TYPES.HEAL]:        { icon: '💚', label: 'Cura',    cls: 'type-heal'    },
+            [SPELL_TYPES.BUFF]:        { icon: '⬆️', label: 'Mejora',  cls: 'type-buff'    },
+            [SPELL_TYPES.DEBUFF]:      { icon: '⬇️', label: 'Debilita',cls: 'type-debuff'  },
+            [SPELL_TYPES.SUMMON]:      { icon: '🌀', label: 'Invoca',  cls: 'type-summon'  },
+            [SPELL_TYPES.AREA_EFFECT]: { icon: '💥', label: 'Área',    cls: 'type-area'    },
+        };
+        const typeInfo = TYPE_ICONS[spell.type] || { icon: '✨', label: 'Magia', cls: 'type-other' };
+
+        const spellCard = document.createElement('div');
+        spellCard.className = `spell-card ${typeInfo.cls}`;
+        if (index === uiState.selectedSpellIndex) spellCard.classList.add('selected');
+        spellCard.title = `${spell.name}\n${spell.description}\n🔵 Mana: ${spell.manaRequired}`;
+
+        // Icono grande del hechizo
+        const iconEl = document.createElement('span');
+        iconEl.className = 'spell-card-icon';
+        iconEl.textContent = spell.icon;
+
+        // Badge de tipo en esquina superior izquierda
+        const typeBadge = document.createElement('span');
+        typeBadge.className = `spell-card-type-badge ${typeInfo.cls}`;
+        typeBadge.textContent = typeInfo.icon;
+        typeBadge.title = typeInfo.label;
+
+        // Nombre corto (máx 10 chars para caber)
+        const nameEl = document.createElement('span');
+        nameEl.className = 'spell-card-name';
+        nameEl.textContent = spell.name.length > 10 ? spell.name.substring(0, 9) + '…' : spell.name;
+
+        // Coste de mana en esquina inferior derecha
+        const manaEl = document.createElement('span');
+        manaEl.className = 'spell-card-mana';
+        manaEl.textContent = `🔵${spell.manaRequired}`;
+
+        // Hotkey (tecla rápida)
         if (index < 9) {
             const hotkey = document.createElement('span');
-            hotkey.className = 'spell-hotkey';
-            hotkey.textContent = `${index + 1}`;
-            spellItem.appendChild(hotkey);
+            hotkey.className = 'spell-card-hotkey';
+            hotkey.textContent = index + 1;
+            spellCard.appendChild(hotkey);
         }
-        
+
+        spellCard.appendChild(typeBadge);
+        spellCard.appendChild(iconEl);
+        spellCard.appendChild(nameEl);
+        spellCard.appendChild(manaEl);
+
         // Evento al hacer clic
-        spellItem.addEventListener('click', () => {
-            selectSpell(index);
-        });
+        spellCard.addEventListener('click', () => selectSpell(index));
         
-        spellsList.appendChild(spellItem);
+        spellsList.appendChild(spellCard);
     });
 
     // Actualizar barra de hechizos móvil

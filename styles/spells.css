@@ -158,3 +158,119 @@ body.targeting #gameCanvas {
 .spells-list::-webkit-scrollbar-thumb:hover {
     background: #8a4baf;
 }
+
+/* =====================================================
+   TARJETAS DE HECHIZOS — estilo inventario 2 por fila
+   ===================================================== */
+
+/* Contenedor: grid de 2 columnas */
+#sidebarSpellsList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    padding: 4px;
+}
+
+/* Tarjeta individual */
+.spell-card {
+    position: relative;
+    aspect-ratio: 1;
+    min-height: 58px;
+    background: rgba(60, 40, 90, 0.7);
+    border: 2px solid rgba(139, 92, 246, 0.4);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    padding: 3px;
+}
+
+.spell-card:hover {
+    background: rgba(80, 55, 120, 0.85);
+    border-color: #8b5cf6;
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+.spell-card.selected {
+    background: rgba(109, 40, 217, 0.6);
+    border-color: #a78bfa;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.7);
+}
+
+/* Icono principal del hechizo */
+.spell-card-icon {
+    font-size: 22px;
+    line-height: 1;
+    margin-top: 4px;
+}
+
+/* Nombre corto debajo del icono */
+.spell-card-name {
+    font-size: 9px;
+    color: #e9d5ff;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    margin-top: 2px;
+    line-height: 1.1;
+}
+
+/* Coste de mana — esquina inferior derecha */
+.spell-card-mana {
+    position: absolute;
+    bottom: 2px;
+    right: 3px;
+    font-size: 8px;
+    font-weight: bold;
+    color: #93c5fd;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 1px 3px;
+    border-radius: 3px;
+    line-height: 1.2;
+}
+
+/* Badge de tipo — esquina superior izquierda */
+.spell-card-type-badge {
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    font-size: 9px;
+    line-height: 1;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 3px;
+    padding: 1px 2px;
+}
+
+/* Número de hotkey — esquina superior derecha */
+.spell-card-hotkey {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: 8px;
+    color: rgba(255, 215, 0, 0.8);
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 3px;
+    padding: 1px 3px;
+    line-height: 1.2;
+}
+
+/* Colores de borde por tipo */
+.spell-card.type-damage  { border-color: rgba(239, 68,  68,  0.55); }
+.spell-card.type-heal    { border-color: rgba( 34, 197,  94,  0.55); }
+.spell-card.type-buff    { border-color: rgba( 59, 130, 246,  0.55); }
+.spell-card.type-debuff  { border-color: rgba(245, 158,  11,  0.55); }
+.spell-card.type-summon  { border-color: rgba(168, 85,  247,  0.55); }
+.spell-card.type-area    { border-color: rgba(239, 68,  68,  0.55); }
+
+.spell-card.type-damage.selected  { box-shadow: 0 0 10px rgba(239, 68,  68,  0.7); }
+.spell-card.type-heal.selected    { box-shadow: 0 0 10px rgba( 34, 197,  94,  0.7); }
+.spell-card.type-buff.selected    { box-shadow: 0 0 10px rgba( 59, 130, 246,  0.7); }
+.spell-card.type-debuff.selected  { box-shadow: 0 0 10px rgba(245, 158,  11,  0.7); }
