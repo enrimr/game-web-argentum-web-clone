@@ -308,6 +308,15 @@ body {
     padding-bottom: 3px;
 }
 
+/* Paginación del inventario (desktop) */
+.inventory-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    gap: 5px;
+}
+
 /* Inventory styling - IMPROVED FOR BETTER VISIBILITY */
 .inventory {
     display: grid;
