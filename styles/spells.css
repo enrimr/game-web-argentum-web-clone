@@ -25,32 +25,31 @@
     font-size: 11px;
 }
 
-/* ── Grid de tarjetas: 2 columnas ── */
+/* ── Grid de tarjetas: 2 columnas, cada una exactamente 50% ── */
 #sidebarSpellsList {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    padding: 4px 2px;
+    gap: 4px;
+    padding: 3px 2px;
 }
 
 /* ═══════════════════════════════════════
-   TARJETA DE HECHIZO
+   TARJETA DE HECHIZO  — compacta
    ═══════════════════════════════════════ */
 .spell-card {
     position: relative;
-    height: 72px;
-    border-radius: 8px;
+    height: 54px;          /* más baja para caber 2 en el ancho del panel */
+    border-radius: 6px;
     cursor: pointer;
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.1);
     transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-    /* fondo base — sobreescrito por tipo */
     background: linear-gradient(145deg, #1a1030 0%, #2d1f50 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    padding-bottom: 5px;
+    padding-bottom: 4px;
     user-select: none;
 }
 
@@ -88,27 +87,27 @@
 .spell-card.type-summon.selected  { border-color: #a855f7; box-shadow: 0 0 14px rgba(168,85,247,0.7), inset 0 0 8px rgba(168,85,247,0.15); }
 .spell-card.selected:not([class*='type-']) { border-color: #a78bfa; box-shadow: 0 0 14px rgba(139,92,246,0.7); }
 
-/* ── Icono central grande ── */
+/* ── Icono central ── */
 .spell-card-icon {
-    font-size: 26px;
+    font-size: 20px;
     line-height: 1;
-    margin-bottom: 4px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    margin-bottom: 2px;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.9));
 }
 
 /* ── Nombre en la base ── */
 .spell-card-name {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 600;
-    color: rgba(240,230,255,0.9);
+    color: rgba(240,230,255,0.88);
     text-align: center;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 90%;
+    max-width: 92%;
     line-height: 1;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.95);
 }
 
 /* ── Barra de mana (franja inferior de color) ── */
